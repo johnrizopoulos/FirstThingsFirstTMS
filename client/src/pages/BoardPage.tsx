@@ -12,6 +12,7 @@ import type { Task, Milestone } from "@shared/schema";
 
 function SortableTaskCard({ task, onSelect }: { task: Task; onSelect: (task: Task) => void }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: task.id });
+  const [pointerStart, setPointerStart] = React.useState<{ x: number; y: number } | null>(null);
   
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -19,13 +20,32 @@ function SortableTaskCard({ task, onSelect }: { task: Task; onSelect: (task: Tas
     zIndex: isDragging ? 50 : "auto",
   } as React.CSSProperties;
 
+  const handlePointerDown = (e: React.PointerEvent) => {
+    setPointerStart({ x: e.clientX, y: e.clientY });
+  };
+
+  const handlePointerUp = (e: React.PointerEvent) => {
+    if (pointerStart) {
+      const distance = Math.sqrt(
+        Math.pow(e.clientX - pointerStart.x, 2) + 
+        Math.pow(e.clientY - pointerStart.y, 2)
+      );
+      // If movement is less than 5px, treat as click
+      if (distance < 5) {
+        onSelect(task);
+      }
+    }
+    setPointerStart(null);
+  };
+
   return (
     <div
       ref={setNodeRef}
       style={style}
       {...attributes}
       {...listeners}
-      onClick={() => !isDragging && onSelect(task)}
+      onPointerDown={handlePointerDown}
+      onPointerUp={handlePointerUp}
       data-testid={`card-task-${task.id}`}
       className={cn(
         "bg-black border border-primary/50 p-2 mb-2 text-xs cursor-grab active:cursor-grabbing hover:border-primary hover:bg-secondary/20 transition-colors",
