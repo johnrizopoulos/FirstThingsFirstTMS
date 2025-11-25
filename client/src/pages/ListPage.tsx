@@ -109,28 +109,14 @@ export default function ListPage() {
 
   const handleComplete = () => {
     if (selectedTask) {
-      completeTask.mutate(selectedTask.id, {
-        onSuccess: () => {
-          const remaining = activeTasks.filter(t => t.id !== selectedTask.id);
-          if (remaining.length > 0) {
-            reorderTasks.mutate(remaining.map(t => t.id));
-          }
-        }
-      });
+      completeTask.mutate(selectedTask.id);
       setSelectedTask(null);
     }
   };
 
   const handleDelete = () => {
     if (selectedTask) {
-      deleteTask.mutate(selectedTask.id, {
-        onSuccess: () => {
-          const remaining = activeTasks.filter(t => t.id !== selectedTask.id);
-          if (remaining.length > 0) {
-            reorderTasks.mutate(remaining.map(t => t.id));
-          }
-        }
-      });
+      deleteTask.mutate(selectedTask.id);
       setSelectedTask(null);
     }
   };
@@ -175,10 +161,11 @@ export default function ListPage() {
             strategy={verticalListSortingStrategy}
           >
             <div className="space-y-2">
-              {activeTasks.map((task) => (
+              {activeTasks.map((task, index) => (
                 <SortableTaskRow 
                   key={task.id} 
                   task={task} 
+                  index={index}
                   onEdit={(task) => setSelectedTask(task)} 
                 />
               ))}

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { useTasks, useUpdateTask, useDeleteTask, useCompleteTask, useReorderTasks } from "@/hooks/useData";
+import { useTasks, useUpdateTask, useDeleteTask, useCompleteTask } from "@/hooks/useData";
 import { Layout } from "@/components/Layout";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -11,7 +11,6 @@ export default function FocusPage() {
   const updateTask = useUpdateTask();
   const completeTask = useCompleteTask();
   const deleteTask = useDeleteTask();
-  const reorderTasks = useReorderTasks();
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [editForm, setEditForm] = useState({ title: "", description: "", definitionOfDone: "" });
   const descriptionRef = useRef<HTMLTextAreaElement>(null);
@@ -64,28 +63,14 @@ export default function FocusPage() {
 
   const handleComplete = () => {
     if (selectedTask) {
-      completeTask.mutate(selectedTask.id, {
-        onSuccess: () => {
-          const activeTasks = tasks.filter(t => !t.isCompleted && !t.isDeleted && t.id !== selectedTask.id);
-          if (activeTasks.length > 0) {
-            reorderTasks.mutate(activeTasks.map(t => t.id));
-          }
-        }
-      });
+      completeTask.mutate(selectedTask.id);
       setSelectedTask(null);
     }
   };
 
   const handleDelete = () => {
     if (selectedTask) {
-      deleteTask.mutate(selectedTask.id, {
-        onSuccess: () => {
-          const activeTasks = tasks.filter(t => !t.isCompleted && !t.isDeleted && t.id !== selectedTask.id);
-          if (activeTasks.length > 0) {
-            reorderTasks.mutate(activeTasks.map(t => t.id));
-          }
-        }
-      });
+      deleteTask.mutate(selectedTask.id);
       setSelectedTask(null);
     }
   };

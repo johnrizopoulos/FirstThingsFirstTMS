@@ -7,9 +7,10 @@ import type { Task } from "@shared/schema";
 interface SortableTaskRowProps {
   task: Task;
   onEdit: (task: Task) => void;
+  index: number;
 }
 
-export function SortableTaskRow({ task, onEdit }: SortableTaskRowProps) {
+export function SortableTaskRow({ task, onEdit, index }: SortableTaskRowProps) {
   const {
     attributes,
     listeners,
@@ -45,7 +46,7 @@ export function SortableTaskRow({ task, onEdit }: SortableTaskRowProps) {
       </div>
       
       <div className="font-bold text-primary/50 w-8 text-right flex-shrink-0">
-        #{task.globalOrder + 1}
+        #{index + 1}
       </div>
       
       <div 

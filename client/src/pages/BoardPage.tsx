@@ -160,16 +160,7 @@ export default function BoardPage() {
 
   const handleCompleteTask = () => {
     if (selectedTask) {
-      completeTask.mutate(selectedTask.id, {
-        onSuccess: () => {
-          const milestoneTasks = tasks
-            .filter(t => t.milestoneId === selectedTask.milestoneId && !t.isDeleted && !t.isCompleted && t.id !== selectedTask.id)
-            .sort((a, b) => a.globalOrder - b.globalOrder);
-          if (milestoneTasks.length > 0) {
-            reorderTasks.mutate(milestoneTasks.map(t => t.id));
-          }
-        }
-      });
+      completeTask.mutate(selectedTask.id);
       setSelectedTask(null);
     }
   };
@@ -183,16 +174,7 @@ export default function BoardPage() {
 
   const handleDeleteTask = () => {
     if (selectedTask) {
-      deleteTask.mutate(selectedTask.id, {
-        onSuccess: () => {
-          const milestoneTasks = tasks
-            .filter(t => t.milestoneId === selectedTask.milestoneId && !t.isDeleted && !t.isCompleted && t.id !== selectedTask.id)
-            .sort((a, b) => a.globalOrder - b.globalOrder);
-          if (milestoneTasks.length > 0) {
-            reorderTasks.mutate(milestoneTasks.map(t => t.id));
-          }
-        }
-      });
+      deleteTask.mutate(selectedTask.id);
       setSelectedTask(null);
     }
   };
