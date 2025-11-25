@@ -19,6 +19,7 @@ export default function ListPage() {
   const reorderTasks = useReorderTasks();
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [editForm, setEditForm] = useState({ title: "", milestoneId: "" as string | undefined, description: "", definitionOfDone: "" });
+  const [searchQuery, setSearchQuery] = useState("");
   const descriptionRef = useRef<HTMLTextAreaElement>(null);
   const dodRef = useRef<HTMLTextAreaElement>(null);
 
@@ -41,6 +42,17 @@ export default function ListPage() {
   }, [selectedTask]);
 
   const activeTasks = tasks.filter(t => !t.isDeleted && !t.isCompleted).sort((a, b) => a.globalOrder - b.globalOrder);
+  
+  const filteredTasks = activeTasks.filter(task => {
+    if (!searchQuery.trim()) return true;
+    
+    const query = searchQuery.toLowerCase();
+    const title = task.title.toLowerCase();
+    const description = (task.description || "").toLowerCase();
+    const dod = (task.definitionOfDone || "").toLowerCase();
+    
+    return title.includes(query) || description.includes(query) || dod.includes(query);
+  });
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -145,17 +157,33 @@ export default function ListPage() {
           </Button>
         </div>
 
+        <div className="mb-4">
+          <input
+            type="text"
+            placeholder="SEARCH_TASKS..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            data-testid="input-search-tasks"
+            className="w-full bg-black border border-primary p-2 text-sm md:text-base focus:outline-none focus:ring-1 focus:ring-primary placeholder:text-primary/30 font-mono"
+          />
+          {searchQuery && (
+            <div className="text-xs opacity-50 mt-1">
+              SHOWING {filteredTasks.length} OF {activeTasks.length} TASKS
+            </div>
+          )}
+        </div>
+
         <DndContext 
           sensors={sensors} 
           collisionDetection={closestCenter} 
           onDragEnd={handleDragEnd}
         >
           <SortableContext 
-            items={activeTasks.map(t => t.id)} 
+            items={filteredTasks.map(t => t.id)} 
             strategy={verticalListSortingStrategy}
           >
             <div className="space-y-2">
-              {activeTasks.map((task, index) => (
+              {filteredTasks.map((task, index) => (
                 <SortableTaskRow 
                   key={task.id} 
                   task={task} 
@@ -163,6 +191,12 @@ export default function ListPage() {
                   onEdit={(task) => setSelectedTask(task)} 
                 />
               ))}
+              
+              {filteredTasks.length === 0 && activeTasks.length > 0 && (
+                <div className="text-center border border-dashed border-primary/30 p-6 md:p-8 text-primary/50 text-sm md:text-base">
+                  NO MATCHING TASKS
+                </div>
+              )}
               
               {activeTasks.length === 0 && (
                 <div className="text-center border border-dashed border-primary/30 p-6 md:p-8 text-primary/50 text-sm md:text-base">
