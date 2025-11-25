@@ -115,8 +115,9 @@ export default function ListPage() {
             isDeleted: false,
           },
           {
-            onSuccess: () => {
-              console.log("Task created successfully");
+            onSuccess: async () => {
+              // Wait a brief moment for React Query to update the cache
+              await new Promise(resolve => setTimeout(resolve, 100));
               setSelectedTask(null);
             },
             onError: (error) => {
