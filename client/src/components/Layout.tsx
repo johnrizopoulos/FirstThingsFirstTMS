@@ -121,20 +121,20 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 <Menu className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56 bg-black border-2 border-primary text-primary font-mono rounded-none p-0">
-              <DropdownMenuItem asChild className="focus:bg-primary focus:text-black rounded-none p-0">
+            <DropdownMenuContent align="end" className="w-56 bg-background border-2 border-primary text-foreground font-mono rounded-none p-0">
+              <DropdownMenuItem asChild className="focus:bg-primary focus:text-primary-foreground rounded-none p-0">
                 <MobileNavItem href="/" label="FOCUS" hotkey="F1" />
               </DropdownMenuItem>
-              <DropdownMenuItem asChild className="focus:bg-primary focus:text-black rounded-none p-0">
+              <DropdownMenuItem asChild className="focus:bg-primary focus:text-primary-foreground rounded-none p-0">
                 <MobileNavItem href="/list" label="LIST" hotkey="F2" />
               </DropdownMenuItem>
-              <DropdownMenuItem asChild className="focus:bg-primary focus:text-black rounded-none p-0">
+              <DropdownMenuItem asChild className="focus:bg-primary focus:text-primary-foreground rounded-none p-0">
                 <MobileNavItem href="/board" label="BOARD" hotkey="F3" />
               </DropdownMenuItem>
-              <DropdownMenuItem asChild className="focus:bg-primary focus:text-black rounded-none p-0">
+              <DropdownMenuItem asChild className="focus:bg-primary focus:text-primary-foreground rounded-none p-0">
                 <MobileNavItem href="/completed" label="COMPLETED" hotkey="F4" />
               </DropdownMenuItem>
-              <DropdownMenuItem asChild className="focus:bg-primary focus:text-black rounded-none p-0">
+              <DropdownMenuItem asChild className="focus:bg-primary focus:text-primary-foreground rounded-none p-0">
                 <MobileNavItem href="/trash" label="TRASH" hotkey="F5" />
               </DropdownMenuItem>
             </DropdownMenuContent>
