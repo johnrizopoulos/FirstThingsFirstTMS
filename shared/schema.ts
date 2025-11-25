@@ -46,6 +46,8 @@ export const milestones = pgTable("milestones", {
   description: text("description").default(""),
   definitionOfDone: text("definition_of_done").default(""),
   displayOrder: integer("display_order").notNull(),
+  isCompleted: boolean("is_completed").default(false).notNull(),
+  completedAt: timestamp("completed_at"),
   isDeleted: boolean("is_deleted").default(false).notNull(),
   deletedAt: timestamp("deleted_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -53,6 +55,7 @@ export const milestones = pgTable("milestones", {
 }, (table) => [
   index("idx_milestones_user_id").on(table.userId),
   index("idx_milestones_deleted").on(table.isDeleted),
+  index("idx_milestones_completed").on(table.isCompleted),
 ]);
 
 export const milestonesRelations = relations(milestones, ({ one, many }) => ({

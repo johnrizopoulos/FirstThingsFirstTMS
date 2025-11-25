@@ -33,6 +33,18 @@ export async function updateMilestone(id: string, updates: Partial<Milestone>): 
   return handleResponse(response);
 }
 
+export async function completeMilestone(id: string): Promise<Milestone> {
+  const response = await fetch(`/api/milestones/${id}/complete`, {
+    method: "PUT",
+  });
+  return handleResponse(response);
+}
+
+export async function getCompletedMilestones(): Promise<Milestone[]> {
+  const response = await fetch("/api/milestones/completed");
+  return handleResponse(response);
+}
+
 export async function deleteMilestone(id: string): Promise<void> {
   const response = await fetch(`/api/milestones/${id}`, {
     method: "DELETE",
@@ -61,6 +73,18 @@ export async function updateTask(id: string, updates: Partial<Task>): Promise<Ta
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(updates),
   });
+  return handleResponse(response);
+}
+
+export async function completeTask(id: string): Promise<Task> {
+  const response = await fetch(`/api/tasks/${id}/complete`, {
+    method: "PUT",
+  });
+  return handleResponse(response);
+}
+
+export async function getCompletedTasks(): Promise<Task[]> {
+  const response = await fetch("/api/tasks/completed");
   return handleResponse(response);
 }
 

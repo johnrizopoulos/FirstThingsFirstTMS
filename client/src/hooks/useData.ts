@@ -96,6 +96,45 @@ export function useReorderTasks() {
   });
 }
 
+export function useCompleteMilestone() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: api.completeMilestone,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/milestones"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/milestones/completed"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/tasks"] });
+    },
+  });
+}
+
+export function useGetCompletedMilestones() {
+  return useQuery({
+    queryKey: ["/api/milestones/completed"],
+    queryFn: api.getCompletedMilestones,
+  });
+}
+
+export function useCompleteTask() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: api.completeTask,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/tasks"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/tasks/completed"] });
+    },
+  });
+}
+
+export function useGetCompletedTasks() {
+  return useQuery({
+    queryKey: ["/api/tasks/completed"],
+    queryFn: api.getCompletedTasks,
+  });
+}
+
 export function useCleanupTrash() {
   const queryClient = useQueryClient();
 

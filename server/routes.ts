@@ -67,6 +67,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.put("/api/milestones/:id/complete", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { id } = req.params;
+      
+      const completed = await storage.completeMilestone(id, userId);
+      if (!completed) {
+        return res.status(404).json({ message: "Milestone not found" });
+      }
+      
+      res.json(completed);
+    } catch (error) {
+      console.error("Error completing milestone:", error);
+      res.status(500).json({ message: "Failed to complete milestone" });
+    }
+  });
+
+  app.get("/api/milestones/completed", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const completed = await storage.getCompletedMilestones(userId);
+      res.json(completed);
+    } catch (error) {
+      console.error("Error fetching completed milestones:", error);
+      res.status(500).json({ message: "Failed to fetch completed milestones" });
+    }
+  });
+
   app.delete("/api/milestones/:id", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
@@ -129,6 +157,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error updating task:", error);
       res.status(500).json({ message: "Failed to update task" });
+    }
+  });
+
+  app.put("/api/tasks/:id/complete", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { id } = req.params;
+      
+      const completed = await storage.completeTask(id, userId);
+      if (!completed) {
+        return res.status(404).json({ message: "Task not found" });
+      }
+      
+      res.json(completed);
+    } catch (error) {
+      console.error("Error completing task:", error);
+      res.status(500).json({ message: "Failed to complete task" });
+    }
+  });
+
+  app.get("/api/tasks/completed", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const completed = await storage.getCompletedTasks(userId);
+      res.json(completed);
+    } catch (error) {
+      console.error("Error fetching completed tasks:", error);
+      res.status(500).json({ message: "Failed to fetch completed tasks" });
     }
   });
 

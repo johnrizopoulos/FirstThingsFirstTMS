@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { useTasks, useUpdateTask, useDeleteTask } from "@/hooks/useData";
+import { useTasks, useUpdateTask, useDeleteTask, useCompleteTask } from "@/hooks/useData";
 import { Layout } from "@/components/Layout";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,7 @@ import type { Task } from "@shared/schema";
 export default function FocusPage() {
   const { data: tasks = [], isLoading } = useTasks();
   const updateTask = useUpdateTask();
+  const completeTask = useCompleteTask();
   const deleteTask = useDeleteTask();
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [editForm, setEditForm] = useState({ title: "", description: "", definitionOfDone: "" });
@@ -62,10 +63,7 @@ export default function FocusPage() {
 
   const handleComplete = () => {
     if (selectedTask) {
-      updateTask.mutate({
-        id: selectedTask.id,
-        updates: { isCompleted: true, completedAt: new Date() }
-      });
+      completeTask.mutate(selectedTask.id);
       setSelectedTask(null);
     }
   };

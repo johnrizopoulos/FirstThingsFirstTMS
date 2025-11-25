@@ -9,6 +9,7 @@ import Landing from "@/pages/Landing";
 import FocusPage from "@/pages/FocusPage";
 import ListPage from "@/pages/ListPage";
 import BoardPage from "@/pages/BoardPage";
+import CompletedPage from "@/pages/CompletedPage";
 import TrashPage from "@/pages/TrashPage";
 
 function Router() {
@@ -34,6 +35,7 @@ function Router() {
           <Route path="/" component={FocusPage} />
           <Route path="/list" component={ListPage} />
           <Route path="/board" component={BoardPage} />
+          <Route path="/completed" component={CompletedPage} />
           <Route path="/trash" component={TrashPage} />
         </>
       )}

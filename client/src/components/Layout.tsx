@@ -29,6 +29,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
         setLocation("/board");
       } else if (e.key === "F4") {
         e.preventDefault();
+        setLocation("/completed");
+      } else if (e.key === "F5") {
+        e.preventDefault();
         setLocation("/trash");
       }
     };
@@ -115,7 +118,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 <MobileNavItem href="/board" label="BOARD" hotkey="F3" />
               </DropdownMenuItem>
               <DropdownMenuItem asChild className="focus:bg-primary focus:text-black rounded-none p-0">
-                <MobileNavItem href="/trash" label="TRASH" hotkey="F4" />
+                <MobileNavItem href="/completed" label="COMPLETED" hotkey="F4" />
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild className="focus:bg-primary focus:text-black rounded-none p-0">
+                <MobileNavItem href="/trash" label="TRASH" hotkey="F5" />
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -125,7 +131,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
           <NavItem href="/" label="FOCUS" hotkey="F1" />
           <NavItem href="/list" label="LIST" hotkey="F2" />
           <NavItem href="/board" label="BOARD" hotkey="F3" />
-          <NavItem href="/trash" label="TRASH" hotkey="F4" />
+          <NavItem href="/completed" label="COMPLETED" hotkey="F4" />
+          <NavItem href="/trash" label="TRASH" hotkey="F5" />
         </nav>
       )}
 

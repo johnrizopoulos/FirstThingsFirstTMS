@@ -22,14 +22,18 @@ export interface IStorage {
   getMilestone(id: string, userId: string): Promise<Milestone | undefined>;
   createMilestone(milestone: InsertMilestone): Promise<Milestone>;
   updateMilestone(id: string, userId: string, updates: Partial<Milestone>): Promise<Milestone | undefined>;
+  completeMilestone(id: string, userId: string): Promise<Milestone | undefined>;
   deleteMilestone(id: string, userId: string): Promise<void>;
+  getCompletedMilestones(userId: string): Promise<Milestone[]>;
   
   // Task operations
   getTasks(userId: string): Promise<Task[]>;
   getTask(id: string, userId: string): Promise<Task | undefined>;
   createTask(task: InsertTask): Promise<Task>;
   updateTask(id: string, userId: string, updates: Partial<Task>): Promise<Task | undefined>;
+  completeTask(id: string, userId: string): Promise<Task | undefined>;
   deleteTask(id: string, userId: string): Promise<void>;
+  getCompletedTasks(userId: string): Promise<Task[]>;
   
   // Batch operations
   reorderTasks(taskIds: string[], userId: string): Promise<void>;
@@ -98,6 +102,19 @@ export class DatabaseStorage implements IStorage {
     return updated;
   }
 
+  async completeMilestone(id: string, userId: string): Promise<Milestone | undefined> {
+    const [completed] = await db
+      .update(milestones)
+      .set({
+        isCompleted: true,
+        completedAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .where(and(eq(milestones.id, id), eq(milestones.userId, userId)))
+      .returning();
+    return completed;
+  }
+
   async deleteMilestone(id: string, userId: string): Promise<void> {
     await db
       .update(milestones)
@@ -107,6 +124,14 @@ export class DatabaseStorage implements IStorage {
         updatedAt: new Date(),
       })
       .where(and(eq(milestones.id, id), eq(milestones.userId, userId)));
+  }
+
+  async getCompletedMilestones(userId: string): Promise<Milestone[]> {
+    return await db
+      .select()
+      .from(milestones)
+      .where(and(eq(milestones.userId, userId), eq(milestones.isCompleted, true)))
+      .orderBy(desc(milestones.completedAt));
   }
 
   // Task operations
@@ -160,6 +185,22 @@ export class DatabaseStorage implements IStorage {
     return updated;
   }
 
+  async completeTask(id: string, userId: string): Promise<Task | undefined> {
+    const existingTask = await this.getTask(id, userId);
+    if (!existingTask) return undefined;
+
+    const [completed] = await db
+      .update(tasks)
+      .set({
+        isCompleted: true,
+        completedAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .where(eq(tasks.id, id))
+      .returning();
+    return completed;
+  }
+
   async deleteTask(id: string, userId: string): Promise<void> {
     const existingTask = await this.getTask(id, userId);
     if (!existingTask) return;
@@ -172,6 +213,19 @@ export class DatabaseStorage implements IStorage {
         updatedAt: new Date(),
       })
       .where(eq(tasks.id, id));
+  }
+
+  async getCompletedTasks(userId: string): Promise<Task[]> {
+    const result = await db
+      .select({
+        task: tasks,
+      })
+      .from(tasks)
+      .innerJoin(milestones, eq(tasks.milestoneId, milestones.id))
+      .where(and(eq(milestones.userId, userId), eq(tasks.isCompleted, true)))
+      .orderBy(desc(tasks.completedAt));
+
+    return result.map((r) => r.task);
   }
 
   // Batch operations

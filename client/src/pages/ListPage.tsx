@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { useTasks, useMilestones, useCreateTask, useUpdateTask, useDeleteTask, useReorderTasks } from "@/hooks/useData";
+import { useTasks, useMilestones, useCreateTask, useUpdateTask, useDeleteTask, useReorderTasks, useCompleteTask } from "@/hooks/useData";
 import { Layout } from "@/components/Layout";
 import { SortableTaskRow } from "@/components/SortableTaskRow";
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from "@dnd-kit/core";
@@ -14,6 +14,7 @@ export default function ListPage() {
   const { data: milestones = [] } = useMilestones();
   const createTask = useCreateTask();
   const updateTask = useUpdateTask();
+  const completeTask = useCompleteTask();
   const deleteTask = useDeleteTask();
   const reorderTasks = useReorderTasks();
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
@@ -108,10 +109,7 @@ export default function ListPage() {
 
   const handleComplete = () => {
     if (selectedTask) {
-      updateTask.mutate({
-        id: selectedTask.id,
-        updates: { isCompleted: true, completedAt: new Date() }
-      });
+      completeTask.mutate(selectedTask.id);
       setSelectedTask(null);
     }
   };

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { useTasks, useMilestones, useCreateTask, useCreateMilestone, useUpdateMilestone, useDeleteMilestone, useReorderTasks, useUpdateTask, useDeleteTask } from "@/hooks/useData";
+import { useTasks, useMilestones, useCreateTask, useCreateMilestone, useUpdateMilestone, useDeleteMilestone, useReorderTasks, useUpdateTask, useDeleteTask, useCompleteTask, useCompleteMilestone } from "@/hooks/useData";
 import { Layout } from "@/components/Layout";
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from "@dnd-kit/core";
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, useSortable } from "@dnd-kit/sortable";
@@ -47,7 +47,9 @@ export default function BoardPage() {
   const createTask = useCreateTask();
   const reorderTasks = useReorderTasks();
   const updateTask = useUpdateTask();
+  const completeTask = useCompleteTask();
   const deleteTask = useDeleteTask();
+  const completeMilestone = useCompleteMilestone();
   const [selectedMilestone, setSelectedMilestone] = useState<Milestone | null>(null);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [editForm, setEditForm] = useState({ title: "", description: "", definitionOfDone: "" });
@@ -158,11 +160,15 @@ export default function BoardPage() {
 
   const handleCompleteTask = () => {
     if (selectedTask) {
-      updateTask.mutate({
-        id: selectedTask.id,
-        updates: { isCompleted: true, completedAt: new Date() }
-      });
+      completeTask.mutate(selectedTask.id);
       setSelectedTask(null);
+    }
+  };
+
+  const handleCompleteMilestone = () => {
+    if (selectedMilestone) {
+      completeMilestone.mutate(selectedMilestone.id);
+      setSelectedMilestone(null);
     }
   };
 
@@ -463,6 +469,14 @@ export default function BoardPage() {
                 className="bg-transparent border border-primary text-primary hover:bg-primary hover:text-black font-mono rounded-none text-xs md:text-sm flex-[2]"
               >
                 CANCEL
+              </Button>
+              <Button 
+                data-testid="button-complete-milestone"
+                onClick={handleCompleteMilestone}
+                className="bg-primary text-black hover:bg-primary/80 font-mono rounded-none p-2 h-auto flex-1"
+                title="Mark as complete"
+              >
+                <Check className="w-4 h-4" />
               </Button>
               <Button 
                 data-testid="button-delete-milestone"
