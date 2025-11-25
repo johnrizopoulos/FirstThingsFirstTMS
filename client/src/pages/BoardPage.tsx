@@ -291,7 +291,7 @@ export default function BoardPage() {
             );
           })}
 
-          {activeMilestones.length < 5 && (
+          {activeMilestones.length > 0 && activeMilestones.length < 5 && (
             <div 
               className="w-12 h-full flex items-center justify-center border-2 border-dashed border-primary/20 hover:border-primary/50 cursor-pointer transition-colors"
               onClick={() => createMilestone.mutate({
