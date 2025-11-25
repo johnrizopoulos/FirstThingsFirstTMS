@@ -331,37 +331,35 @@ export default function BoardPage() {
           </div>
 
           <DialogFooter className="border-t border-primary p-3 md:p-4 flex flex-col gap-3 bg-black shrink-0">
-            <div className="flex gap-2 flex-wrap">
-              <Button 
-                data-testid="button-save-task"
-                onClick={handleSaveTaskChanges}
-                className="bg-primary text-black hover:bg-primary/80 font-mono rounded-none text-xs md:text-sm flex-1 sm:flex-none"
-              >
-                SAVE
-              </Button>
+            <Button 
+              data-testid="button-save-task"
+              onClick={handleSaveTaskChanges}
+              className="bg-primary text-black hover:bg-primary/80 font-mono rounded-none text-xs md:text-sm w-full"
+            >
+              SAVE
+            </Button>
+            <div className="flex gap-2">
               <Button 
                 data-testid="button-cancel-task"
                 variant="outline" 
                 onClick={handleCloseTaskWithoutSaving}
-                className="bg-transparent border border-primary text-primary hover:bg-primary hover:text-black font-mono rounded-none text-xs md:text-sm flex-1 sm:flex-none"
+                className="bg-transparent border border-primary text-primary hover:bg-primary hover:text-black font-mono rounded-none text-xs md:text-sm flex-[2]"
               >
                 CANCEL
               </Button>
               <Button 
                 data-testid="button-complete-task"
                 onClick={handleCompleteTask}
-                className="bg-primary text-black hover:bg-primary/80 font-mono rounded-none p-2 h-auto flex-shrink-0"
+                className="bg-primary text-black hover:bg-primary/80 font-mono rounded-none p-2 h-auto flex-1"
                 title="Mark as complete"
               >
                 <Check className="w-4 h-4" />
               </Button>
-            </div>
-            <div className="flex justify-end">
               <Button 
                 data-testid="button-delete-task"
                 variant="destructive" 
                 onClick={handleDeleteTask}
-                className="bg-transparent border border-destructive text-destructive hover:bg-destructive hover:text-white font-mono rounded-none p-2 h-auto flex-shrink-0"
+                className="bg-transparent border border-destructive text-destructive hover:bg-destructive hover:text-white font-mono rounded-none p-2 h-auto flex-1"
                 title="Delete task"
               >
                 <Trash2 className="w-4 h-4" />
@@ -415,29 +413,27 @@ export default function BoardPage() {
           </div>
 
           <DialogFooter className="border-t border-primary p-3 md:p-4 flex flex-col gap-3 bg-black shrink-0">
-            <div className="flex gap-2 flex-wrap">
-              <Button 
-                data-testid="button-save-milestone"
-                onClick={handleSaveMilestoneChanges}
-                className="bg-primary text-black hover:bg-primary/80 font-mono rounded-none text-xs md:text-sm flex-1 sm:flex-none"
-              >
-                SAVE
-              </Button>
+            <Button 
+              data-testid="button-save-milestone"
+              onClick={handleSaveMilestoneChanges}
+              className="bg-primary text-black hover:bg-primary/80 font-mono rounded-none text-xs md:text-sm w-full"
+            >
+              SAVE
+            </Button>
+            <div className="flex gap-2">
               <Button 
                 data-testid="button-close-milestone"
                 variant="outline" 
                 onClick={handleCloseMilestoneWithoutSaving}
-                className="bg-transparent border border-primary text-primary hover:bg-primary hover:text-black font-mono rounded-none text-xs md:text-sm flex-1 sm:flex-none"
+                className="bg-transparent border border-primary text-primary hover:bg-primary hover:text-black font-mono rounded-none text-xs md:text-sm flex-[2]"
               >
                 CANCEL
               </Button>
-            </div>
-            <div className="flex justify-end">
               <Button 
                 data-testid="button-delete-milestone"
                 variant="destructive" 
                 onClick={handleDeleteMilestone}
-                className="bg-transparent border border-destructive text-destructive hover:bg-destructive hover:text-white font-mono rounded-none p-2 h-auto flex-shrink-0"
+                className="bg-transparent border border-destructive text-destructive hover:bg-destructive hover:text-white font-mono rounded-none p-2 h-auto flex-1"
                 title="Delete milestone"
               >
                 <Trash2 className="w-4 h-4" />
