@@ -100,29 +100,35 @@ export default function ListPage() {
     });
   };
 
-  const handleSaveChanges = () => {
+  const handleSaveChanges = async () => {
     if (selectedTask) {
       if (selectedTask.isNew) {
-        createTask.mutate(
-          {
-            title: editForm.title || "NEW_TASK",
-            milestoneId: editForm.milestoneId || undefined,
-            description: editForm.description,
-            definitionOfDone: editForm.definitionOfDone,
-            milestoneOrder: 0,
-            globalOrder: tasks.length,
-            isCompleted: false,
-            isDeleted: false,
-          },
-          {
-            onSuccess: () => {
-              setSelectedTask(null);
+        return new Promise<void>((resolve) => {
+          createTask.mutate(
+            {
+              title: editForm.title || "NEW_TASK",
+              milestoneId: editForm.milestoneId || undefined,
+              description: editForm.description,
+              definitionOfDone: editForm.definitionOfDone,
+              milestoneOrder: 0,
+              globalOrder: tasks.length,
+              isCompleted: false,
+              isDeleted: false,
             },
-            onError: (error) => {
-              console.error("Failed to create task:", error);
-            },
-          }
-        );
+            {
+              onSuccess: () => {
+                setTimeout(() => {
+                  setSelectedTask(null);
+                  resolve();
+                }, 50);
+              },
+              onError: (error) => {
+                console.error("Failed to create task:", error);
+                resolve();
+              },
+            }
+          );
+        });
       } else {
         const hasChanges = 
           editForm.title !== selectedTask.title ||
@@ -152,7 +158,8 @@ export default function ListPage() {
         }
       }
     }
-  };
+  }
+  
 
   const handleCloseWithoutSaving = () => {
     setSelectedTask(null);

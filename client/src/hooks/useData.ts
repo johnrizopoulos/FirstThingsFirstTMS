@@ -29,13 +29,9 @@ export function useCreateMilestone() {
 
   return useMutation({
     mutationFn: api.createMilestone,
-    onSuccess: async () => {
-      await queryClient.refetchQueries({ 
-        queryKey: ["/api/milestones"],
-      });
-      await queryClient.refetchQueries({ 
-        queryKey: ["/api/milestones/active"],
-      });
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/milestones"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/milestones/active"] });
     },
   });
 }
@@ -69,10 +65,8 @@ export function useCreateTask() {
 
   return useMutation({
     mutationFn: api.createTask,
-    onSuccess: async () => {
-      await queryClient.refetchQueries({ 
-        queryKey: ["/api/tasks"],
-      });
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/tasks"] });
     },
   });
 }

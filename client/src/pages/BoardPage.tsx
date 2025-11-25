@@ -137,23 +137,28 @@ export default function BoardPage() {
     }
   };
 
-  const handleSaveMilestoneChanges = () => {
+  const handleSaveMilestoneChanges = async () => {
     if (selectedMilestone) {
       if (selectedMilestone.isNew) {
-        createMilestone.mutate(
-          {
-            title: milestoneForm.title || "NEW_MILESTONE",
-            description: milestoneForm.description,
-            definitionOfDone: milestoneForm.definitionOfDone,
-            displayOrder: activeMilestones.length,
-            isDeleted: false,
-          },
-          {
-            onSuccess: () => {
-              setSelectedMilestone(null);
+        return new Promise<void>((resolve) => {
+          createMilestone.mutate(
+            {
+              title: milestoneForm.title || "NEW_MILESTONE",
+              description: milestoneForm.description,
+              definitionOfDone: milestoneForm.definitionOfDone,
+              displayOrder: activeMilestones.length,
+              isDeleted: false,
             },
-          }
-        );
+            {
+              onSuccess: () => {
+                setTimeout(() => {
+                  setSelectedMilestone(null);
+                  resolve();
+                }, 50);
+              },
+            }
+          );
+        });
       } else {
         const hasChanges = 
           milestoneForm.title !== selectedMilestone.title ||
@@ -187,26 +192,31 @@ export default function BoardPage() {
     setSelectedMilestone(null);
   };
 
-  const handleSaveTaskChanges = () => {
+  const handleSaveTaskChanges = async () => {
     if (selectedTask) {
       if (selectedTask.isNew) {
-        createTask.mutate(
-          {
-            title: editForm.title || "NEW_TASK",
-            milestoneId: selectedTask.milestoneId,
-            description: editForm.description,
-            definitionOfDone: editForm.definitionOfDone,
-            milestoneOrder: 0,
-            globalOrder: tasks.length,
-            isCompleted: false,
-            isDeleted: false,
-          },
-          {
-            onSuccess: () => {
-              setSelectedTask(null);
+        return new Promise<void>((resolve) => {
+          createTask.mutate(
+            {
+              title: editForm.title || "NEW_TASK",
+              milestoneId: selectedTask.milestoneId,
+              description: editForm.description,
+              definitionOfDone: editForm.definitionOfDone,
+              milestoneOrder: 0,
+              globalOrder: tasks.length,
+              isCompleted: false,
+              isDeleted: false,
             },
-          }
-        );
+            {
+              onSuccess: () => {
+                setTimeout(() => {
+                  setSelectedTask(null);
+                  resolve();
+                }, 50);
+              },
+            }
+          );
+        });
       } else {
         const hasChanges = 
           editForm.title !== selectedTask.title ||
@@ -234,7 +244,8 @@ export default function BoardPage() {
         }
       }
     }
-  };
+  }
+  
 
   const handleCloseTaskWithoutSaving = () => {
     setSelectedTask(null);
