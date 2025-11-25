@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import * as api from "@/lib/api";
 import type { Milestone, Task } from "@shared/schema";
+import confetti from "canvas-confetti";
 
 export function useMilestones() {
   return useQuery({
@@ -102,6 +103,13 @@ export function useCompleteMilestone() {
   return useMutation({
     mutationFn: api.completeMilestone,
     onSuccess: () => {
+      // Trigger confetti animation (with more intensity for milestone completion)
+      confetti({
+        particleCount: 200,
+        spread: 100,
+        origin: { y: 0.5 },
+      });
+      
       queryClient.invalidateQueries({ queryKey: ["/api/milestones"] });
       queryClient.invalidateQueries({ queryKey: ["/api/milestones/completed"] });
       queryClient.invalidateQueries({ queryKey: ["/api/tasks"] });
@@ -122,6 +130,13 @@ export function useCompleteTask() {
   return useMutation({
     mutationFn: api.completeTask,
     onSuccess: () => {
+      // Trigger confetti animation
+      confetti({
+        particleCount: 100,
+        spread: 70,
+        origin: { y: 0.6 },
+      });
+      
       queryClient.invalidateQueries({ queryKey: ["/api/tasks"] });
       queryClient.invalidateQueries({ queryKey: ["/api/tasks/completed"] });
     },
