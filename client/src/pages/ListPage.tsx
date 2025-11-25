@@ -116,7 +116,11 @@ export default function ListPage() {
           },
           {
             onSuccess: () => {
+              console.log("Task created successfully");
               setSelectedTask(null);
+            },
+            onError: (error) => {
+              console.error("Failed to create task:", error);
             },
           }
         );
