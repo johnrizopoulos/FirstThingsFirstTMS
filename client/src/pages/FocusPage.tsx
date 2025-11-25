@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useTasks, useUpdateTask, useDeleteTask } from "@/hooks/useData";
 import { Layout } from "@/components/Layout";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -11,6 +11,17 @@ export default function FocusPage() {
   const updateTask = useUpdateTask();
   const deleteTask = useDeleteTask();
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [editForm, setEditForm] = useState({ title: "", description: "", definitionOfDone: "" });
+
+  useEffect(() => {
+    if (selectedTask) {
+      setEditForm({
+        title: selectedTask.title,
+        description: selectedTask.description || "",
+        definitionOfDone: selectedTask.definitionOfDone || "",
+      });
+    }
+  }, [selectedTask]);
 
   const activeTasks = tasks.filter(t => !t.isCompleted && !t.isDeleted);
   const topTask = activeTasks.sort((a, b) => a.globalOrder - b.globalOrder)[0];
@@ -30,6 +41,27 @@ export default function FocusPage() {
       deleteTask.mutate(selectedTask.id);
       setSelectedTask(null);
     }
+  };
+
+  const handleCloseDialog = () => {
+    if (selectedTask) {
+      const hasChanges = 
+        editForm.title !== selectedTask.title ||
+        editForm.description !== (selectedTask.description || "") ||
+        editForm.definitionOfDone !== (selectedTask.definitionOfDone || "");
+      
+      if (hasChanges) {
+        updateTask.mutate({
+          id: selectedTask.id,
+          updates: {
+            title: editForm.title,
+            description: editForm.description,
+            definitionOfDone: editForm.definitionOfDone,
+          }
+        });
+      }
+    }
+    setSelectedTask(null);
   };
 
   if (isLoading) {
@@ -98,7 +130,7 @@ export default function FocusPage() {
         </div>
       </div>
 
-      <Dialog open={!!selectedTask} onOpenChange={(open) => !open && setSelectedTask(null)}>
+      <Dialog open={!!selectedTask} onOpenChange={(open) => !open && handleCloseDialog()}>
         <DialogContent className="bg-black border-2 border-primary text-primary font-mono max-w-[95vw] sm:max-w-[600px] p-0 gap-0 shadow-[0_0_20px_rgba(0,255,0,0.2)] max-h-[90vh] flex flex-col">
           <DialogHeader className="bg-primary/20 p-3 md:p-4 border-b border-primary shrink-0">
             <DialogTitle className="text-base md:text-xl font-bold uppercase flex items-center gap-2">
@@ -112,11 +144,8 @@ export default function FocusPage() {
               <label className="text-xs opacity-50 block mb-1">TITLE</label>
               <input 
                 data-testid="input-task-title"
-                value={selectedTask?.title || ""}
-                onChange={(e) => selectedTask && updateTask.mutate({ 
-                  id: selectedTask.id, 
-                  updates: { title: e.target.value } 
-                })}
+                value={editForm.title}
+                onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
                 className="w-full bg-black border border-primary p-2 text-sm md:text-base focus:outline-none focus:ring-1 focus:ring-primary"
               />
             </div>
@@ -126,11 +155,8 @@ export default function FocusPage() {
                 <label className="text-xs opacity-50 block mb-1">DESCRIPTION</label>
                 <textarea 
                   data-testid="input-task-description"
-                  value={selectedTask?.description || ""}
-                  onChange={(e) => selectedTask && updateTask.mutate({ 
-                    id: selectedTask.id, 
-                    updates: { description: e.target.value } 
-                  })}
+                  value={editForm.description}
+                  onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
                   className="w-full h-32 bg-black border border-primary p-2 text-sm md:text-base focus:outline-none focus:ring-1 focus:ring-primary resize-none"
                 />
               </div>
@@ -138,11 +164,8 @@ export default function FocusPage() {
                 <label className="text-xs opacity-50 block mb-1">DEFINITION OF DONE</label>
                 <textarea 
                   data-testid="input-task-dod"
-                  value={selectedTask?.definitionOfDone || ""}
-                  onChange={(e) => selectedTask && updateTask.mutate({ 
-                    id: selectedTask.id, 
-                    updates: { definitionOfDone: e.target.value } 
-                  })}
+                  value={editForm.definitionOfDone}
+                  onChange={(e) => setEditForm({ ...editForm, definitionOfDone: e.target.value })}
                   className="w-full h-32 bg-black border border-primary p-2 text-sm md:text-base focus:outline-none focus:ring-1 focus:ring-primary resize-none"
                 />
               </div>
@@ -163,7 +186,7 @@ export default function FocusPage() {
               <Button 
                 data-testid="button-cancel"
                 variant="outline" 
-                onClick={() => setSelectedTask(null)}
+                onClick={handleCloseDialog}
                 className="bg-transparent border border-primary text-primary hover:bg-primary hover:text-black font-mono rounded-none text-xs md:text-sm flex-1 sm:flex-none"
               >
                 CANCEL
