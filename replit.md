@@ -5,6 +5,14 @@ A terminal-inspired task management web application with IBM 3270/Bloomberg aest
 
 ## Recent Changes (Nov 25, 2025)
 
+### Task Creation Fix
+- Fixed critical bug where new tasks weren't appearing in List view after creation
+- Root cause: getTasks query used INNER JOIN on milestones, excluding tasks without milestones
+- Solution: Added `userId` field to tasks table as primary ownership indicator
+- Updated getTasks and getTask queries to filter by userId directly instead of joining through milestones
+- Modified POST /api/tasks route to pass userId when creating tasks
+- Database migration: Added user_id column to tasks table (truncated existing tasks due to NOT NULL constraint)
+
 ### Tutorial System Overhaul
 - Tutorial page moved to dedicated `/tutorial` route accessible via [F6] hotkey or navigation
 - Removed auto-onboarding for new users - they now go directly to Focus mode on first login
