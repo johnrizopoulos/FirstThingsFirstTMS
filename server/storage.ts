@@ -1,38 +1,225 @@
-import { type User, type InsertUser } from "@shared/schema";
-import { randomUUID } from "crypto";
-
-// modify the interface with any CRUD methods
-// you might need
+import {
+  users,
+  milestones,
+  tasks,
+  type User,
+  type UpsertUser,
+  type Milestone,
+  type InsertMilestone,
+  type Task,
+  type InsertTask,
+} from "@shared/schema";
+import { db } from "./db";
+import { eq, and, desc, asc, sql } from "drizzle-orm";
 
 export interface IStorage {
+  // User operations (required for Replit Auth)
   getUser(id: string): Promise<User | undefined>;
-  getUserByUsername(username: string): Promise<User | undefined>;
-  createUser(user: InsertUser): Promise<User>;
+  upsertUser(user: UpsertUser): Promise<User>;
+
+  // Milestone operations
+  getMilestones(userId: string): Promise<Milestone[]>;
+  getMilestone(id: string, userId: string): Promise<Milestone | undefined>;
+  createMilestone(milestone: InsertMilestone): Promise<Milestone>;
+  updateMilestone(id: string, userId: string, updates: Partial<Milestone>): Promise<Milestone | undefined>;
+  deleteMilestone(id: string, userId: string): Promise<void>;
+  
+  // Task operations
+  getTasks(userId: string): Promise<Task[]>;
+  getTask(id: string, userId: string): Promise<Task | undefined>;
+  createTask(task: InsertTask): Promise<Task>;
+  updateTask(id: string, userId: string, updates: Partial<Task>): Promise<Task | undefined>;
+  deleteTask(id: string, userId: string): Promise<void>;
+  
+  // Batch operations
+  reorderTasks(taskIds: string[], userId: string): Promise<void>;
+  
+  // Cleanup operations
+  cleanupTrash(userId: string): Promise<void>;
 }
 
-export class MemStorage implements IStorage {
-  private users: Map<string, User>;
-
-  constructor() {
-    this.users = new Map();
-  }
-
+export class DatabaseStorage implements IStorage {
+  // User operations
   async getUser(id: string): Promise<User | undefined> {
-    return this.users.get(id);
-  }
-
-  async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.username === username,
-    );
-  }
-
-  async createUser(insertUser: InsertUser): Promise<User> {
-    const id = randomUUID();
-    const user: User = { ...insertUser, id };
-    this.users.set(id, user);
+    const [user] = await db.select().from(users).where(eq(users.id, id));
     return user;
   }
+
+  async upsertUser(userData: UpsertUser): Promise<User> {
+    const [user] = await db
+      .insert(users)
+      .values(userData)
+      .onConflictDoUpdate({
+        target: users.id,
+        set: {
+          ...userData,
+          updatedAt: new Date(),
+        },
+      })
+      .returning();
+    return user;
+  }
+
+  // Milestone operations
+  async getMilestones(userId: string): Promise<Milestone[]> {
+    return await db
+      .select()
+      .from(milestones)
+      .where(eq(milestones.userId, userId))
+      .orderBy(asc(milestones.displayOrder));
+  }
+
+  async getMilestone(id: string, userId: string): Promise<Milestone | undefined> {
+    const [milestone] = await db
+      .select()
+      .from(milestones)
+      .where(and(eq(milestones.id, id), eq(milestones.userId, userId)));
+    return milestone;
+  }
+
+  async createMilestone(milestone: InsertMilestone): Promise<Milestone> {
+    const [created] = await db
+      .insert(milestones)
+      .values({
+        ...milestone,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .returning();
+    return created;
+  }
+
+  async updateMilestone(id: string, userId: string, updates: Partial<Milestone>): Promise<Milestone | undefined> {
+    const [updated] = await db
+      .update(milestones)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(and(eq(milestones.id, id), eq(milestones.userId, userId)))
+      .returning();
+    return updated;
+  }
+
+  async deleteMilestone(id: string, userId: string): Promise<void> {
+    await db
+      .update(milestones)
+      .set({
+        isDeleted: true,
+        deletedAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .where(and(eq(milestones.id, id), eq(milestones.userId, userId)));
+  }
+
+  // Task operations
+  async getTasks(userId: string): Promise<Task[]> {
+    const result = await db
+      .select({
+        task: tasks,
+      })
+      .from(tasks)
+      .innerJoin(milestones, eq(tasks.milestoneId, milestones.id))
+      .where(eq(milestones.userId, userId))
+      .orderBy(asc(tasks.globalOrder));
+
+    return result.map((r) => r.task);
+  }
+
+  async getTask(id: string, userId: string): Promise<Task | undefined> {
+    const result = await db
+      .select({
+        task: tasks,
+      })
+      .from(tasks)
+      .innerJoin(milestones, eq(tasks.milestoneId, milestones.id))
+      .where(and(eq(tasks.id, id), eq(milestones.userId, userId)));
+
+    return result[0]?.task;
+  }
+
+  async createTask(task: InsertTask): Promise<Task> {
+    const [created] = await db
+      .insert(tasks)
+      .values({
+        ...task,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .returning();
+    return created;
+  }
+
+  async updateTask(id: string, userId: string, updates: Partial<Task>): Promise<Task | undefined> {
+    // Verify task belongs to user via milestone
+    const existingTask = await this.getTask(id, userId);
+    if (!existingTask) return undefined;
+
+    const [updated] = await db
+      .update(tasks)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(tasks.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteTask(id: string, userId: string): Promise<void> {
+    const existingTask = await this.getTask(id, userId);
+    if (!existingTask) return;
+
+    await db
+      .update(tasks)
+      .set({
+        isDeleted: true,
+        deletedAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .where(eq(tasks.id, id));
+  }
+
+  // Batch operations
+  async reorderTasks(taskIds: string[], userId: string): Promise<void> {
+    // Update global order for each task
+    for (let i = 0; i < taskIds.length; i++) {
+      const existingTask = await this.getTask(taskIds[i], userId);
+      if (existingTask) {
+        await db
+          .update(tasks)
+          .set({ globalOrder: i, updatedAt: new Date() })
+          .where(eq(tasks.id, taskIds[i]));
+      }
+    }
+  }
+
+  // Cleanup operations
+  async cleanupTrash(userId: string): Promise<void> {
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    // Delete old milestones
+    await db
+      .delete(milestones)
+      .where(
+        and(
+          eq(milestones.userId, userId),
+          eq(milestones.isDeleted, true),
+          sql`${milestones.deletedAt} < ${thirtyDaysAgo}`
+        )
+      );
+
+    // Delete old tasks (belonging to user's milestones)
+    const userMilestones = await this.getMilestones(userId);
+    const milestoneIds = userMilestones.map((m) => m.id);
+
+    if (milestoneIds.length > 0) {
+      await db
+        .delete(tasks)
+        .where(
+          and(
+            sql`${tasks.milestoneId} IN (${sql.join(milestoneIds.map(id => sql`${id}`), sql`, `)})`,
+            eq(tasks.isDeleted, true),
+            sql`${tasks.deletedAt} < ${thirtyDaysAgo}`
+          )
+        );
+    }
+  }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();

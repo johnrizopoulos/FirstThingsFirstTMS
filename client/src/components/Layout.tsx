@@ -7,6 +7,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Menu } from "lucide-react";
@@ -47,6 +48,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
               ? "bg-primary text-primary-foreground"
               : "bg-background text-primary hover:bg-secondary"
           )}
+          data-testid={`nav-${label.toLowerCase()}`}
         >
           <span className="opacity-50 mr-2">[{hotkey}]</span>
           {label}
@@ -81,9 +83,13 @@ export function Layout({ children }: { children: React.ReactNode }) {
           <div className="w-3 h-3 bg-primary animate-blink shrink-0" />
           <h1 className="text-sm md:text-xl font-bold tracking-widest truncate">FIRST_THINGS_FIRST_SYS // V.1.0</h1>
         </div>
-        <div className="text-[10px] md:text-xs opacity-70 whitespace-nowrap ml-2">
-          SYS: ONLINE
-        </div>
+        <a 
+          href="/api/logout"
+          className="text-[10px] md:text-xs opacity-70 hover:opacity-100 transition-opacity underline whitespace-nowrap ml-2"
+          data-testid="link-logout"
+        >
+          [LOGOUT]
+        </a>
       </header>
 
       {/* Navigation */}
@@ -94,7 +100,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
            </div>
            <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="border-primary text-primary rounded-none h-8 w-8 p-0">
+              <Button variant="outline" size="sm" className="border-primary text-primary rounded-none h-8 w-8 p-0" data-testid="button-mobile-menu">
                 <Menu className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>

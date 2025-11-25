@@ -1,24 +1,25 @@
 import React, { useState } from "react";
-import { useAppStore } from "@/lib/store";
+import { useTasks, useUpdateTask, useDeleteTask } from "@/hooks/useData";
 import { Layout } from "@/components/Layout";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { CheckSquare, Square, Trash2 } from "lucide-react";
-import { Task } from "@/lib/store";
+import { CheckSquare, Trash2 } from "lucide-react";
+import type { Task } from "@shared/schema";
 
 export default function FocusPage() {
-  const { tasks, updateTask, deleteTask } = useAppStore();
+  const { data: tasks = [], isLoading } = useTasks();
+  const updateTask = useUpdateTask();
+  const deleteTask = useDeleteTask();
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
 
-  // Get highest priority active task (lowest globalOrder)
   const activeTasks = tasks.filter(t => !t.isCompleted && !t.isDeleted);
   const topTask = activeTasks.sort((a, b) => a.globalOrder - b.globalOrder)[0];
 
   const handleComplete = () => {
     if (selectedTask) {
-      updateTask(selectedTask.id, { 
-        isCompleted: true, 
-        completedAt: new Date().toISOString() 
+      updateTask.mutate({
+        id: selectedTask.id,
+        updates: { isCompleted: true, completedAt: new Date() }
       });
       setSelectedTask(null);
     }
@@ -26,13 +27,26 @@ export default function FocusPage() {
 
   const handleDelete = () => {
     if (selectedTask) {
-      deleteTask(selectedTask.id);
+      deleteTask.mutate(selectedTask.id);
       setSelectedTask(null);
     }
   };
 
+  if (isLoading) {
+    return (
+      <Layout>
+        <div className="h-full flex items-center justify-center">
+          <div className="text-center">
+            <div className="w-4 h-4 bg-primary animate-blink mx-auto mb-4" />
+            <p>LOADING...</p>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
   if (!topTask) {
-     return (
+    return (
       <Layout>
         <div className="h-full flex flex-col items-center justify-center text-center border-2 border-primary/20 border-dashed p-12">
           <h2 className="text-2xl mb-4">ALL SYSTEMS CLEAR</h2>
@@ -53,25 +67,25 @@ export default function FocusPage() {
         <div 
           onClick={() => setSelectedTask(topTask)}
           className="w-full border-4 border-primary bg-card p-6 md:p-12 cursor-pointer hover:bg-secondary/30 transition-colors relative group"
+          data-testid="card-task-focus"
         >
-          {/* Corners */}
           <div className="absolute top-0 left-0 w-4 h-4 border-t-4 border-l-4 border-primary" />
           <div className="absolute top-0 right-0 w-4 h-4 border-t-4 border-r-4 border-primary" />
           <div className="absolute bottom-0 left-0 w-4 h-4 border-b-4 border-l-4 border-primary" />
           <div className="absolute bottom-0 right-0 w-4 h-4 border-b-4 border-r-4 border-primary" />
 
-          <h1 className="text-4xl md:text-6xl font-bold mb-8 uppercase break-words">
+          <h1 className="text-4xl md:text-6xl font-bold mb-8 uppercase break-words" data-testid="text-task-title">
             {topTask.title}
           </h1>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-lg opacity-80">
             <div>
               <span className="block text-xs opacity-50 mb-1">DESCRIPTION</span>
-              {topTask.description || "No description provided."}
+              <span data-testid="text-task-description">{topTask.description || "No description provided."}</span>
             </div>
             <div>
               <span className="block text-xs opacity-50 mb-1">DEFINITION OF DONE</span>
-              {topTask.definitionOfDone || "No criteria specified."}
+              <span data-testid="text-task-dod">{topTask.definitionOfDone || "No criteria specified."}</span>
             </div>
           </div>
           
@@ -81,7 +95,6 @@ export default function FocusPage() {
         </div>
       </div>
 
-      {/* Task Modal */}
       <Dialog open={!!selectedTask} onOpenChange={(open) => !open && setSelectedTask(null)}>
         <DialogContent className="bg-black border-2 border-primary text-primary font-mono sm:max-w-[600px] p-0 gap-0 shadow-[0_0_20px_rgba(0,255,0,0.2)]">
           <DialogHeader className="bg-primary/20 p-4 border-b border-primary">
@@ -94,8 +107,12 @@ export default function FocusPage() {
             <div>
               <label className="text-xs opacity-50 block mb-1">TITLE</label>
               <input 
+                data-testid="input-task-title"
                 value={selectedTask?.title || ""}
-                onChange={(e) => selectedTask && updateTask(selectedTask.id, { title: e.target.value })}
+                onChange={(e) => selectedTask && updateTask.mutate({ 
+                  id: selectedTask.id, 
+                  updates: { title: e.target.value } 
+                })}
                 className="w-full bg-black border border-primary p-2 focus:outline-none focus:ring-1 focus:ring-primary"
               />
             </div>
@@ -104,16 +121,24 @@ export default function FocusPage() {
               <div>
                 <label className="text-xs opacity-50 block mb-1">DESCRIPTION</label>
                 <textarea 
+                  data-testid="input-task-description"
                   value={selectedTask?.description || ""}
-                  onChange={(e) => selectedTask && updateTask(selectedTask.id, { description: e.target.value })}
+                  onChange={(e) => selectedTask && updateTask.mutate({ 
+                    id: selectedTask.id, 
+                    updates: { description: e.target.value } 
+                  })}
                   className="w-full h-32 bg-black border border-primary p-2 focus:outline-none focus:ring-1 focus:ring-primary resize-none"
                 />
               </div>
               <div>
                 <label className="text-xs opacity-50 block mb-1">DEFINITION OF DONE</label>
                 <textarea 
+                  data-testid="input-task-dod"
                   value={selectedTask?.definitionOfDone || ""}
-                  onChange={(e) => selectedTask && updateTask(selectedTask.id, { definitionOfDone: e.target.value })}
+                  onChange={(e) => selectedTask && updateTask.mutate({ 
+                    id: selectedTask.id, 
+                    updates: { definitionOfDone: e.target.value } 
+                  })}
                   className="w-full h-32 bg-black border border-primary p-2 focus:outline-none focus:ring-1 focus:ring-primary resize-none"
                 />
               </div>
@@ -121,7 +146,8 @@ export default function FocusPage() {
           </div>
 
           <DialogFooter className="border-t border-primary p-4 flex justify-between sm:justify-between bg-black">
-             <Button 
+            <Button 
+              data-testid="button-delete"
               variant="destructive" 
               onClick={handleDelete}
               className="bg-transparent border border-destructive text-destructive hover:bg-destructive hover:text-white font-mono rounded-none"
@@ -131,6 +157,7 @@ export default function FocusPage() {
 
             <div className="flex gap-2">
               <Button 
+                data-testid="button-cancel"
                 variant="outline" 
                 onClick={() => setSelectedTask(null)}
                 className="bg-transparent border border-primary text-primary hover:bg-primary hover:text-black font-mono rounded-none"
@@ -138,6 +165,7 @@ export default function FocusPage() {
                 CANCEL
               </Button>
               <Button 
+                data-testid="button-complete"
                 onClick={handleComplete}
                 className="bg-primary text-black hover:bg-primary/80 font-mono rounded-none"
               >
