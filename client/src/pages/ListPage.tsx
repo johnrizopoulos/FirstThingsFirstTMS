@@ -17,7 +17,7 @@ export default function ListPage() {
   const completeTask = useCompleteTask();
   const deleteTask = useDeleteTask();
   const reorderTasks = useReorderTasks();
-  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [selectedTask, setSelectedTask] = useState<(Task & { isNew?: boolean }) | null>(null);
   const [editForm, setEditForm] = useState({ title: "", milestoneId: "" as string | undefined, description: "", definitionOfDone: "" });
   const [searchQuery, setSearchQuery] = useState("");
   const descriptionRef = useRef<HTMLTextAreaElement>(null);
@@ -74,36 +74,63 @@ export default function ListPage() {
   };
 
   const handleAddNew = () => {
-    createTask.mutate({
-      title: "NEW_TASK",
-      milestoneId: activeMilestones.length > 0 ? activeMilestones[0].id : undefined,
+    const draftTask = {
+      id: "draft",
+      title: "",
+      milestoneId: null,
       description: "",
       definitionOfDone: "",
       milestoneOrder: 0,
       globalOrder: tasks.length,
       isCompleted: false,
       isDeleted: false,
+      userId: "",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      completedAt: null,
+      deletedAt: null,
+      isNew: true,
+    } as Task & { isNew: boolean };
+    setSelectedTask(draftTask);
+    setEditForm({
+      title: "",
+      milestoneId: undefined,
+      description: "",
+      definitionOfDone: "",
     });
   };
 
   const handleSaveChanges = () => {
     if (selectedTask) {
-      const hasChanges = 
-        editForm.title !== selectedTask.title ||
-        (editForm.milestoneId || "") !== (selectedTask.milestoneId || "") ||
-        editForm.description !== (selectedTask.description || "") ||
-        editForm.definitionOfDone !== (selectedTask.definitionOfDone || "");
-      
-      if (hasChanges) {
-        updateTask.mutate({
-          id: selectedTask.id,
-          updates: {
-            title: editForm.title,
-            milestoneId: editForm.milestoneId,
-            description: editForm.description,
-            definitionOfDone: editForm.definitionOfDone,
-          }
+      if (selectedTask.isNew) {
+        createTask.mutate({
+          title: editForm.title || "NEW_TASK",
+          milestoneId: editForm.milestoneId,
+          description: editForm.description,
+          definitionOfDone: editForm.definitionOfDone,
+          milestoneOrder: 0,
+          globalOrder: tasks.length,
+          isCompleted: false,
+          isDeleted: false,
         });
+      } else {
+        const hasChanges = 
+          editForm.title !== selectedTask.title ||
+          (editForm.milestoneId || "") !== (selectedTask.milestoneId || "") ||
+          editForm.description !== (selectedTask.description || "") ||
+          editForm.definitionOfDone !== (selectedTask.definitionOfDone || "");
+        
+        if (hasChanges) {
+          updateTask.mutate({
+            id: selectedTask.id,
+            updates: {
+              title: editForm.title,
+              milestoneId: editForm.milestoneId,
+              description: editForm.description,
+              definitionOfDone: editForm.definitionOfDone,
+            }
+          });
+        }
       }
     }
     setSelectedTask(null);
@@ -226,7 +253,7 @@ export default function ListPage() {
             <DialogHeader className="bg-primary/20 p-3 md:p-4 border-b border-primary shrink-0">
               <DialogTitle className="text-base md:text-xl font-bold uppercase flex items-center gap-2">
                 <span className="animate-pulse">█</span> 
-                <span className="truncate">EDIT_TASK: {selectedTask?.title}</span>
+                <span className="truncate">{selectedTask?.isNew ? "NEW_TASK" : `EDIT_TASK: ${selectedTask?.title}`}</span>
               </DialogTitle>
             </DialogHeader>
             
@@ -307,27 +334,31 @@ export default function ListPage() {
                   data-testid="button-cancel"
                   variant="outline" 
                   onClick={handleCloseWithoutSaving}
-                  className="bg-transparent border border-primary text-primary hover:bg-primary hover:text-black font-mono rounded-none text-xs md:text-sm flex-[2]"
+                  className={`bg-transparent border border-primary text-primary hover:bg-primary hover:text-black font-mono rounded-none text-xs md:text-sm ${selectedTask?.isNew ? "flex-1" : "flex-[2]"}`}
                 >
                   CANCEL
                 </Button>
-                <Button 
-                  data-testid="button-complete"
-                  onClick={handleComplete}
-                  className="bg-primary text-black hover:bg-primary/80 font-mono rounded-none p-2 h-auto flex-1"
-                  title="Mark as complete"
-                >
-                  <Check className="w-4 h-4" />
-                </Button>
-                <Button 
-                  data-testid="button-delete"
-                  variant="destructive" 
-                  onClick={handleDelete}
-                  className="bg-transparent border border-destructive text-destructive hover:bg-destructive hover:text-white font-mono rounded-none p-2 h-auto flex-1"
-                  title="Delete task"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
+                {!selectedTask?.isNew && (
+                  <>
+                    <Button 
+                      data-testid="button-complete"
+                      onClick={handleComplete}
+                      className="bg-primary text-black hover:bg-primary/80 font-mono rounded-none p-2 h-auto flex-1"
+                      title="Mark as complete"
+                    >
+                      <Check className="w-4 h-4" />
+                    </Button>
+                    <Button 
+                      data-testid="button-delete"
+                      variant="destructive" 
+                      onClick={handleDelete}
+                      className="bg-transparent border border-destructive text-destructive hover:bg-destructive hover:text-white font-mono rounded-none p-2 h-auto flex-1"
+                      title="Delete task"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </>
+                )}
               </div>
             </DialogFooter>
           </DialogContent>

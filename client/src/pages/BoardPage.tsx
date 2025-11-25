@@ -73,8 +73,8 @@ export default function BoardPage() {
   const completeTask = useCompleteTask();
   const deleteTask = useDeleteTask();
   const completeMilestone = useCompleteMilestone();
-  const [selectedMilestone, setSelectedMilestone] = useState<Milestone | null>(null);
-  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [selectedMilestone, setSelectedMilestone] = useState<(Milestone & { isNew?: boolean }) | null>(null);
+  const [selectedTask, setSelectedTask] = useState<(Task & { isNew?: boolean }) | null>(null);
   const [editForm, setEditForm] = useState({ title: "", description: "", definitionOfDone: "" });
   const [milestoneForm, setMilestoneForm] = useState({ title: "", description: "", definitionOfDone: "" });
   const taskDescriptionRef = useRef<HTMLTextAreaElement>(null);
@@ -139,20 +139,30 @@ export default function BoardPage() {
 
   const handleSaveMilestoneChanges = () => {
     if (selectedMilestone) {
-      const hasChanges = 
-        milestoneForm.title !== selectedMilestone.title ||
-        milestoneForm.description !== (selectedMilestone.description || "") ||
-        milestoneForm.definitionOfDone !== (selectedMilestone.definitionOfDone || "");
-      
-      if (hasChanges) {
-        updateMilestone.mutate({
-          id: selectedMilestone.id,
-          updates: {
-            title: milestoneForm.title,
-            description: milestoneForm.description,
-            definitionOfDone: milestoneForm.definitionOfDone,
-          }
+      if (selectedMilestone.isNew) {
+        createMilestone.mutate({
+          title: milestoneForm.title || "NEW_MILESTONE",
+          description: milestoneForm.description,
+          definitionOfDone: milestoneForm.definitionOfDone,
+          displayOrder: activeMilestones.length,
+          isDeleted: false,
         });
+      } else {
+        const hasChanges = 
+          milestoneForm.title !== selectedMilestone.title ||
+          milestoneForm.description !== (selectedMilestone.description || "") ||
+          milestoneForm.definitionOfDone !== (selectedMilestone.definitionOfDone || "");
+        
+        if (hasChanges) {
+          updateMilestone.mutate({
+            id: selectedMilestone.id,
+            updates: {
+              title: milestoneForm.title,
+              description: milestoneForm.description,
+              definitionOfDone: milestoneForm.definitionOfDone,
+            }
+          });
+        }
       }
     }
     setSelectedMilestone(null);
@@ -164,20 +174,33 @@ export default function BoardPage() {
 
   const handleSaveTaskChanges = () => {
     if (selectedTask) {
-      const hasChanges = 
-        editForm.title !== selectedTask.title ||
-        editForm.description !== (selectedTask.description || "") ||
-        editForm.definitionOfDone !== (selectedTask.definitionOfDone || "");
-      
-      if (hasChanges) {
-        updateTask.mutate({
-          id: selectedTask.id,
-          updates: {
-            title: editForm.title,
-            description: editForm.description,
-            definitionOfDone: editForm.definitionOfDone,
-          }
+      if (selectedTask.isNew) {
+        createTask.mutate({
+          title: editForm.title || "NEW_TASK",
+          milestoneId: selectedTask.milestoneId,
+          description: editForm.description,
+          definitionOfDone: editForm.definitionOfDone,
+          milestoneOrder: 0,
+          globalOrder: tasks.length,
+          isCompleted: false,
+          isDeleted: false,
         });
+      } else {
+        const hasChanges = 
+          editForm.title !== selectedTask.title ||
+          editForm.description !== (selectedTask.description || "") ||
+          editForm.definitionOfDone !== (selectedTask.definitionOfDone || "");
+        
+        if (hasChanges) {
+          updateTask.mutate({
+            id: selectedTask.id,
+            updates: {
+              title: editForm.title,
+              description: editForm.description,
+              definitionOfDone: editForm.definitionOfDone,
+            }
+          });
+        }
       }
     }
     setSelectedTask(null);
@@ -272,15 +295,28 @@ export default function BoardPage() {
                     className="w-full border border-dashed border-primary/30 text-primary/50 hover:text-primary hover:border-primary text-xs py-1 h-auto rounded-none mt-2"
                     onClick={(e) => {
                       e.stopPropagation();
-                      createTask.mutate({
+                      const draftTask = {
+                        id: "draft",
+                        title: "",
                         milestoneId: milestone.id,
-                        title: "NEW_TASK",
                         description: "",
                         definitionOfDone: "",
-                        milestoneOrder: milestoneTasks.length,
+                        milestoneOrder: 0,
                         globalOrder: tasks.length,
                         isCompleted: false,
                         isDeleted: false,
+                        userId: "",
+                        createdAt: new Date(),
+                        updatedAt: new Date(),
+                        completedAt: null,
+                        deletedAt: null,
+                        isNew: true,
+                      } as Task & { isNew: boolean };
+                      setSelectedTask(draftTask);
+                      setEditForm({
+                        title: "",
+                        description: "",
+                        definitionOfDone: "",
                       });
                     }}
                   >
@@ -294,13 +330,29 @@ export default function BoardPage() {
           {activeMilestones.length > 0 && activeMilestones.length < 5 && (
             <div 
               className="w-12 h-full flex items-center justify-center border-2 border-dashed border-primary/20 hover:border-primary/50 cursor-pointer transition-colors"
-              onClick={() => createMilestone.mutate({
-                title: "NEW_MILESTONE",
-                description: "",
-                definitionOfDone: "",
-                displayOrder: activeMilestones.length,
-                isDeleted: false,
-              })}
+              onClick={() => {
+                const draftMilestone = {
+                  id: "draft",
+                  title: "",
+                  description: "",
+                  definitionOfDone: "",
+                  displayOrder: activeMilestones.length,
+                  isDeleted: false,
+                  isCompleted: false,
+                  userId: "",
+                  createdAt: new Date(),
+                  updatedAt: new Date(),
+                  completedAt: null,
+                  deletedAt: null,
+                  isNew: true,
+                } as Milestone & { isNew: boolean };
+                setSelectedMilestone(draftMilestone);
+                setMilestoneForm({
+                  title: "",
+                  description: "",
+                  definitionOfDone: "",
+                });
+              }}
               data-testid="button-add-milestone"
             >
               <div className="rotate-90 text-primary/50 font-bold whitespace-nowrap text-xs md:text-sm">
@@ -315,13 +367,29 @@ export default function BoardPage() {
                 <h2 className="text-lg md:text-xl mb-3 md:mb-4">NO MILESTONES</h2>
                 <p className="opacity-70 mb-4 md:mb-6 text-sm md:text-base">Create your first milestone to start organizing tasks.</p>
                 <Button 
-                  onClick={() => createMilestone.mutate({
-                    title: "MILESTONE_01",
-                    description: "",
-                    definitionOfDone: "",
-                    displayOrder: 0,
-                    isDeleted: false,
-                  })}
+                  onClick={() => {
+                    const draftMilestone = {
+                      id: "draft",
+                      title: "",
+                      description: "",
+                      definitionOfDone: "",
+                      displayOrder: 0,
+                      isDeleted: false,
+                      isCompleted: false,
+                      userId: "",
+                      createdAt: new Date(),
+                      updatedAt: new Date(),
+                      completedAt: null,
+                      deletedAt: null,
+                      isNew: true,
+                    } as Milestone & { isNew: boolean };
+                    setSelectedMilestone(draftMilestone);
+                    setMilestoneForm({
+                      title: "",
+                      description: "",
+                      definitionOfDone: "",
+                    });
+                  }}
                   className="bg-primary text-primary-foreground hover:bg-primary/80 font-mono rounded-none text-xs md:text-sm"
                   data-testid="button-create-first-milestone"
                 >
@@ -339,7 +407,7 @@ export default function BoardPage() {
           <DialogHeader className="bg-primary/20 p-3 md:p-4 border-b border-primary shrink-0">
             <DialogTitle className="text-base md:text-xl font-bold uppercase flex items-center gap-2">
               <span className="animate-pulse">█</span>
-              <span className="truncate">EDIT_TASK: {selectedTask?.title}</span>
+              <span className="truncate">{selectedTask?.isNew ? "NEW_TASK" : `EDIT_TASK: ${selectedTask?.title}`}</span>
             </DialogTitle>
           </DialogHeader>
           
@@ -401,27 +469,31 @@ export default function BoardPage() {
                 data-testid="button-cancel-task"
                 variant="outline" 
                 onClick={handleCloseTaskWithoutSaving}
-                className="bg-transparent border border-primary text-primary hover:bg-primary hover:text-black font-mono rounded-none text-xs md:text-sm flex-[2]"
+                className={`bg-transparent border border-primary text-primary hover:bg-primary hover:text-black font-mono rounded-none text-xs md:text-sm ${selectedTask?.isNew ? "flex-1" : "flex-[2]"}`}
               >
                 CANCEL
               </Button>
-              <Button 
-                data-testid="button-complete-task"
-                onClick={handleCompleteTask}
-                className="bg-primary text-black hover:bg-primary/80 font-mono rounded-none p-2 h-auto flex-1"
-                title="Mark as complete"
-              >
-                <Check className="w-4 h-4" />
-              </Button>
-              <Button 
-                data-testid="button-delete-task"
-                variant="destructive" 
-                onClick={handleDeleteTask}
-                className="bg-transparent border border-destructive text-destructive hover:bg-destructive hover:text-white font-mono rounded-none p-2 h-auto flex-1"
-                title="Delete task"
-              >
-                <Trash2 className="w-4 h-4" />
-              </Button>
+              {!selectedTask?.isNew && (
+                <>
+                  <Button 
+                    data-testid="button-complete-task"
+                    onClick={handleCompleteTask}
+                    className="bg-primary text-black hover:bg-primary/80 font-mono rounded-none p-2 h-auto flex-1"
+                    title="Mark as complete"
+                  >
+                    <Check className="w-4 h-4" />
+                  </Button>
+                  <Button 
+                    data-testid="button-delete-task"
+                    variant="destructive" 
+                    onClick={handleDeleteTask}
+                    className="bg-transparent border border-destructive text-destructive hover:bg-destructive hover:text-white font-mono rounded-none p-2 h-auto flex-1"
+                    title="Delete task"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </>
+              )}
             </div>
           </DialogFooter>
         </DialogContent>
@@ -433,7 +505,7 @@ export default function BoardPage() {
           <DialogHeader className="bg-primary/20 p-3 md:p-4 border-b border-primary shrink-0">
             <DialogTitle className="text-base md:text-xl font-bold uppercase flex items-center gap-2">
               <span className="animate-pulse">█</span>
-              <span className="truncate">EDIT_MILESTONE: {selectedMilestone?.title}</span>
+              <span className="truncate">{selectedMilestone?.isNew ? "NEW_MILESTONE" : `EDIT_MILESTONE: ${selectedMilestone?.title}`}</span>
             </DialogTitle>
           </DialogHeader>
           
@@ -495,27 +567,31 @@ export default function BoardPage() {
                 data-testid="button-close-milestone"
                 variant="outline" 
                 onClick={handleCloseMilestoneWithoutSaving}
-                className="bg-transparent border border-primary text-primary hover:bg-primary hover:text-black font-mono rounded-none text-xs md:text-sm flex-[2]"
+                className={`bg-transparent border border-primary text-primary hover:bg-primary hover:text-black font-mono rounded-none text-xs md:text-sm ${selectedMilestone?.isNew ? "flex-1" : "flex-[2]"}`}
               >
                 CANCEL
               </Button>
-              <Button 
-                data-testid="button-complete-milestone"
-                onClick={handleCompleteMilestone}
-                className="bg-primary text-black hover:bg-primary/80 font-mono rounded-none p-2 h-auto flex-1"
-                title="Mark as complete"
-              >
-                <Check className="w-4 h-4" />
-              </Button>
-              <Button 
-                data-testid="button-delete-milestone"
-                variant="destructive" 
-                onClick={handleDeleteMilestone}
-                className="bg-transparent border border-destructive text-destructive hover:bg-destructive hover:text-white font-mono rounded-none p-2 h-auto flex-1"
-                title="Delete milestone"
-              >
-                <Trash2 className="w-4 h-4" />
-              </Button>
+              {!selectedMilestone?.isNew && (
+                <>
+                  <Button 
+                    data-testid="button-complete-milestone"
+                    onClick={handleCompleteMilestone}
+                    className="bg-primary text-black hover:bg-primary/80 font-mono rounded-none p-2 h-auto flex-1"
+                    title="Mark as complete"
+                  >
+                    <Check className="w-4 h-4" />
+                  </Button>
+                  <Button 
+                    data-testid="button-delete-milestone"
+                    variant="destructive" 
+                    onClick={handleDeleteMilestone}
+                    className="bg-transparent border border-destructive text-destructive hover:bg-destructive hover:text-white font-mono rounded-none p-2 h-auto flex-1"
+                    title="Delete milestone"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </>
+              )}
             </div>
           </DialogFooter>
         </DialogContent>
