@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react";
 import { nanoid } from "nanoid";
 
 // --- Types ---
@@ -131,38 +131,40 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setTasks(prev => [...prev].sort((a, b) => a.globalOrder - b.globalOrder));
   }, []);
 
-  const addTask = (newTask: Partial<Task> & { milestoneId: string }) => {
-    const task: Task = {
-      id: nanoid(),
-      title: "New Task",
-      description: "",
-      definitionOfDone: "",
-      milestoneOrder: tasks.filter(t => t.milestoneId === newTask.milestoneId).length,
-      globalOrder: tasks.length,
-      isCompleted: false,
-      completedAt: null,
-      isDeleted: false,
-      deletedAt: null,
-      createdAt: new Date().toISOString(),
-      ...newTask,
-    };
-    setTasks(prev => [...prev, task]);
-  };
+  const addTask = useCallback((newTask: Partial<Task> & { milestoneId: string }) => {
+    setTasks(prev => {
+      const task: Task = {
+        id: nanoid(),
+        title: "New Task",
+        description: "",
+        definitionOfDone: "",
+        milestoneOrder: prev.filter(t => t.milestoneId === newTask.milestoneId).length,
+        globalOrder: prev.length,
+        isCompleted: false,
+        completedAt: null,
+        isDeleted: false,
+        deletedAt: null,
+        createdAt: new Date().toISOString(),
+        ...newTask,
+      };
+      return [...prev, task];
+    });
+  }, []);
 
-  const updateTask = (id: string, updates: Partial<Task>) => {
+  const updateTask = useCallback((id: string, updates: Partial<Task>) => {
     setTasks(prev => prev.map(t => t.id === id ? { ...t, ...updates } : t));
-  };
+  }, []);
 
-  const deleteTask = (id: string) => {
+  const deleteTask = useCallback((id: string) => {
     const now = new Date().toISOString();
     setTasks(prev => prev.map(t => t.id === id ? { ...t, isDeleted: true, deletedAt: now } : t));
-  };
+  }, []);
   
-  const restoreTask = (id: string) => {
+  const restoreTask = useCallback((id: string) => {
     setTasks(prev => prev.map(t => t.id === id ? { ...t, isDeleted: false, deletedAt: null } : t));
-  };
+  }, []);
 
-  const reorderTasksInMilestone = (milestoneId: string, taskIds: string[]) => {
+  const reorderTasksInMilestone = useCallback((milestoneId: string, taskIds: string[]) => {
     setTasks(prev => {
       const otherTasks = prev.filter(t => t.milestoneId !== milestoneId);
       const milestoneTasks = prev.filter(t => t.milestoneId === milestoneId);
@@ -175,9 +177,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       
       return [...otherTasks, ...reordered];
     });
-  };
+  }, []);
 
-  const reorderGlobalTasks = (taskIds: string[]) => {
+  const reorderGlobalTasks = useCallback((taskIds: string[]) => {
     setTasks(prev => {
        const reordered = taskIds.map((id, index) => {
         const task = prev.find(t => t.id === id);
@@ -189,54 +191,52 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       
       return [...reordered, ...others];
     });
-  };
+  }, []);
 
-  const addMilestone = (newMilestone: Partial<Milestone>) => {
-    if (milestones.filter(m => !m.isDeleted).length >= 5) {
-      alert("Max 5 active milestones allowed.");
-      return;
-    }
-    const milestone: Milestone = {
-      id: nanoid(),
-      title: "NEW MILESTONE",
-      description: "",
-      definitionOfDone: "",
-      displayOrder: milestones.length,
-      isDeleted: false,
-      deletedAt: null,
-      createdAt: new Date().toISOString(),
-      ...newMilestone,
-    };
-    setMilestones(prev => [...prev, milestone]);
-  };
+  const addMilestone = useCallback((newMilestone: Partial<Milestone>) => {
+    setMilestones(prev => {
+      if (prev.filter(m => !m.isDeleted).length >= 5) {
+        alert("Max 5 active milestones allowed.");
+        return prev;
+      }
+      const milestone: Milestone = {
+        id: nanoid(),
+        title: "NEW MILESTONE",
+        description: "",
+        definitionOfDone: "",
+        displayOrder: prev.length,
+        isDeleted: false,
+        deletedAt: null,
+        createdAt: new Date().toISOString(),
+        ...newMilestone,
+      };
+      return [...prev, milestone];
+    });
+  }, []);
 
-  const updateMilestone = (id: string, updates: Partial<Milestone>) => {
+  const updateMilestone = useCallback((id: string, updates: Partial<Milestone>) => {
     setMilestones(prev => prev.map(m => m.id === id ? { ...m, ...updates } : m));
-  };
+  }, []);
 
-  const deleteMilestone = (id: string) => {
+  const deleteMilestone = useCallback((id: string) => {
     const now = new Date().toISOString();
     setMilestones(prev => prev.map(m => m.id === id ? { ...m, isDeleted: true, deletedAt: now } : m));
-    // Also delete associated tasks? PRD says "Users have many child milestones. Milestones have many child tasks."
-    // Usually soft deleting a parent should soft delete children or hide them. 
-    // For simplicity, we'll just mark milestone as deleted. Tasks won't show if milestone is hidden.
-  };
+  }, []);
 
-  const restoreMilestone = (id: string) => {
+  const restoreMilestone = useCallback((id: string) => {
      setMilestones(prev => prev.map(m => m.id === id ? { ...m, isDeleted: false, deletedAt: null } : m));
-  };
+  }, []);
 
-  const cleanupTrash = () => {
+  const cleanupTrash = useCallback(() => {
      // Remove items older than 30 days
      const thirtyDaysAgo = new Date();
      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
      
      setTasks(prev => prev.filter(t => !t.isDeleted || (t.deletedAt && new Date(t.deletedAt) > thirtyDaysAgo)));
      setMilestones(prev => prev.filter(m => !m.isDeleted || (m.deletedAt && new Date(m.deletedAt) > thirtyDaysAgo)));
-  };
+  }, []);
 
-  return (
-    <AppContext.Provider value={{
+  const value = useMemo(() => ({
       tasks,
       milestones,
       addTask,
@@ -250,7 +250,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       deleteMilestone,
       restoreMilestone,
       cleanupTrash
-    }}>
+  }), [
+    tasks, milestones, addTask, updateTask, deleteTask, restoreTask, 
+    reorderTasksInMilestone, reorderGlobalTasks, addMilestone, 
+    updateMilestone, deleteMilestone, restoreMilestone, cleanupTrash
+  ]);
+
+  return (
+    <AppContext.Provider value={value}>
       {children}
     </AppContext.Provider>
   );
