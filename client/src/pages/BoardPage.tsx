@@ -140,13 +140,20 @@ export default function BoardPage() {
   const handleSaveMilestoneChanges = () => {
     if (selectedMilestone) {
       if (selectedMilestone.isNew) {
-        createMilestone.mutate({
-          title: milestoneForm.title || "NEW_MILESTONE",
-          description: milestoneForm.description,
-          definitionOfDone: milestoneForm.definitionOfDone,
-          displayOrder: activeMilestones.length,
-          isDeleted: false,
-        });
+        createMilestone.mutate(
+          {
+            title: milestoneForm.title || "NEW_MILESTONE",
+            description: milestoneForm.description,
+            definitionOfDone: milestoneForm.definitionOfDone,
+            displayOrder: activeMilestones.length,
+            isDeleted: false,
+          },
+          {
+            onSuccess: () => {
+              setSelectedMilestone(null);
+            },
+          }
+        );
       } else {
         const hasChanges = 
           milestoneForm.title !== selectedMilestone.title ||
@@ -154,18 +161,26 @@ export default function BoardPage() {
           milestoneForm.definitionOfDone !== (selectedMilestone.definitionOfDone || "");
         
         if (hasChanges) {
-          updateMilestone.mutate({
-            id: selectedMilestone.id,
-            updates: {
-              title: milestoneForm.title,
-              description: milestoneForm.description,
-              definitionOfDone: milestoneForm.definitionOfDone,
+          updateMilestone.mutate(
+            {
+              id: selectedMilestone.id,
+              updates: {
+                title: milestoneForm.title,
+                description: milestoneForm.description,
+                definitionOfDone: milestoneForm.definitionOfDone,
+              }
+            },
+            {
+              onSuccess: () => {
+                setSelectedMilestone(null);
+              },
             }
-          });
+          );
+        } else {
+          setSelectedMilestone(null);
         }
       }
     }
-    setSelectedMilestone(null);
   };
 
   const handleCloseMilestoneWithoutSaving = () => {
@@ -175,16 +190,23 @@ export default function BoardPage() {
   const handleSaveTaskChanges = () => {
     if (selectedTask) {
       if (selectedTask.isNew) {
-        createTask.mutate({
-          title: editForm.title || "NEW_TASK",
-          milestoneId: selectedTask.milestoneId,
-          description: editForm.description,
-          definitionOfDone: editForm.definitionOfDone,
-          milestoneOrder: 0,
-          globalOrder: tasks.length,
-          isCompleted: false,
-          isDeleted: false,
-        });
+        createTask.mutate(
+          {
+            title: editForm.title || "NEW_TASK",
+            milestoneId: selectedTask.milestoneId,
+            description: editForm.description,
+            definitionOfDone: editForm.definitionOfDone,
+            milestoneOrder: 0,
+            globalOrder: tasks.length,
+            isCompleted: false,
+            isDeleted: false,
+          },
+          {
+            onSuccess: () => {
+              setSelectedTask(null);
+            },
+          }
+        );
       } else {
         const hasChanges = 
           editForm.title !== selectedTask.title ||
@@ -192,18 +214,26 @@ export default function BoardPage() {
           editForm.definitionOfDone !== (selectedTask.definitionOfDone || "");
         
         if (hasChanges) {
-          updateTask.mutate({
-            id: selectedTask.id,
-            updates: {
-              title: editForm.title,
-              description: editForm.description,
-              definitionOfDone: editForm.definitionOfDone,
+          updateTask.mutate(
+            {
+              id: selectedTask.id,
+              updates: {
+                title: editForm.title,
+                description: editForm.description,
+                definitionOfDone: editForm.definitionOfDone,
+              }
+            },
+            {
+              onSuccess: () => {
+                setSelectedTask(null);
+              },
             }
-          });
+          );
+        } else {
+          setSelectedTask(null);
         }
       }
     }
-    setSelectedTask(null);
   };
 
   const handleCloseTaskWithoutSaving = () => {

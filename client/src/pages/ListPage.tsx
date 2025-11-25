@@ -103,16 +103,23 @@ export default function ListPage() {
   const handleSaveChanges = () => {
     if (selectedTask) {
       if (selectedTask.isNew) {
-        createTask.mutate({
-          title: editForm.title || "NEW_TASK",
-          milestoneId: editForm.milestoneId,
-          description: editForm.description,
-          definitionOfDone: editForm.definitionOfDone,
-          milestoneOrder: 0,
-          globalOrder: tasks.length,
-          isCompleted: false,
-          isDeleted: false,
-        });
+        createTask.mutate(
+          {
+            title: editForm.title || "NEW_TASK",
+            milestoneId: editForm.milestoneId || undefined,
+            description: editForm.description,
+            definitionOfDone: editForm.definitionOfDone,
+            milestoneOrder: 0,
+            globalOrder: tasks.length,
+            isCompleted: false,
+            isDeleted: false,
+          },
+          {
+            onSuccess: () => {
+              setSelectedTask(null);
+            },
+          }
+        );
       } else {
         const hasChanges = 
           editForm.title !== selectedTask.title ||
@@ -121,19 +128,27 @@ export default function ListPage() {
           editForm.definitionOfDone !== (selectedTask.definitionOfDone || "");
         
         if (hasChanges) {
-          updateTask.mutate({
-            id: selectedTask.id,
-            updates: {
-              title: editForm.title,
-              milestoneId: editForm.milestoneId,
-              description: editForm.description,
-              definitionOfDone: editForm.definitionOfDone,
+          updateTask.mutate(
+            {
+              id: selectedTask.id,
+              updates: {
+                title: editForm.title,
+                milestoneId: editForm.milestoneId,
+                description: editForm.description,
+                definitionOfDone: editForm.definitionOfDone,
+              }
+            },
+            {
+              onSuccess: () => {
+                setSelectedTask(null);
+              },
             }
-          });
+          );
+        } else {
+          setSelectedTask(null);
         }
       }
     }
-    setSelectedTask(null);
   };
 
   const handleCloseWithoutSaving = () => {

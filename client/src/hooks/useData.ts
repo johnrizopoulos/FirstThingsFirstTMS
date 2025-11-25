@@ -31,6 +31,7 @@ export function useCreateMilestone() {
     mutationFn: api.createMilestone,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/milestones"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/milestones/active"] });
     },
   });
 }
