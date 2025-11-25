@@ -47,7 +47,7 @@ export default function CompletedPage() {
                     <div
                       key={milestone.id}
                       data-testid={`card-completed-milestone-${milestone.id}`}
-                      className="border border-primary p-4 bg-black hover:bg-primary/5 transition-colors"
+                      className="border border-primary p-4 bg-card hover:bg-primary/5 transition-colors"
                     >
                       <h3 data-testid={`text-milestone-title-${milestone.id}`} className="font-bold text-sm mb-2">
                         {milestone.title}
@@ -79,7 +79,7 @@ export default function CompletedPage() {
                     <div
                       key={task.id}
                       data-testid={`card-completed-task-${task.id}`}
-                      className="border border-primary p-4 bg-black hover:bg-primary/5 transition-colors"
+                      className="border border-primary p-4 bg-card hover:bg-primary/5 transition-colors"
                     >
                       <h3 data-testid={`text-task-title-${task.id}`} className="font-bold text-sm mb-2">
                         {task.title}
