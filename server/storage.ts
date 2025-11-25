@@ -103,12 +103,29 @@ export class DatabaseStorage implements IStorage {
   }
 
   async completeMilestone(id: string, userId: string): Promise<Milestone | undefined> {
+    const now = new Date();
+    
+    // First, get the milestone to verify it exists and belongs to the user
+    const milestone = await this.getMilestone(id, userId);
+    if (!milestone) return undefined;
+
+    // Complete all tasks associated with this milestone
+    await db
+      .update(tasks)
+      .set({
+        isCompleted: true,
+        completedAt: now,
+        updatedAt: now,
+      })
+      .where(and(eq(tasks.milestoneId, id), eq(tasks.isCompleted, false)));
+
+    // Complete the milestone
     const [completed] = await db
       .update(milestones)
       .set({
         isCompleted: true,
-        completedAt: new Date(),
-        updatedAt: new Date(),
+        completedAt: now,
+        updatedAt: now,
       })
       .where(and(eq(milestones.id, id), eq(milestones.userId, userId)))
       .returning();
