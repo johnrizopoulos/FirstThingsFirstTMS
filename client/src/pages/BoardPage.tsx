@@ -322,7 +322,7 @@ export default function BoardPage() {
                     displayOrder: 0,
                     isDeleted: false,
                   })}
-                  className="bg-primary text-black hover:bg-primary/80 font-mono rounded-none text-xs md:text-sm"
+                  className="bg-primary text-primary-foreground hover:bg-primary/80 font-mono rounded-none text-xs md:text-sm"
                   data-testid="button-create-first-milestone"
                 >
                   + CREATE

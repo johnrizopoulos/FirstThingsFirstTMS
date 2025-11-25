@@ -145,7 +145,7 @@ export default function ListPage() {
           <Button 
             onClick={handleAddNew}
             data-testid="button-add-task"
-            className="rounded-none bg-primary text-black hover:bg-primary/80 font-mono font-bold text-xs md:text-sm w-full sm:w-auto"
+            className="rounded-none bg-primary text-primary-foreground hover:bg-primary/80 font-mono font-bold text-xs md:text-sm w-full sm:w-auto"
           >
             + ADD_TASK
           </Button>
