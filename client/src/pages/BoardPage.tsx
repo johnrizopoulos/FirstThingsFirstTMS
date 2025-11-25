@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useTasks, useMilestones, useCreateTask, useCreateMilestone, useUpdateMilestone, useDeleteMilestone, useReorderTasks } from "@/hooks/useData";
 import { Layout } from "@/components/Layout";
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from "@dnd-kit/core";
@@ -46,11 +46,22 @@ export default function BoardPage() {
   const createTask = useCreateTask();
   const reorderTasks = useReorderTasks();
   const [selectedMilestone, setSelectedMilestone] = useState<Milestone | null>(null);
+  const [editForm, setEditForm] = useState({ title: "", description: "", definitionOfDone: "" });
 
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
+
+  useEffect(() => {
+    if (selectedMilestone) {
+      setEditForm({
+        title: selectedMilestone.title,
+        description: selectedMilestone.description || "",
+        definitionOfDone: selectedMilestone.definitionOfDone || "",
+      });
+    }
+  }, [selectedMilestone]);
 
   const handleDragEnd = (event: DragEndEvent, milestoneId: string) => {
     const { active, over } = event;
@@ -67,6 +78,27 @@ export default function BoardPage() {
        const newOrder = arrayMove(milestoneTasks, oldIndex, newIndex);
        reorderTasks.mutate(newOrder.map(t => t.id));
     }
+  };
+
+  const handleCloseDialog = () => {
+    if (selectedMilestone) {
+      const hasChanges = 
+        editForm.title !== selectedMilestone.title ||
+        editForm.description !== (selectedMilestone.description || "") ||
+        editForm.definitionOfDone !== (selectedMilestone.definitionOfDone || "");
+      
+      if (hasChanges) {
+        updateMilestone.mutate({
+          id: selectedMilestone.id,
+          updates: {
+            title: editForm.title,
+            description: editForm.description,
+            definitionOfDone: editForm.definitionOfDone,
+          }
+        });
+      }
+    }
+    setSelectedMilestone(null);
   };
 
   if (milestonesLoading || tasksLoading) {
@@ -187,25 +219,22 @@ export default function BoardPage() {
         </div>
       </div>
 
-      <Dialog open={!!selectedMilestone} onOpenChange={(open) => !open && setSelectedMilestone(null)}>
-        <DialogContent className="bg-black border-2 border-primary text-primary font-mono max-w-[95vw] sm:max-w-[600px] p-0 gap-0 shadow-[0_0_20px_rgba(0,255,0,0.2)]">
-          <DialogHeader className="bg-primary/20 p-3 md:p-4 border-b border-primary">
+      <Dialog open={!!selectedMilestone} onOpenChange={(open) => !open && handleCloseDialog()}>
+        <DialogContent className="bg-black border-2 border-primary text-primary font-mono max-w-[95vw] sm:max-w-[600px] p-0 gap-0 shadow-[0_0_20px_rgba(0,255,0,0.2)] max-h-[90vh] flex flex-col">
+          <DialogHeader className="bg-primary/20 p-3 md:p-4 border-b border-primary shrink-0">
             <DialogTitle className="text-base md:text-xl font-bold uppercase flex items-center gap-2">
               <span className="animate-pulse">█</span>
               <span className="truncate">EDIT_MILESTONE: {selectedMilestone?.title}</span>
             </DialogTitle>
           </DialogHeader>
           
-          <div className="p-4 md:p-6 space-y-4">
+          <div className="p-4 md:p-6 space-y-4 overflow-y-auto flex-1">
             <div>
               <label className="text-xs opacity-50 block mb-1">TITLE</label>
               <input 
                 data-testid="input-milestone-title"
-                value={selectedMilestone?.title || ""}
-                onChange={(e) => selectedMilestone && updateMilestone.mutate({ 
-                  id: selectedMilestone.id, 
-                  updates: { title: e.target.value } 
-                })}
+                value={editForm.title}
+                onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
                 className="w-full bg-black border border-primary p-2 text-sm md:text-base focus:outline-none focus:ring-1 focus:ring-primary"
               />
             </div>
@@ -215,11 +244,8 @@ export default function BoardPage() {
                 <label className="text-xs opacity-50 block mb-1">DESCRIPTION</label>
                 <textarea 
                   data-testid="input-milestone-description"
-                  value={selectedMilestone?.description || ""}
-                  onChange={(e) => selectedMilestone && updateMilestone.mutate({ 
-                    id: selectedMilestone.id, 
-                    updates: { description: e.target.value } 
-                  })}
+                  value={editForm.description}
+                  onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
                   className="w-full h-32 bg-black border border-primary p-2 text-sm md:text-base focus:outline-none focus:ring-1 focus:ring-primary resize-none"
                 />
               </div>
@@ -227,18 +253,15 @@ export default function BoardPage() {
                 <label className="text-xs opacity-50 block mb-1">DEFINITION OF DONE</label>
                 <textarea 
                   data-testid="input-milestone-dod"
-                  value={selectedMilestone?.definitionOfDone || ""}
-                  onChange={(e) => selectedMilestone && updateMilestone.mutate({ 
-                    id: selectedMilestone.id, 
-                    updates: { definitionOfDone: e.target.value } 
-                  })}
+                  value={editForm.definitionOfDone}
+                  onChange={(e) => setEditForm({ ...editForm, definitionOfDone: e.target.value })}
                   className="w-full h-32 bg-black border border-primary p-2 text-sm md:text-base focus:outline-none focus:ring-1 focus:ring-primary resize-none"
                 />
               </div>
             </div>
           </div>
 
-          <DialogFooter className="border-t border-primary p-3 md:p-4 flex flex-col sm:flex-row justify-between gap-2 bg-black">
+          <DialogFooter className="border-t border-primary p-3 md:p-4 flex flex-col sm:flex-row justify-between gap-2 bg-black shrink-0">
             <Button 
               data-testid="button-delete-milestone"
               variant="destructive" 
@@ -251,7 +274,7 @@ export default function BoardPage() {
             <Button 
               data-testid="button-close"
               variant="outline" 
-              onClick={() => setSelectedMilestone(null)}
+              onClick={handleCloseDialog}
               className="bg-transparent border border-primary text-primary hover:bg-primary hover:text-black font-mono rounded-none text-xs md:text-sm w-full sm:w-auto"
             >
               CLOSE
