@@ -24,6 +24,7 @@ export interface IStorage {
   updateMilestone(id: string, userId: string, updates: Partial<Milestone>): Promise<Milestone | undefined>;
   completeMilestone(id: string, userId: string): Promise<Milestone | undefined>;
   deleteMilestone(id: string, userId: string): Promise<void>;
+  getActiveMilestones(userId: string): Promise<Milestone[]>;
   getCompletedMilestones(userId: string): Promise<Milestone[]>;
   
   // Task operations
@@ -141,6 +142,18 @@ export class DatabaseStorage implements IStorage {
         updatedAt: new Date(),
       })
       .where(and(eq(milestones.id, id), eq(milestones.userId, userId)));
+  }
+
+  async getActiveMilestones(userId: string): Promise<Milestone[]> {
+    return await db
+      .select()
+      .from(milestones)
+      .where(and(
+        eq(milestones.userId, userId),
+        eq(milestones.isDeleted, false),
+        eq(milestones.isCompleted, false)
+      ))
+      .orderBy(asc(milestones.displayOrder));
   }
 
   async getCompletedMilestones(userId: string): Promise<Milestone[]> {

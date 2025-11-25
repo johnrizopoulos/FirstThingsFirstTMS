@@ -40,6 +40,11 @@ export async function completeMilestone(id: string): Promise<Milestone> {
   return handleResponse(response);
 }
 
+export async function getActiveMilestones(): Promise<Milestone[]> {
+  const response = await fetch("/api/milestones/active");
+  return handleResponse(response);
+}
+
 export async function getCompletedMilestones(): Promise<Milestone[]> {
   const response = await fetch("/api/milestones/completed");
   return handleResponse(response);

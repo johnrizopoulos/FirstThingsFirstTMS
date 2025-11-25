@@ -236,7 +236,7 @@ export default function BoardPage() {
         <div className={cn("flex h-full gap-3 md:gap-4", activeMilestones.length > 0 ? "min-w-max" : "w-full")}>
           {activeMilestones.map(milestone => {
             const milestoneTasks = tasks
-              .filter(t => t.milestoneId === milestone.id && !t.isDeleted && !t.isCompleted)
+              .filter(t => t.milestoneId && t.milestoneId === milestone.id && !t.isDeleted && !t.isCompleted)
               .sort((a, b) => a.milestoneOrder - b.milestoneOrder);
               
             return (

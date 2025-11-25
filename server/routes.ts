@@ -84,6 +84,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/milestones/active", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const active = await storage.getActiveMilestones(userId);
+      res.json(active);
+    } catch (error) {
+      console.error("Error fetching active milestones:", error);
+      res.status(500).json({ message: "Failed to fetch active milestones" });
+    }
+  });
+
   app.get("/api/milestones/completed", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
@@ -124,10 +135,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       
-      // Verify milestone belongs to user
-      const milestone = await storage.getMilestone(req.body.milestoneId, userId);
-      if (!milestone) {
-        return res.status(404).json({ message: "Milestone not found" });
+      // If milestoneId is provided, verify it belongs to user
+      if (req.body.milestoneId) {
+        const milestone = await storage.getMilestone(req.body.milestoneId, userId);
+        if (!milestone) {
+          return res.status(404).json({ message: "Milestone not found" });
+        }
       }
       
       const validatedData = insertTaskSchema.parse({

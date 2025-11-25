@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { useTasks, useMilestones, useCreateTask, useUpdateTask, useDeleteTask, useReorderTasks, useCompleteTask } from "@/hooks/useData";
+import { useTasks, useActiveMilestones, useCreateTask, useUpdateTask, useDeleteTask, useReorderTasks, useCompleteTask } from "@/hooks/useData";
 import { Layout } from "@/components/Layout";
 import { SortableTaskRow } from "@/components/SortableTaskRow";
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from "@dnd-kit/core";
@@ -11,14 +11,14 @@ import type { Task } from "@shared/schema";
 
 export default function ListPage() {
   const { data: tasks = [], isLoading } = useTasks();
-  const { data: milestones = [] } = useMilestones();
+  const { data: activeMilestones = [] } = useActiveMilestones();
   const createTask = useCreateTask();
   const updateTask = useUpdateTask();
   const completeTask = useCompleteTask();
   const deleteTask = useDeleteTask();
   const reorderTasks = useReorderTasks();
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
-  const [editForm, setEditForm] = useState({ title: "", milestoneId: "", description: "", definitionOfDone: "" });
+  const [editForm, setEditForm] = useState({ title: "", milestoneId: "" as string | undefined, description: "", definitionOfDone: "" });
   const descriptionRef = useRef<HTMLTextAreaElement>(null);
   const dodRef = useRef<HTMLTextAreaElement>(null);
 
@@ -33,7 +33,7 @@ export default function ListPage() {
     if (selectedTask) {
       setEditForm({
         title: selectedTask.title,
-        milestoneId: selectedTask.milestoneId,
+        milestoneId: selectedTask.milestoneId || "",
         description: selectedTask.description || "",
         definitionOfDone: selectedTask.definitionOfDone || "",
       });
@@ -62,15 +62,9 @@ export default function ListPage() {
   };
 
   const handleAddNew = () => {
-    const defaultMilestone = milestones.find(m => !m.isDeleted);
-    if (!defaultMilestone) {
-      alert("Please create a milestone first on the Board page.");
-      return;
-    }
-    
     createTask.mutate({
       title: "NEW_TASK",
-      milestoneId: defaultMilestone.id,
+      milestoneId: activeMilestones.length > 0 ? activeMilestones[0].id : undefined,
       description: "",
       definitionOfDone: "",
       milestoneOrder: 0,
@@ -84,7 +78,7 @@ export default function ListPage() {
     if (selectedTask) {
       const hasChanges = 
         editForm.title !== selectedTask.title ||
-        editForm.milestoneId !== selectedTask.milestoneId ||
+        (editForm.milestoneId || "") !== (selectedTask.milestoneId || "") ||
         editForm.description !== (selectedTask.description || "") ||
         editForm.definitionOfDone !== (selectedTask.definitionOfDone || "");
       
@@ -203,13 +197,18 @@ export default function ListPage() {
                 <label className="text-xs opacity-50 block mb-1">ASSIGNED MILESTONE</label>
                 <select
                   data-testid="select-milestone"
-                  value={editForm.milestoneId}
-                  onChange={(e) => setEditForm({ ...editForm, milestoneId: e.target.value })}
+                  value={editForm.milestoneId || ""}
+                  onChange={(e) => setEditForm({ ...editForm, milestoneId: e.target.value || undefined })}
                   className="w-full bg-black border border-primary p-2 text-sm md:text-base focus:outline-none focus:ring-1 focus:ring-primary"
                 >
-                  {milestones.filter(m => !m.isDeleted).map(m => (
-                    <option key={m.id} value={m.id}>{m.title}</option>
-                  ))}
+                  <option value="">-- NONE --</option>
+                  {activeMilestones.length === 0 ? (
+                    <option disabled>NO_ACTIVE_MILESTONES</option>
+                  ) : (
+                    activeMilestones.map(m => (
+                      <option key={m.id} value={m.id}>{m.title}</option>
+                    ))
+                  )}
                 </select>
               </div>
               

@@ -10,6 +10,13 @@ export function useMilestones() {
   });
 }
 
+export function useActiveMilestones() {
+  return useQuery({
+    queryKey: ["/api/milestones/active"],
+    queryFn: api.getActiveMilestones,
+  });
+}
+
 export function useTasks() {
   return useQuery({
     queryKey: ["/api/tasks"],
