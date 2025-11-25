@@ -33,7 +33,7 @@ function SortableTaskCard({ task, onSelect }: { task: Task; onSelect: (task: Tas
         task.isCompleted && "opacity-50 line-through"
       )}
     >
-      <div className="font-bold mb-1 truncate">{task.title}</div>
+      <div className="font-bold mb-1 truncate font-mono uppercase">{task.title}</div>
     </div>
   );
 }
@@ -217,7 +217,7 @@ export default function BoardPage() {
                   onClick={() => setSelectedMilestone(milestone)}
                   data-testid={`card-milestone-${milestone.id}`}
                 >
-                  <h3 className="font-bold truncate w-full text-sm md:text-base">{milestone.title}</h3>
+                  <h3 className="font-bold truncate w-full text-sm md:text-base font-mono uppercase">{milestone.title}</h3>
                   <span className="text-xs opacity-50 shrink-0 ml-2">[{milestoneTasks.length}]</span>
                 </div>
 
