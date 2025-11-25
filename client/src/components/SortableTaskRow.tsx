@@ -31,16 +31,19 @@ export function SortableTaskRow({ task, onEdit, index }: SortableTaskRowProps) {
     <div
       ref={setNodeRef}
       style={style}
+      onClick={() => !isDragging && onEdit(task)}
       className={cn(
-        "border border-primary/30 p-3 mb-2 flex items-center gap-3 bg-card hover:bg-secondary/50 select-none group",
+        "border border-primary/30 p-3 mb-2 flex items-center gap-3 bg-card hover:bg-secondary/50 select-none group cursor-pointer",
         isDragging && "opacity-50 border-dashed border-primary bg-black"
       )}
+      data-testid={`card-task-${task.id}`}
     >
       <div
         {...attributes}
         {...listeners}
         className="cursor-grab active:cursor-grabbing flex items-center justify-center flex-shrink-0 p-2 -m-2 touch-none"
         data-testid="button-drag-handle"
+        onClick={(e) => e.stopPropagation()}
       >
         <GripVertical className="w-5 h-5 text-primary/50 hover:text-primary" />
       </div>
@@ -50,19 +53,10 @@ export function SortableTaskRow({ task, onEdit, index }: SortableTaskRowProps) {
       </div>
       
       <div 
-        onClick={() => onEdit(task)}
-        className="flex-1 font-mono uppercase truncate cursor-pointer hover:text-primary/70"
+        className="flex-1 font-mono uppercase truncate"
         data-testid={`button-edit-task-${task.id}`}
       >
         {task.title}
-      </div>
-      
-      <div 
-        onClick={() => onEdit(task)}
-        className="text-xs border border-primary/20 px-2 py-1 rounded text-primary/70 group-hover:border-primary/50 cursor-pointer hover:border-primary flex-shrink-0"
-        data-testid="button-open-task"
-      >
-        ::OPEN
       </div>
     </div>
   );
