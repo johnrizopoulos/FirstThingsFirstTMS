@@ -116,15 +116,15 @@ export default function ListPage() {
         </DndContext>
 
         <Dialog open={!!selectedTask} onOpenChange={(open) => !open && setSelectedTask(null)}>
-          <DialogContent className="bg-black border-2 border-primary text-primary font-mono max-w-[95vw] sm:max-w-[600px] p-0 gap-0 shadow-[0_0_20px_rgba(0,255,0,0.2)]">
-            <DialogHeader className="bg-primary/20 p-3 md:p-4 border-b border-primary">
+          <DialogContent className="bg-black border-2 border-primary text-primary font-mono max-w-[95vw] sm:max-w-[600px] p-0 gap-0 shadow-[0_0_20px_rgba(0,255,0,0.2)] max-h-[90vh] flex flex-col">
+            <DialogHeader className="bg-primary/20 p-3 md:p-4 border-b border-primary shrink-0">
               <DialogTitle className="text-base md:text-xl font-bold uppercase flex items-center gap-2">
                 <span className="animate-pulse">█</span> 
                 <span className="truncate">EDIT_TASK: {selectedTask?.title}</span>
               </DialogTitle>
             </DialogHeader>
             
-            <div className="p-4 md:p-6 space-y-4">
+            <div className="p-4 md:p-6 space-y-4 overflow-y-auto flex-1">
               <div>
                 <label className="text-xs opacity-50 block mb-1">TITLE</label>
                 <input 
@@ -183,7 +183,7 @@ export default function ListPage() {
               </div>
             </div>
 
-            <DialogFooter className="border-t border-primary p-3 md:p-4 flex flex-col sm:flex-row justify-between gap-2 bg-black">
+            <DialogFooter className="border-t border-primary p-3 md:p-4 flex flex-col sm:flex-row justify-between gap-2 bg-black shrink-0">
               <Button 
                 data-testid="button-delete"
                 variant="destructive" 
