@@ -6,7 +6,7 @@ import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, us
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Trash2, Check, X } from "lucide-react";
+import { Trash2, Check } from "lucide-react";
 import type { Task } from "@shared/schema";
 
 export default function ListPage() {
@@ -173,18 +173,11 @@ export default function ListPage() {
 
         <Dialog open={!!selectedTask} onOpenChange={(open) => !open && handleCloseWithoutSaving()}>
           <DialogContent className="bg-black border-2 border-primary text-primary font-mono max-w-[95vw] sm:max-w-[600px] p-0 gap-0 shadow-[0_0_20px_rgba(0,255,0,0.2)] max-h-[90vh] flex flex-col">
-            <DialogHeader className="bg-primary/20 p-3 md:p-4 border-b border-primary shrink-0 flex justify-between items-center">
+            <DialogHeader className="bg-primary/20 p-3 md:p-4 border-b border-primary shrink-0">
               <DialogTitle className="text-base md:text-xl font-bold uppercase flex items-center gap-2">
                 <span className="animate-pulse">█</span> 
                 <span className="truncate">EDIT_TASK: {selectedTask?.title}</span>
               </DialogTitle>
-              <button
-                onClick={handleCloseWithoutSaving}
-                className="p-1 hover:bg-primary/30 rounded transition-colors flex-shrink-0"
-                data-testid="button-close-modal"
-              >
-                <X className="w-5 h-5" />
-              </button>
             </DialogHeader>
             
             <div className="p-4 md:p-6 space-y-4 overflow-y-auto flex-1">
