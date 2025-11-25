@@ -27,27 +27,28 @@ export default function TrashPage() {
   return (
     <Layout>
       <div className="max-w-4xl mx-auto">
-        <div className="flex justify-between items-center mb-6 border-b-2 border-destructive pb-2">
-          <h2 className="text-xl font-bold text-destructive">
-            // SYSTEM_RECYCLE_BIN
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-4 md:mb-6 border-b-2 border-destructive pb-2">
+          <h2 className="text-base md:text-xl font-bold text-destructive">
+            <span className="hidden sm:inline">// SYSTEM_RECYCLE_BIN</span>
+            <span className="sm:hidden">// RECYCLE_BIN</span>
           </h2>
-          <div className="text-xs text-destructive/70">
-            ITEMS AUTO-PURGED AFTER 30 DAYS
+          <div className="text-[10px] md:text-xs text-destructive/70">
+            AUTO-PURGED AFTER 30 DAYS
           </div>
         </div>
 
-        <div className="space-y-8">
+        <div className="space-y-6 md:space-y-8">
           <section>
-            <h3 className="text-lg font-bold mb-4 opacity-70">DELETED MILESTONES</h3>
+            <h3 className="text-sm md:text-lg font-bold mb-3 md:mb-4 opacity-70">DELETED MILESTONES</h3>
             {deletedMilestones.length === 0 ? (
-              <div className="text-sm opacity-30 italic">No milestones in trash.</div>
+              <div className="text-xs md:text-sm opacity-30 italic">No milestones in trash.</div>
             ) : (
               <div className="space-y-2">
                 {deletedMilestones.map(m => (
-                  <div key={m.id} className="border border-destructive/30 p-3 flex justify-between items-center bg-destructive/5" data-testid={`card-deleted-milestone-${m.id}`}>
-                    <div>
-                      <div className="font-bold text-destructive">{m.title}</div>
-                      <div className="text-xs opacity-50">
+                  <div key={m.id} className="border border-destructive/30 p-2 md:p-3 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 bg-destructive/5" data-testid={`card-deleted-milestone-${m.id}`}>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-bold text-destructive text-sm md:text-base truncate">{m.title}</div>
+                      <div className="text-[10px] md:text-xs opacity-50">
                         Deleted {m.deletedAt && formatDistance(new Date(m.deletedAt), new Date(), { addSuffix: true })}
                       </div>
                     </div>
@@ -55,7 +56,7 @@ export default function TrashPage() {
                       size="sm" 
                       variant="outline" 
                       data-testid={`button-restore-milestone-${m.id}`}
-                      className="border-destructive text-destructive hover:bg-destructive hover:text-black rounded-none font-mono"
+                      className="border-destructive text-destructive hover:bg-destructive hover:text-black rounded-none font-mono text-xs w-full sm:w-auto shrink-0"
                       onClick={() => updateMilestone.mutate({ id: m.id, updates: { isDeleted: false, deletedAt: null } })}
                     >
                       <RotateCcw className="w-3 h-3 mr-2" /> RESTORE
@@ -67,16 +68,16 @@ export default function TrashPage() {
           </section>
 
           <section>
-            <h3 className="text-lg font-bold mb-4 opacity-70">DELETED TASKS</h3>
+            <h3 className="text-sm md:text-lg font-bold mb-3 md:mb-4 opacity-70">DELETED TASKS</h3>
             {deletedTasks.length === 0 ? (
-              <div className="text-sm opacity-30 italic">No tasks in trash.</div>
+              <div className="text-xs md:text-sm opacity-30 italic">No tasks in trash.</div>
             ) : (
                <div className="space-y-2">
                 {deletedTasks.map(t => (
-                  <div key={t.id} className="border border-destructive/30 p-3 flex justify-between items-center bg-destructive/5" data-testid={`card-deleted-task-${t.id}`}>
-                    <div>
-                      <div className="font-bold text-destructive">{t.title}</div>
-                      <div className="text-xs opacity-50">
+                  <div key={t.id} className="border border-destructive/30 p-2 md:p-3 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 bg-destructive/5" data-testid={`card-deleted-task-${t.id}`}>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-bold text-destructive text-sm md:text-base truncate">{t.title}</div>
+                      <div className="text-[10px] md:text-xs opacity-50">
                         Deleted {t.deletedAt && formatDistance(new Date(t.deletedAt), new Date(), { addSuffix: true })}
                       </div>
                     </div>
@@ -84,7 +85,7 @@ export default function TrashPage() {
                       size="sm" 
                       variant="outline" 
                       data-testid={`button-restore-task-${t.id}`}
-                      className="border-destructive text-destructive hover:bg-destructive hover:text-black rounded-none font-mono"
+                      className="border-destructive text-destructive hover:bg-destructive hover:text-black rounded-none font-mono text-xs w-full sm:w-auto shrink-0"
                       onClick={() => updateTask.mutate({ id: t.id, updates: { isDeleted: false, deletedAt: null } })}
                     >
                       <RotateCcw className="w-3 h-3 mr-2" /> RESTORE

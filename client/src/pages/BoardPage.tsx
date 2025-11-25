@@ -86,22 +86,22 @@ export default function BoardPage() {
 
   return (
     <Layout>
-      <div className="h-full overflow-x-auto">
-        <div className="flex h-full min-w-max gap-4">
+      <div className="h-full overflow-x-auto pb-4">
+        <div className="flex h-full min-w-max gap-3 md:gap-4">
           {activeMilestones.map(milestone => {
             const milestoneTasks = tasks
               .filter(t => t.milestoneId === milestone.id && !t.isDeleted && !t.isCompleted)
               .sort((a, b) => a.milestoneOrder - b.milestoneOrder);
               
             return (
-              <div key={milestone.id} className="w-72 flex flex-col h-full border-2 border-primary/20 bg-card/50">
+              <div key={milestone.id} className="w-64 md:w-72 flex flex-col h-full border-2 border-primary/20 bg-card/50">
                 <div 
-                  className="p-3 border-b-2 border-primary/20 bg-primary/5 flex justify-between items-center cursor-pointer hover:bg-primary/20"
+                  className="p-2 md:p-3 border-b-2 border-primary/20 bg-primary/5 flex justify-between items-center cursor-pointer hover:bg-primary/20"
                   onClick={() => setSelectedMilestone(milestone)}
                   data-testid={`card-milestone-${milestone.id}`}
                 >
-                  <h3 className="font-bold truncate w-full">{milestone.title}</h3>
-                  <span className="text-xs opacity-50">[{milestoneTasks.length}]</span>
+                  <h3 className="font-bold truncate w-full text-sm md:text-base">{milestone.title}</h3>
+                  <span className="text-xs opacity-50 shrink-0 ml-2">[{milestoneTasks.length}]</span>
                 </div>
 
                 <div className="flex-1 p-2 overflow-y-auto">
@@ -138,7 +138,7 @@ export default function BoardPage() {
                       });
                     }}
                   >
-                    + ADD TASK
+                    + ADD
                   </Button>
                 </div>
               </div>
@@ -157,17 +157,17 @@ export default function BoardPage() {
               })}
               data-testid="button-add-milestone"
             >
-              <div className="rotate-90 text-primary/50 font-bold whitespace-nowrap">
+              <div className="rotate-90 text-primary/50 font-bold whitespace-nowrap text-xs md:text-sm">
                 + NEW
               </div>
             </div>
           )}
 
           {activeMilestones.length === 0 && (
-            <div className="flex-1 flex items-center justify-center text-center border-2 border-dashed border-primary/20 p-12">
+            <div className="flex-1 flex items-center justify-center text-center border-2 border-dashed border-primary/20 p-6 md:p-12 mx-4">
               <div>
-                <h2 className="text-xl mb-4">NO MILESTONES CONFIGURED</h2>
-                <p className="opacity-70 mb-6">Create your first milestone to start organizing tasks.</p>
+                <h2 className="text-lg md:text-xl mb-3 md:mb-4">NO MILESTONES</h2>
+                <p className="opacity-70 mb-4 md:mb-6 text-sm md:text-base">Create your first milestone to start organizing tasks.</p>
                 <Button 
                   onClick={() => createMilestone.mutate({
                     title: "MILESTONE_01",
@@ -176,10 +176,10 @@ export default function BoardPage() {
                     displayOrder: 0,
                     isDeleted: false,
                   })}
-                  className="bg-primary text-black hover:bg-primary/80 font-mono rounded-none"
+                  className="bg-primary text-black hover:bg-primary/80 font-mono rounded-none text-xs md:text-sm"
                   data-testid="button-create-first-milestone"
                 >
-                  + CREATE FIRST MILESTONE
+                  + CREATE
                 </Button>
               </div>
             </div>
@@ -188,14 +188,15 @@ export default function BoardPage() {
       </div>
 
       <Dialog open={!!selectedMilestone} onOpenChange={(open) => !open && setSelectedMilestone(null)}>
-        <DialogContent className="bg-black border-2 border-primary text-primary font-mono sm:max-w-[600px] p-0 gap-0 shadow-[0_0_20px_rgba(0,255,0,0.2)]">
-          <DialogHeader className="bg-primary/20 p-4 border-b border-primary">
-            <DialogTitle className="text-xl font-bold uppercase flex items-center gap-2">
-              <span className="animate-pulse">█</span> EDIT_MILESTONE: {selectedMilestone?.title}
+        <DialogContent className="bg-black border-2 border-primary text-primary font-mono max-w-[95vw] sm:max-w-[600px] p-0 gap-0 shadow-[0_0_20px_rgba(0,255,0,0.2)]">
+          <DialogHeader className="bg-primary/20 p-3 md:p-4 border-b border-primary">
+            <DialogTitle className="text-base md:text-xl font-bold uppercase flex items-center gap-2">
+              <span className="animate-pulse">█</span>
+              <span className="truncate">EDIT_MILESTONE: {selectedMilestone?.title}</span>
             </DialogTitle>
           </DialogHeader>
           
-          <div className="p-6 space-y-4">
+          <div className="p-4 md:p-6 space-y-4">
             <div>
               <label className="text-xs opacity-50 block mb-1">TITLE</label>
               <input 
@@ -205,11 +206,11 @@ export default function BoardPage() {
                   id: selectedMilestone.id, 
                   updates: { title: e.target.value } 
                 })}
-                className="w-full bg-black border border-primary p-2 focus:outline-none focus:ring-1 focus:ring-primary"
+                className="w-full bg-black border border-primary p-2 text-sm md:text-base focus:outline-none focus:ring-1 focus:ring-primary"
               />
             </div>
             
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="text-xs opacity-50 block mb-1">DESCRIPTION</label>
                 <textarea 
@@ -219,7 +220,7 @@ export default function BoardPage() {
                     id: selectedMilestone.id, 
                     updates: { description: e.target.value } 
                   })}
-                  className="w-full h-32 bg-black border border-primary p-2 focus:outline-none focus:ring-1 focus:ring-primary resize-none"
+                  className="w-full h-32 bg-black border border-primary p-2 text-sm md:text-base focus:outline-none focus:ring-1 focus:ring-primary resize-none"
                 />
               </div>
               <div>
@@ -231,27 +232,27 @@ export default function BoardPage() {
                     id: selectedMilestone.id, 
                     updates: { definitionOfDone: e.target.value } 
                   })}
-                  className="w-full h-32 bg-black border border-primary p-2 focus:outline-none focus:ring-1 focus:ring-primary resize-none"
+                  className="w-full h-32 bg-black border border-primary p-2 text-sm md:text-base focus:outline-none focus:ring-1 focus:ring-primary resize-none"
                 />
               </div>
             </div>
           </div>
 
-          <DialogFooter className="border-t border-primary p-4 flex justify-between sm:justify-between bg-black">
+          <DialogFooter className="border-t border-primary p-3 md:p-4 flex flex-col sm:flex-row justify-between gap-2 bg-black">
             <Button 
               data-testid="button-delete-milestone"
               variant="destructive" 
               onClick={() => { selectedMilestone && deleteMilestone.mutate(selectedMilestone.id); setSelectedMilestone(null); }}
-              className="bg-transparent border border-destructive text-destructive hover:bg-destructive hover:text-white font-mono rounded-none"
+              className="bg-transparent border border-destructive text-destructive hover:bg-destructive hover:text-white font-mono rounded-none text-xs md:text-sm w-full sm:w-auto"
             >
-              <Trash2 className="w-4 h-4 mr-2" /> DELETE
+              <Trash2 className="w-3 h-3 md:w-4 md:h-4 mr-2" /> DELETE
             </Button>
 
             <Button 
               data-testid="button-close"
               variant="outline" 
               onClick={() => setSelectedMilestone(null)}
-              className="bg-transparent border border-primary text-primary hover:bg-primary hover:text-black font-mono rounded-none"
+              className="bg-transparent border border-primary text-primary hover:bg-primary hover:text-black font-mono rounded-none text-xs md:text-sm w-full sm:w-auto"
             >
               CLOSE
             </Button>

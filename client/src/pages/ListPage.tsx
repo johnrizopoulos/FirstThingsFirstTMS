@@ -74,14 +74,15 @@ export default function ListPage() {
   return (
     <Layout>
       <div className="max-w-4xl mx-auto">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-bold border-b-2 border-primary pr-4">
-            // GLOBAL_TASK_QUEUE
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4 md:mb-6">
+          <h2 className="text-base md:text-xl font-bold border-b-2 border-primary pr-4">
+            <span className="hidden sm:inline">// GLOBAL_TASK_QUEUE</span>
+            <span className="sm:hidden">// TASK_QUEUE</span>
           </h2>
           <Button 
             onClick={handleAddNew}
             data-testid="button-add-task"
-            className="rounded-none bg-primary text-black hover:bg-primary/80 font-mono font-bold"
+            className="rounded-none bg-primary text-black hover:bg-primary/80 font-mono font-bold text-xs md:text-sm w-full sm:w-auto"
           >
             + ADD_TASK
           </Button>
@@ -106,7 +107,7 @@ export default function ListPage() {
               ))}
               
               {activeTasks.length === 0 && (
-                <div className="text-center border border-dashed border-primary/30 p-8 text-primary/50">
+                <div className="text-center border border-dashed border-primary/30 p-6 md:p-8 text-primary/50 text-sm md:text-base">
                   NO TASKS IN QUEUE
                 </div>
               )}
@@ -115,14 +116,15 @@ export default function ListPage() {
         </DndContext>
 
         <Dialog open={!!selectedTask} onOpenChange={(open) => !open && setSelectedTask(null)}>
-          <DialogContent className="bg-black border-2 border-primary text-primary font-mono sm:max-w-[600px] p-0 gap-0 shadow-[0_0_20px_rgba(0,255,0,0.2)]">
-            <DialogHeader className="bg-primary/20 p-4 border-b border-primary">
-              <DialogTitle className="text-xl font-bold uppercase flex items-center gap-2">
-                <span className="animate-pulse">█</span> EDIT_TASK: {selectedTask?.title}
+          <DialogContent className="bg-black border-2 border-primary text-primary font-mono max-w-[95vw] sm:max-w-[600px] p-0 gap-0 shadow-[0_0_20px_rgba(0,255,0,0.2)]">
+            <DialogHeader className="bg-primary/20 p-3 md:p-4 border-b border-primary">
+              <DialogTitle className="text-base md:text-xl font-bold uppercase flex items-center gap-2">
+                <span className="animate-pulse">█</span> 
+                <span className="truncate">EDIT_TASK: {selectedTask?.title}</span>
               </DialogTitle>
             </DialogHeader>
             
-            <div className="p-6 space-y-4">
+            <div className="p-4 md:p-6 space-y-4">
               <div>
                 <label className="text-xs opacity-50 block mb-1">TITLE</label>
                 <input 
@@ -132,7 +134,7 @@ export default function ListPage() {
                     id: selectedTask.id, 
                     updates: { title: e.target.value } 
                   })}
-                  className="w-full bg-black border border-primary p-2 focus:outline-none focus:ring-1 focus:ring-primary"
+                  className="w-full bg-black border border-primary p-2 text-sm md:text-base focus:outline-none focus:ring-1 focus:ring-primary"
                 />
               </div>
 
@@ -145,7 +147,7 @@ export default function ListPage() {
                     id: selectedTask.id, 
                     updates: { milestoneId: e.target.value } 
                   })}
-                  className="w-full bg-black border border-primary p-2 focus:outline-none focus:ring-1 focus:ring-primary"
+                  className="w-full bg-black border border-primary p-2 text-sm md:text-base focus:outline-none focus:ring-1 focus:ring-primary"
                 >
                   {milestones.filter(m => !m.isDeleted).map(m => (
                     <option key={m.id} value={m.id}>{m.title}</option>
@@ -153,7 +155,7 @@ export default function ListPage() {
                 </select>
               </div>
               
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="text-xs opacity-50 block mb-1">DESCRIPTION</label>
                   <textarea 
@@ -163,7 +165,7 @@ export default function ListPage() {
                       id: selectedTask.id, 
                       updates: { description: e.target.value } 
                     })}
-                    className="w-full h-32 bg-black border border-primary p-2 focus:outline-none focus:ring-1 focus:ring-primary resize-none"
+                    className="w-full h-32 bg-black border border-primary p-2 text-sm md:text-base focus:outline-none focus:ring-1 focus:ring-primary resize-none"
                   />
                 </div>
                 <div>
@@ -175,28 +177,28 @@ export default function ListPage() {
                       id: selectedTask.id, 
                       updates: { definitionOfDone: e.target.value } 
                     })}
-                    className="w-full h-32 bg-black border border-primary p-2 focus:outline-none focus:ring-1 focus:ring-primary resize-none"
+                    className="w-full h-32 bg-black border border-primary p-2 text-sm md:text-base focus:outline-none focus:ring-1 focus:ring-primary resize-none"
                   />
                 </div>
               </div>
             </div>
 
-            <DialogFooter className="border-t border-primary p-4 flex justify-between sm:justify-between bg-black">
+            <DialogFooter className="border-t border-primary p-3 md:p-4 flex flex-col sm:flex-row justify-between gap-2 bg-black">
               <Button 
                 data-testid="button-delete"
                 variant="destructive" 
                 onClick={() => { selectedTask && deleteTask.mutate(selectedTask.id); setSelectedTask(null); }}
-                className="bg-transparent border border-destructive text-destructive hover:bg-destructive hover:text-white font-mono rounded-none"
+                className="bg-transparent border border-destructive text-destructive hover:bg-destructive hover:text-white font-mono rounded-none text-xs md:text-sm w-full sm:w-auto"
               >
-                <Trash2 className="w-4 h-4 mr-2" /> DELETE
+                <Trash2 className="w-3 h-3 md:w-4 md:h-4 mr-2" /> DELETE
               </Button>
 
-              <div className="flex gap-2">
+              <div className="flex gap-2 w-full sm:w-auto">
                 <Button 
                   data-testid="button-cancel"
                   variant="outline" 
                   onClick={() => setSelectedTask(null)}
-                  className="bg-transparent border border-primary text-primary hover:bg-primary hover:text-black font-mono rounded-none"
+                  className="bg-transparent border border-primary text-primary hover:bg-primary hover:text-black font-mono rounded-none text-xs md:text-sm flex-1 sm:flex-none"
                 >
                   CANCEL
                 </Button>
@@ -209,9 +211,9 @@ export default function ListPage() {
                     }); 
                     setSelectedTask(null); 
                   }}
-                  className="bg-primary text-black hover:bg-primary/80 font-mono rounded-none"
+                  className="bg-primary text-black hover:bg-primary/80 font-mono rounded-none text-xs md:text-sm flex-1 sm:flex-none"
                 >
-                  <CheckSquare className="w-4 h-4 mr-2" /> COMPLETE
+                  <CheckSquare className="w-3 h-3 md:w-4 md:h-4 mr-2" /> COMPLETE
                 </Button>
               </div>
             </DialogFooter>
