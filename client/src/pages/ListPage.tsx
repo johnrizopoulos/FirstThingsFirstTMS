@@ -7,6 +7,7 @@ import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSo
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Trash2, CheckSquare } from "lucide-react";
+import { nanoid } from "nanoid";
 
 export default function ListPage() {
   const { tasks, updateTask, deleteTask, reorderGlobalTasks, addTask, milestones } = useAppStore();
@@ -42,10 +43,40 @@ export default function ListPage() {
       return;
     }
     
-    addTask({ 
+    const newTaskId = nanoid();
+    const newTask = { 
+      id: newTaskId,
       title: "NEW_TASK", 
       milestoneId: defaultMilestone 
-    });
+    };
+
+    addTask(newTask);
+    
+    // Immediately open the modal for the new task
+    // We need to construct a partial task object that matches what the store would create
+    // or at least enough for the modal to render.
+    // However, the store update is async.
+    // But since we know the ID, we can set selectedTask to a local optimistic object 
+    // or wait for the store. 
+    // Since addTask is synchronous in updating the state updater, but React batching applies.
+    // We can manually construct the object for the modal.
+    
+    const fullTask: Task = {
+      id: newTaskId,
+      milestoneId: defaultMilestone,
+      title: "NEW_TASK",
+      description: "",
+      definitionOfDone: "",
+      milestoneOrder: tasks.filter(t => t.milestoneId === defaultMilestone).length,
+      globalOrder: tasks.length,
+      isCompleted: false,
+      completedAt: null,
+      isDeleted: false,
+      deletedAt: null,
+      createdAt: new Date().toISOString(),
+    };
+
+    setSelectedTask(fullTask);
   };
 
   return (
