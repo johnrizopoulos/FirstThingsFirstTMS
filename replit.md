@@ -13,6 +13,18 @@ A terminal-inspired task management web application with IBM 3270/Bloomberg aest
 - On last page, NEXT button becomes CLOSE
 - OnboardingProvider simplified to only manage context (no forced onboarding flow)
 
+### Header Update
+- Changed header text from "FIRST_THINGS_FIRST_SYS // V.1.0" to "FIRST_THINGS_FIRST_TMS" across all pages
+- Removed "Bloomberg Terminal-inspired task prioritization" subtitle from home page
+
+### Milestone Assignment System
+- Made milestoneId optional - tasks can now have no assigned milestone
+- "ASSIGNED MILESTONE" field in List view now shows dropdown with "-- NONE --" option
+- Only active (non-deleted, non-completed) milestones displayed in dropdown
+- Tasks without assigned milestones are not displayed on Board view
+- Board view filters tasks by `t.milestoneId && t.milestoneId === milestone.id`
+- New API endpoint: `/api/milestones/active` for fetching active milestones only
+
 ## Architecture
 
 ### File Structure
@@ -42,8 +54,8 @@ A terminal-inspired task management web application with IBM 3270/Bloomberg aest
 
 ### Key Features
 - Focus mode: Single task concentration with confetti on completion
-- List view: Task queue with click-to-edit and tap-hold-to-reorder
-- Board view: Milestone-based Kanban (max 5 columns)
+- List view: Task queue with click-to-edit and tap-hold-to-reorder; optional milestone assignment
+- Board view: Milestone-based Kanban (max 5 columns); only shows tasks with assigned milestones
 - Cascade completion: Completing milestone auto-completes linked tasks
 - 30-day trash retention with auto-purge
 - Permanent completed task viewing
@@ -59,7 +71,8 @@ A terminal-inspired task management web application with IBM 3270/Bloomberg aest
 - PostgreSQL with Drizzle ORM
 - Schema in `shared/schema.ts`
 - Migrations: `npm run db:push`
-- Tables: tasks, milestones, etc.
+- milestoneId column in tasks table is now nullable (OPTIONAL)
+- Tables: tasks, milestones, users, sessions
 
 ## User Preferences
 - No automatic onboarding flow for new users
