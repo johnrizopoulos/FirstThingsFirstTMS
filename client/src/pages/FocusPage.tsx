@@ -52,7 +52,7 @@ export default function FocusPage() {
 
         <div 
           onClick={() => setSelectedTask(topTask)}
-          className="w-full border-4 border-primary bg-card p-12 cursor-pointer hover:bg-secondary/30 transition-colors relative group"
+          className="w-full border-4 border-primary bg-card p-6 md:p-12 cursor-pointer hover:bg-secondary/30 transition-colors relative group"
         >
           {/* Corners */}
           <div className="absolute top-0 left-0 w-4 h-4 border-t-4 border-l-4 border-primary" />

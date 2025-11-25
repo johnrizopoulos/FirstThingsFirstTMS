@@ -52,21 +52,21 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
       {/* Header */}
       <header className="border-b border-primary p-4 flex items-center justify-between z-10 bg-background">
-        <div className="flex items-center gap-2">
-          <div className="w-3 h-3 bg-primary animate-blink" />
-          <h1 className="text-xl font-bold tracking-widest">FIRST_THINGS_FIRST_SYS // V.1.0</h1>
+        <div className="flex items-center gap-2 overflow-hidden">
+          <div className="w-3 h-3 bg-primary animate-blink shrink-0" />
+          <h1 className="text-sm md:text-xl font-bold tracking-widest truncate">FIRST_THINGS_FIRST_SYS // V.1.0</h1>
         </div>
-        <div className="text-xs opacity-70">
-          SYSTEM_STATUS: ONLINE | USER: AUTHENTICATED
+        <div className="text-[10px] md:text-xs opacity-70 whitespace-nowrap ml-2">
+          SYS: ONLINE
         </div>
       </header>
 
       {/* Navigation */}
-      <nav className="flex border-b border-primary z-10 bg-background">
+      <nav className="flex border-b border-primary z-10 bg-background overflow-x-auto scrollbar-hide">
         <NavItem href="/" label="FOCUS" hotkey="F1" />
-        <NavItem href="/list" label="TASK_LIST" hotkey="F2" />
-        <NavItem href="/board" label="MILESTONES" hotkey="F3" />
-        <NavItem href="/trash" label="TRASH_BIN" hotkey="F4" />
+        <NavItem href="/list" label="LIST" hotkey="F2" />
+        <NavItem href="/board" label="BOARD" hotkey="F3" />
+        <NavItem href="/trash" label="TRASH" hotkey="F4" />
       </nav>
 
       {/* Main Content */}
