@@ -233,7 +233,7 @@ export default function BoardPage() {
   return (
     <Layout>
       <div className="h-full overflow-x-auto pb-4">
-        <div className="flex h-full min-w-max gap-3 md:gap-4">
+        <div className={cn("flex h-full gap-3 md:gap-4", activeMilestones.length > 0 ? "min-w-max" : "w-full")}>
           {activeMilestones.map(milestone => {
             const milestoneTasks = tasks
               .filter(t => t.milestoneId === milestone.id && !t.isDeleted && !t.isCompleted)
