@@ -12,7 +12,7 @@ import type { Task, Milestone } from "@shared/schema";
 
 function SortableTaskCard({ task, onSelect }: { task: Task; onSelect: (task: Task) => void }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: task.id });
-  const [pointerStart, setPointerStart] = React.useState<{ x: number; y: number } | null>(null);
+  const isClickRef = React.useRef(true);
   
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -20,22 +20,18 @@ function SortableTaskCard({ task, onSelect }: { task: Task; onSelect: (task: Tas
     zIndex: isDragging ? 50 : "auto",
   } as React.CSSProperties;
 
-  const handlePointerDown = (e: React.PointerEvent) => {
-    setPointerStart({ x: e.clientX, y: e.clientY });
+  const handlePointerMove = () => {
+    isClickRef.current = false;
   };
 
-  const handlePointerUp = (e: React.PointerEvent) => {
-    if (pointerStart) {
-      const distance = Math.sqrt(
-        Math.pow(e.clientX - pointerStart.x, 2) + 
-        Math.pow(e.clientY - pointerStart.y, 2)
-      );
-      // If movement is less than 5px, treat as click
-      if (distance < 5) {
-        onSelect(task);
-      }
+  const handleClick = () => {
+    if (isClickRef.current && !isDragging) {
+      onSelect(task);
     }
-    setPointerStart(null);
+  };
+
+  const handlePointerDown = () => {
+    isClickRef.current = true;
   };
 
   return (
@@ -45,7 +41,8 @@ function SortableTaskCard({ task, onSelect }: { task: Task; onSelect: (task: Tas
       {...attributes}
       {...listeners}
       onPointerDown={handlePointerDown}
-      onPointerUp={handlePointerUp}
+      onPointerMove={handlePointerMove}
+      onClick={handleClick}
       data-testid={`card-task-${task.id}`}
       className={cn(
         "bg-black border border-primary/50 p-2 mb-2 text-xs cursor-grab active:cursor-grabbing hover:border-primary hover:bg-secondary/20 transition-colors",
@@ -87,7 +84,13 @@ export default function BoardPage() {
   };
 
   const sensors = useSensors(
-    useSensor(PointerSensor),
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+        delay: 100,
+        tolerance: 5,
+      },
+    }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
 
