@@ -140,10 +140,6 @@ export default function OnboardingPage() {
     }
   };
 
-  const handleBack = () => {
-    setLocation("/");
-  };
-
   const handlePrevious = () => {
     if (currentStep > 0) {
       setCurrentStep(currentStep - 1);
@@ -186,27 +182,18 @@ export default function OnboardingPage() {
 
             {/* Navigation */}
             <div className="flex gap-3 justify-between">
-              <div className="flex gap-2">
+              {currentStep > 0 && (
                 <Button
-                  onClick={handleBack}
+                  onClick={handlePrevious}
                   variant="outline"
                   className="rounded-none border-primary text-primary"
-                  data-testid="button-back-tutorial"
+                  data-testid="button-previous-onboarding"
                 >
                   <ArrowLeft className="w-4 h-4 mr-2" />
-                  BACK
+                  PREVIOUS
                 </Button>
-                {currentStep > 0 && (
-                  <Button
-                    onClick={handlePrevious}
-                    variant="outline"
-                    className="rounded-none border-primary text-primary"
-                    data-testid="button-previous-onboarding"
-                  >
-                    PREVIOUS
-                  </Button>
-                )}
-              </div>
+              )}
+              <div className="flex-1" />
               <Button
                 onClick={handleNext}
                 className="bg-primary text-primary-foreground hover:bg-primary/80 rounded-none font-mono"
