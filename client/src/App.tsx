@@ -4,17 +4,20 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/contexts/theme";
+import { OnboardingProvider, useOnboarding } from "@/contexts/onboarding";
 import { useAuth } from "@/hooks/useAuth";
 import NotFound from "@/pages/not-found";
 import Landing from "@/pages/Landing";
+import OnboardingPage from "@/pages/OnboardingPage";
 import FocusPage from "@/pages/FocusPage";
 import ListPage from "@/pages/ListPage";
 import BoardPage from "@/pages/BoardPage";
 import CompletedPage from "@/pages/CompletedPage";
 import TrashPage from "@/pages/TrashPage";
 
-function Router() {
+function AuthRouter() {
   const { isAuthenticated, isLoading } = useAuth();
+  const { hasCompletedOnboarding } = useOnboarding();
 
   if (isLoading) {
     return (
@@ -31,6 +34,8 @@ function Router() {
     <Switch>
       {!isAuthenticated ? (
         <Route path="/" component={Landing} />
+      ) : !hasCompletedOnboarding ? (
+        <Route path="/" component={OnboardingPage} />
       ) : (
         <>
           <Route path="/" component={FocusPage} />
@@ -50,8 +55,10 @@ function App() {
     <ThemeProvider>
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
-          <Toaster />
-          <Router />
+          <OnboardingProvider>
+            <Toaster />
+            <AuthRouter />
+          </OnboardingProvider>
         </TooltipProvider>
       </QueryClientProvider>
     </ThemeProvider>
