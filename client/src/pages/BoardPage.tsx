@@ -6,7 +6,7 @@ import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSo
 import { CSS } from "@dnd-kit/utilities";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Trash2, CheckSquare } from "lucide-react";
+import { Trash2, Check, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Task, Milestone } from "@shared/schema";
 
@@ -95,7 +95,7 @@ export default function BoardPage() {
     }
   };
 
-  const handleCloseMilestoneDialog = () => {
+  const handleSaveMilestoneChanges = () => {
     if (selectedMilestone) {
       const hasChanges = 
         milestoneForm.title !== selectedMilestone.title ||
@@ -116,7 +116,11 @@ export default function BoardPage() {
     setSelectedMilestone(null);
   };
 
-  const handleCloseTaskDialog = () => {
+  const handleCloseMilestoneWithoutSaving = () => {
+    setSelectedMilestone(null);
+  };
+
+  const handleSaveTaskChanges = () => {
     if (selectedTask) {
       const hasChanges = 
         editForm.title !== selectedTask.title ||
@@ -135,6 +139,34 @@ export default function BoardPage() {
       }
     }
     setSelectedTask(null);
+  };
+
+  const handleCloseTaskWithoutSaving = () => {
+    setSelectedTask(null);
+  };
+
+  const handleCompleteTask = () => {
+    if (selectedTask) {
+      updateTask.mutate({
+        id: selectedTask.id,
+        updates: { isCompleted: true, completedAt: new Date() }
+      });
+      setSelectedTask(null);
+    }
+  };
+
+  const handleDeleteTask = () => {
+    if (selectedTask) {
+      deleteTask.mutate(selectedTask.id);
+      setSelectedTask(null);
+    }
+  };
+
+  const handleDeleteMilestone = () => {
+    if (selectedMilestone) {
+      deleteMilestone.mutate(selectedMilestone.id);
+      setSelectedMilestone(null);
+    }
   };
 
   if (milestonesLoading || tasksLoading) {
@@ -256,13 +288,20 @@ export default function BoardPage() {
       </div>
 
       {/* Task Edit Dialog */}
-      <Dialog open={!!selectedTask} onOpenChange={(open) => !open && handleCloseTaskDialog()}>
+      <Dialog open={!!selectedTask} onOpenChange={(open) => !open && handleCloseTaskWithoutSaving()}>
         <DialogContent className="bg-black border-2 border-primary text-primary font-mono max-w-[95vw] sm:max-w-[600px] p-0 gap-0 shadow-[0_0_20px_rgba(0,255,0,0.2)] max-h-[90vh] flex flex-col">
-          <DialogHeader className="bg-primary/20 p-3 md:p-4 border-b border-primary shrink-0">
+          <DialogHeader className="bg-primary/20 p-3 md:p-4 border-b border-primary shrink-0 flex justify-between items-center">
             <DialogTitle className="text-base md:text-xl font-bold uppercase flex items-center gap-2">
               <span className="animate-pulse">█</span>
               <span className="truncate">EDIT_TASK: {selectedTask?.title}</span>
             </DialogTitle>
+            <button
+              onClick={handleCloseTaskWithoutSaving}
+              className="p-1 hover:bg-primary/30 rounded transition-colors flex-shrink-0"
+              data-testid="button-close-task-modal"
+            >
+              <X className="w-5 h-5" />
+            </button>
           </DialogHeader>
           
           <div className="p-4 md:p-6 space-y-4 overflow-y-auto flex-1">
@@ -298,39 +337,41 @@ export default function BoardPage() {
             </div>
           </div>
 
-          <DialogFooter className="border-t border-primary p-3 md:p-4 flex flex-col sm:flex-row justify-between gap-2 bg-black shrink-0">
-            <Button 
-              data-testid="button-delete-task"
-              variant="destructive" 
-              onClick={() => { selectedTask && deleteTask.mutate(selectedTask.id); setSelectedTask(null); }}
-              className="bg-transparent border border-destructive text-destructive hover:bg-destructive hover:text-white font-mono rounded-none text-xs md:text-sm w-full sm:w-auto"
-            >
-              <Trash2 className="w-3 h-3 md:w-4 md:h-4 mr-2" /> DELETE
-            </Button>
-
-            <div className="flex gap-2 w-full sm:w-auto">
+          <DialogFooter className="border-t border-primary p-3 md:p-4 flex flex-col gap-3 bg-black shrink-0">
+            <div className="flex gap-2 flex-wrap">
+              <Button 
+                data-testid="button-save-task"
+                onClick={handleSaveTaskChanges}
+                className="bg-primary text-black hover:bg-primary/80 font-mono rounded-none text-xs md:text-sm flex-1 sm:flex-none"
+              >
+                SAVE
+              </Button>
               <Button 
                 data-testid="button-cancel-task"
                 variant="outline" 
-                onClick={handleCloseTaskDialog}
+                onClick={handleCloseTaskWithoutSaving}
                 className="bg-transparent border border-primary text-primary hover:bg-primary hover:text-black font-mono rounded-none text-xs md:text-sm flex-1 sm:flex-none"
               >
-                CLOSE
+                CANCEL
               </Button>
               <Button 
                 data-testid="button-complete-task"
-                onClick={() => {
-                  if (selectedTask) {
-                    updateTask.mutate({
-                      id: selectedTask.id,
-                      updates: { isCompleted: true, completedAt: new Date() }
-                    });
-                    setSelectedTask(null);
-                  }
-                }}
-                className="bg-primary text-black hover:bg-primary/80 font-mono rounded-none text-xs md:text-sm flex-1 sm:flex-none"
+                onClick={handleCompleteTask}
+                className="bg-primary text-black hover:bg-primary/80 font-mono rounded-none p-2 h-auto flex-shrink-0"
+                title="Mark as complete"
               >
-                <CheckSquare className="w-3 h-3 md:w-4 md:h-4 mr-2" /> COMPLETE
+                <Check className="w-4 h-4" />
+              </Button>
+            </div>
+            <div className="flex justify-end">
+              <Button 
+                data-testid="button-delete-task"
+                variant="destructive" 
+                onClick={handleDeleteTask}
+                className="bg-transparent border border-destructive text-destructive hover:bg-destructive hover:text-white font-mono rounded-none p-2 h-auto flex-shrink-0"
+                title="Delete task"
+              >
+                <Trash2 className="w-4 h-4" />
               </Button>
             </div>
           </DialogFooter>
@@ -338,13 +379,20 @@ export default function BoardPage() {
       </Dialog>
 
       {/* Milestone Edit Dialog */}
-      <Dialog open={!!selectedMilestone} onOpenChange={(open) => !open && handleCloseMilestoneDialog()}>
+      <Dialog open={!!selectedMilestone} onOpenChange={(open) => !open && handleCloseMilestoneWithoutSaving()}>
         <DialogContent className="bg-black border-2 border-primary text-primary font-mono max-w-[95vw] sm:max-w-[600px] p-0 gap-0 shadow-[0_0_20px_rgba(0,255,0,0.2)] max-h-[90vh] flex flex-col">
-          <DialogHeader className="bg-primary/20 p-3 md:p-4 border-b border-primary shrink-0">
+          <DialogHeader className="bg-primary/20 p-3 md:p-4 border-b border-primary shrink-0 flex justify-between items-center">
             <DialogTitle className="text-base md:text-xl font-bold uppercase flex items-center gap-2">
               <span className="animate-pulse">█</span>
               <span className="truncate">EDIT_MILESTONE: {selectedMilestone?.title}</span>
             </DialogTitle>
+            <button
+              onClick={handleCloseMilestoneWithoutSaving}
+              className="p-1 hover:bg-primary/30 rounded transition-colors flex-shrink-0"
+              data-testid="button-close-milestone-modal"
+            >
+              <X className="w-5 h-5" />
+            </button>
           </DialogHeader>
           
           <div className="p-4 md:p-6 space-y-4 overflow-y-auto flex-1">
@@ -380,24 +428,35 @@ export default function BoardPage() {
             </div>
           </div>
 
-          <DialogFooter className="border-t border-primary p-3 md:p-4 flex flex-col sm:flex-row justify-between gap-2 bg-black shrink-0">
-            <Button 
-              data-testid="button-delete-milestone"
-              variant="destructive" 
-              onClick={() => { selectedMilestone && deleteMilestone.mutate(selectedMilestone.id); setSelectedMilestone(null); }}
-              className="bg-transparent border border-destructive text-destructive hover:bg-destructive hover:text-white font-mono rounded-none text-xs md:text-sm w-full sm:w-auto"
-            >
-              <Trash2 className="w-3 h-3 md:w-4 md:h-4 mr-2" /> DELETE
-            </Button>
-
-            <Button 
-              data-testid="button-close"
-              variant="outline" 
-              onClick={handleCloseMilestoneDialog}
-              className="bg-transparent border border-primary text-primary hover:bg-primary hover:text-black font-mono rounded-none text-xs md:text-sm w-full sm:w-auto"
-            >
-              CLOSE
-            </Button>
+          <DialogFooter className="border-t border-primary p-3 md:p-4 flex flex-col gap-3 bg-black shrink-0">
+            <div className="flex gap-2 flex-wrap">
+              <Button 
+                data-testid="button-save-milestone"
+                onClick={handleSaveMilestoneChanges}
+                className="bg-primary text-black hover:bg-primary/80 font-mono rounded-none text-xs md:text-sm flex-1 sm:flex-none"
+              >
+                SAVE
+              </Button>
+              <Button 
+                data-testid="button-close-milestone"
+                variant="outline" 
+                onClick={handleCloseMilestoneWithoutSaving}
+                className="bg-transparent border border-primary text-primary hover:bg-primary hover:text-black font-mono rounded-none text-xs md:text-sm flex-1 sm:flex-none"
+              >
+                CANCEL
+              </Button>
+            </div>
+            <div className="flex justify-end">
+              <Button 
+                data-testid="button-delete-milestone"
+                variant="destructive" 
+                onClick={handleDeleteMilestone}
+                className="bg-transparent border border-destructive text-destructive hover:bg-destructive hover:text-white font-mono rounded-none p-2 h-auto flex-shrink-0"
+                title="Delete milestone"
+              >
+                <Trash2 className="w-4 h-4" />
+              </Button>
+            </div>
           </DialogFooter>
         </DialogContent>
       </Dialog>

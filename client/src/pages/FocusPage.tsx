@@ -3,7 +3,7 @@ import { useTasks, useUpdateTask, useDeleteTask } from "@/hooks/useData";
 import { Layout } from "@/components/Layout";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { CheckSquare, Trash2 } from "lucide-react";
+import { Check, Trash2, X } from "lucide-react";
 import type { Task } from "@shared/schema";
 
 export default function FocusPage() {
@@ -26,24 +26,7 @@ export default function FocusPage() {
   const activeTasks = tasks.filter(t => !t.isCompleted && !t.isDeleted);
   const topTask = activeTasks.sort((a, b) => a.globalOrder - b.globalOrder)[0];
 
-  const handleComplete = () => {
-    if (selectedTask) {
-      updateTask.mutate({
-        id: selectedTask.id,
-        updates: { isCompleted: true, completedAt: new Date() }
-      });
-      setSelectedTask(null);
-    }
-  };
-
-  const handleDelete = () => {
-    if (selectedTask) {
-      deleteTask.mutate(selectedTask.id);
-      setSelectedTask(null);
-    }
-  };
-
-  const handleCloseDialog = () => {
+  const handleSaveChanges = () => {
     if (selectedTask) {
       const hasChanges = 
         editForm.title !== selectedTask.title ||
@@ -62,6 +45,27 @@ export default function FocusPage() {
       }
     }
     setSelectedTask(null);
+  };
+
+  const handleCloseWithoutSaving = () => {
+    setSelectedTask(null);
+  };
+
+  const handleComplete = () => {
+    if (selectedTask) {
+      updateTask.mutate({
+        id: selectedTask.id,
+        updates: { isCompleted: true, completedAt: new Date() }
+      });
+      setSelectedTask(null);
+    }
+  };
+
+  const handleDelete = () => {
+    if (selectedTask) {
+      deleteTask.mutate(selectedTask.id);
+      setSelectedTask(null);
+    }
   };
 
   if (isLoading) {
@@ -130,13 +134,20 @@ export default function FocusPage() {
         </div>
       </div>
 
-      <Dialog open={!!selectedTask} onOpenChange={(open) => !open && handleCloseDialog()}>
+      <Dialog open={!!selectedTask} onOpenChange={(open) => !open && handleCloseWithoutSaving()}>
         <DialogContent className="bg-black border-2 border-primary text-primary font-mono max-w-[95vw] sm:max-w-[600px] p-0 gap-0 shadow-[0_0_20px_rgba(0,255,0,0.2)] max-h-[90vh] flex flex-col">
-          <DialogHeader className="bg-primary/20 p-3 md:p-4 border-b border-primary shrink-0">
+          <DialogHeader className="bg-primary/20 p-3 md:p-4 border-b border-primary shrink-0 flex justify-between items-center">
             <DialogTitle className="text-base md:text-xl font-bold uppercase flex items-center gap-2">
               <span className="animate-pulse">█</span> 
               <span className="truncate">EDIT_TASK: {selectedTask?.title}</span>
             </DialogTitle>
+            <button
+              onClick={handleCloseWithoutSaving}
+              className="p-1 hover:bg-primary/30 rounded transition-colors flex-shrink-0"
+              data-testid="button-close-modal"
+            >
+              <X className="w-5 h-5" />
+            </button>
           </DialogHeader>
           
           <div className="p-4 md:p-6 space-y-4 overflow-y-auto flex-1">
@@ -172,21 +183,19 @@ export default function FocusPage() {
             </div>
           </div>
 
-          <DialogFooter className="border-t border-primary p-3 md:p-4 flex flex-col sm:flex-row justify-between gap-2 bg-black shrink-0">
-            <Button 
-              data-testid="button-delete"
-              variant="destructive" 
-              onClick={handleDelete}
-              className="bg-transparent border border-destructive text-destructive hover:bg-destructive hover:text-white font-mono rounded-none text-xs md:text-sm w-full sm:w-auto"
-            >
-              <Trash2 className="w-3 h-3 md:w-4 md:h-4 mr-2" /> DELETE
-            </Button>
-
-            <div className="flex gap-2 w-full sm:w-auto">
+          <DialogFooter className="border-t border-primary p-3 md:p-4 flex flex-col gap-3 bg-black shrink-0">
+            <div className="flex gap-2 flex-wrap">
+              <Button 
+                data-testid="button-save"
+                onClick={handleSaveChanges}
+                className="bg-primary text-black hover:bg-primary/80 font-mono rounded-none text-xs md:text-sm flex-1 sm:flex-none"
+              >
+                SAVE
+              </Button>
               <Button 
                 data-testid="button-cancel"
                 variant="outline" 
-                onClick={handleCloseDialog}
+                onClick={handleCloseWithoutSaving}
                 className="bg-transparent border border-primary text-primary hover:bg-primary hover:text-black font-mono rounded-none text-xs md:text-sm flex-1 sm:flex-none"
               >
                 CANCEL
@@ -194,9 +203,21 @@ export default function FocusPage() {
               <Button 
                 data-testid="button-complete"
                 onClick={handleComplete}
-                className="bg-primary text-black hover:bg-primary/80 font-mono rounded-none text-xs md:text-sm flex-1 sm:flex-none"
+                className="bg-primary text-black hover:bg-primary/80 font-mono rounded-none p-2 h-auto flex-shrink-0"
+                title="Mark as complete"
               >
-                <CheckSquare className="w-3 h-3 md:w-4 md:h-4 mr-2" /> COMPLETE
+                <Check className="w-4 h-4" />
+              </Button>
+            </div>
+            <div className="flex justify-end">
+              <Button 
+                data-testid="button-delete"
+                variant="destructive" 
+                onClick={handleDelete}
+                className="bg-transparent border border-destructive text-destructive hover:bg-destructive hover:text-white font-mono rounded-none p-2 h-auto flex-shrink-0"
+                title="Delete task"
+              >
+                <Trash2 className="w-4 h-4" />
               </Button>
             </div>
           </DialogFooter>
