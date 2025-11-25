@@ -146,6 +146,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const validatedData = insertTaskSchema.parse({
         ...req.body,
         id: nanoid(),
+        userId,
       });
       
       const task = await storage.createTask(validatedData);

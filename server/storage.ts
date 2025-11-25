@@ -166,28 +166,19 @@ export class DatabaseStorage implements IStorage {
 
   // Task operations
   async getTasks(userId: string): Promise<Task[]> {
-    const result = await db
-      .select({
-        task: tasks,
-      })
+    return await db
+      .select()
       .from(tasks)
-      .innerJoin(milestones, eq(tasks.milestoneId, milestones.id))
-      .where(eq(milestones.userId, userId))
+      .where(and(eq(tasks.userId, userId), eq(tasks.isDeleted, false)))
       .orderBy(asc(tasks.globalOrder));
-
-    return result.map((r) => r.task);
   }
 
   async getTask(id: string, userId: string): Promise<Task | undefined> {
-    const result = await db
-      .select({
-        task: tasks,
-      })
+    const [task] = await db
+      .select()
       .from(tasks)
-      .innerJoin(milestones, eq(tasks.milestoneId, milestones.id))
-      .where(and(eq(tasks.id, id), eq(milestones.userId, userId)));
-
-    return result[0]?.task;
+      .where(and(eq(tasks.id, id), eq(tasks.userId, userId)));
+    return task;
   }
 
   async createTask(task: InsertTask): Promise<Task> {

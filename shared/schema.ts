@@ -76,6 +76,7 @@ export type Milestone = typeof milestones.$inferSelect;
 // Tasks table
 export const tasks = pgTable("tasks", {
   id: varchar("id").primaryKey(),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   milestoneId: varchar("milestone_id").references(() => milestones.id, { onDelete: "cascade" }),
   title: varchar("title", { length: 255 }).notNull(),
   description: text("description").default(""),
@@ -89,6 +90,7 @@ export const tasks = pgTable("tasks", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 }, (table) => [
+  index("idx_tasks_user_id").on(table.userId),
   index("idx_tasks_milestone_id").on(table.milestoneId),
   index("idx_tasks_deleted").on(table.isDeleted),
   index("idx_tasks_completed").on(table.isCompleted),
