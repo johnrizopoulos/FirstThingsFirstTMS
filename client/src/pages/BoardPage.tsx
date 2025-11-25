@@ -12,7 +12,7 @@ import type { Task, Milestone } from "@shared/schema";
 
 function SortableTaskCard({ task, onSelect }: { task: Task; onSelect: (task: Task) => void }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: task.id });
-  const isClickRef = React.useRef(true);
+  const pointerStartRef = React.useRef<{ x: number; y: number } | null>(null);
   
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -20,18 +20,22 @@ function SortableTaskCard({ task, onSelect }: { task: Task; onSelect: (task: Tas
     zIndex: isDragging ? 50 : "auto",
   } as React.CSSProperties;
 
-  const handlePointerMove = () => {
-    isClickRef.current = false;
+  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    pointerStartRef.current = { x: e.clientX, y: e.clientY };
   };
 
-  const handleClick = () => {
-    if (isClickRef.current && !isDragging) {
-      onSelect(task);
+  const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (pointerStartRef.current && !isDragging) {
+      const dx = e.clientX - pointerStartRef.current.x;
+      const dy = e.clientY - pointerStartRef.current.y;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+      
+      // If movement is minimal, treat as click
+      if (distance < 8) {
+        onSelect(task);
+      }
     }
-  };
-
-  const handlePointerDown = () => {
-    isClickRef.current = true;
+    pointerStartRef.current = null;
   };
 
   return (
@@ -40,9 +44,11 @@ function SortableTaskCard({ task, onSelect }: { task: Task; onSelect: (task: Tas
       style={style}
       {...attributes}
       {...listeners}
-      onPointerDown={handlePointerDown}
-      onPointerMove={handlePointerMove}
-      onClick={handleClick}
+      onPointerDown={(e) => {
+        handlePointerDown(e);
+        listeners?.onPointerDown?.(e as any);
+      }}
+      onPointerUp={handlePointerUp}
       data-testid={`card-task-${task.id}`}
       className={cn(
         "bg-black border border-primary/50 p-2 mb-2 text-xs cursor-grab active:cursor-grabbing hover:border-primary hover:bg-secondary/20 transition-colors",
