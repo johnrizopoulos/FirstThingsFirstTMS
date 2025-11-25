@@ -2,6 +2,7 @@ import React, { useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useTheme } from "@/contexts/theme";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,11 +11,12 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { Menu } from "lucide-react";
+import { Menu, Moon, Sun } from "lucide-react";
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const [location, setLocation] = useLocation();
   const isMobile = useIsMobile();
+  const { theme, toggleTheme } = useTheme();
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -86,13 +88,25 @@ export function Layout({ children }: { children: React.ReactNode }) {
           <div className="w-3 h-3 bg-primary animate-blink shrink-0" />
           <h1 className="text-sm md:text-xl font-bold tracking-widest truncate">FIRST_THINGS_FIRST_SYS // V.1.0</h1>
         </div>
-        <a 
-          href="/api/logout"
-          className="text-[10px] md:text-xs opacity-70 hover:opacity-100 transition-opacity underline whitespace-nowrap ml-2"
-          data-testid="link-logout"
-        >
-          [LOGOUT]
-        </a>
+        <div className="flex items-center gap-2 ml-2">
+          <Button
+            onClick={toggleTheme}
+            variant="ghost"
+            size="sm"
+            className="text-[10px] md:text-xs opacity-70 hover:opacity-100 transition-opacity p-0 h-auto"
+            data-testid="button-toggle-theme"
+            title={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
+          >
+            {theme === "dark" ? <Sun className="w-3 h-3 md:w-4 md:h-4" /> : <Moon className="w-3 h-3 md:w-4 md:h-4" />}
+          </Button>
+          <a 
+            href="/api/logout"
+            className="text-[10px] md:text-xs opacity-70 hover:opacity-100 transition-opacity underline whitespace-nowrap"
+            data-testid="link-logout"
+          >
+            [LOGOUT]
+          </a>
+        </div>
       </header>
 
       {/* Navigation */}
