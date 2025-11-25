@@ -95,9 +95,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
             size="sm"
             className="text-[10px] md:text-xs opacity-70 hover:opacity-100 transition-opacity p-0 h-auto"
             data-testid="button-toggle-theme"
-            title={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
+            title={`Theme: ${theme} mode`}
           >
-            {theme === "dark" ? <Sun className="w-3 h-3 md:w-4 md:h-4" /> : <Moon className="w-3 h-3 md:w-4 md:h-4" />}
+            {theme === "terminal" ? "█" : theme === "dark" ? <Moon className="w-3 h-3 md:w-4 md:h-4" /> : <Sun className="w-3 h-3 md:w-4 md:h-4" />}
           </Button>
           <a 
             href="/api/logout"
