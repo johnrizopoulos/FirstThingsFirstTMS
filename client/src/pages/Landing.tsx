@@ -15,9 +15,6 @@ export default function Landing() {
           <p className="text-sm md:text-lg opacity-70 mb-2">
             TASK MANAGEMENT SYSTEM // V.1.0
           </p>
-          <p className="text-xs md:text-sm opacity-50">
-            Bloomberg Terminal-inspired task prioritization
-          </p>
         </div>
 
         <div className="border-2 md:border-4 border-primary p-4 md:p-8 mb-6 md:mb-8 bg-card/50 relative">
