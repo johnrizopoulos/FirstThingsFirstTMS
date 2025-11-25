@@ -17,7 +17,6 @@ import TrashPage from "@/pages/TrashPage";
 
 function AuthRouter() {
   const { isAuthenticated, isLoading } = useAuth();
-  const { hasCompletedOnboarding } = useOnboarding();
 
   if (isLoading) {
     return (
@@ -34,8 +33,6 @@ function AuthRouter() {
     <Switch>
       {!isAuthenticated ? (
         <Route path="/" component={Landing} />
-      ) : !hasCompletedOnboarding ? (
-        <Route path="/" component={OnboardingPage} />
       ) : (
         <>
           <Route path="/" component={FocusPage} />
@@ -43,6 +40,7 @@ function AuthRouter() {
           <Route path="/board" component={BoardPage} />
           <Route path="/completed" component={CompletedPage} />
           <Route path="/trash" component={TrashPage} />
+          <Route path="/tutorial" component={OnboardingPage} />
         </>
       )}
       <Route component={NotFound} />

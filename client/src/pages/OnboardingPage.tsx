@@ -1,12 +1,11 @@
 import React, { useState } from "react";
 import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
-import { useOnboarding } from "@/contexts/onboarding";
-import { Link } from "wouter";
-import { ArrowRight, CheckCircle } from "lucide-react";
+import { Link, useLocation } from "wouter";
+import { ArrowRight, ArrowLeft, CheckCircle } from "lucide-react";
 
 export default function OnboardingPage() {
-  const { markOnboardingComplete } = useOnboarding();
+  const [, setLocation] = useLocation();
   const [currentStep, setCurrentStep] = useState(0);
 
   const steps = [
@@ -137,12 +136,18 @@ export default function OnboardingPage() {
     if (currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1);
     } else {
-      markOnboardingComplete();
+      setLocation("/");
     }
   };
 
-  const handleSkip = () => {
-    markOnboardingComplete();
+  const handleBack = () => {
+    setLocation("/");
+  };
+
+  const handlePrevious = () => {
+    if (currentStep > 0) {
+      setCurrentStep(currentStep - 1);
+    }
   };
 
   const step = steps[currentStep];
@@ -181,30 +186,41 @@ export default function OnboardingPage() {
 
             {/* Navigation */}
             <div className="flex gap-3 justify-between">
-              <Button
-                onClick={handleSkip}
-                variant="outline"
-                className="rounded-none border-primary text-primary"
-                data-testid="button-skip-onboarding"
-              >
-                SKIP
-              </Button>
-              <Link href="/">
+              <div className="flex gap-2">
                 <Button
-                  onClick={handleNext}
-                  className="bg-primary text-primary-foreground hover:bg-primary/80 rounded-none font-mono"
-                  data-testid="button-next-onboarding"
+                  onClick={handleBack}
+                  variant="outline"
+                  className="rounded-none border-primary text-primary"
+                  data-testid="button-back-tutorial"
                 >
-                  {isLastStep ? (
-                    <>GET_STARTED</>
-                  ) : (
-                    <>
-                      NEXT
-                      <ArrowRight className="w-4 h-4 ml-2" />
-                    </>
-                  )}
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  BACK
                 </Button>
-              </Link>
+                {currentStep > 0 && (
+                  <Button
+                    onClick={handlePrevious}
+                    variant="outline"
+                    className="rounded-none border-primary text-primary"
+                    data-testid="button-previous-onboarding"
+                  >
+                    PREVIOUS
+                  </Button>
+                )}
+              </div>
+              <Button
+                onClick={handleNext}
+                className="bg-primary text-primary-foreground hover:bg-primary/80 rounded-none font-mono"
+                data-testid="button-next-onboarding"
+              >
+                {isLastStep ? (
+                  <>CLOSE</>
+                ) : (
+                  <>
+                    NEXT
+                    <ArrowRight className="w-4 h-4 ml-2" />
+                  </>
+                )}
+              </Button>
             </div>
           </div>
         </div>

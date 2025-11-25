@@ -35,6 +35,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
       } else if (e.key === "F5") {
         e.preventDefault();
         setLocation("/trash");
+      } else if (e.key === "F6") {
+        e.preventDefault();
+        setLocation("/tutorial");
       }
     };
 
@@ -113,7 +116,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
       {isMobile ? (
         <div className="border-b border-primary p-2 z-10 bg-background flex justify-between items-center">
            <div className="text-xs font-bold px-2">
-             CURRENT_VIEW: {location === "/" ? "FOCUS" : location.substring(1).toUpperCase()}
+             CURRENT_VIEW: {location === "/" ? "FOCUS" : location === "/tutorial" ? "TUTORIAL" : location.substring(1).toUpperCase()}
            </div>
            <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -137,6 +140,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
               <DropdownMenuItem asChild className="focus:bg-primary focus:text-primary-foreground rounded-none p-0">
                 <MobileNavItem href="/trash" label="TRASH" hotkey="F5" />
               </DropdownMenuItem>
+              <DropdownMenuItem asChild className="focus:bg-primary focus:text-primary-foreground rounded-none p-0">
+                <MobileNavItem href="/tutorial" label="TUTORIAL" hotkey="F6" />
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -147,6 +153,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
           <NavItem href="/board" label="BOARD" hotkey="F3" />
           <NavItem href="/completed" label="COMPLETED" hotkey="F4" />
           <NavItem href="/trash" label="TRASH" hotkey="F5" />
+          <NavItem href="/tutorial" label="TUTORIAL" hotkey="F6" />
         </nav>
       )}
 
