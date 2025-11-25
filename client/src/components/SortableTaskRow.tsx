@@ -38,10 +38,10 @@ export function SortableTaskRow({ task, onEdit }: SortableTaskRowProps) {
       <div
         {...attributes}
         {...listeners}
-        className="cursor-grab active:cursor-grabbing flex items-center justify-center flex-shrink-0"
+        className="cursor-grab active:cursor-grabbing flex items-center justify-center flex-shrink-0 p-2 -m-2 touch-none"
         data-testid="button-drag-handle"
       >
-        <GripVertical className="w-4 h-4 text-primary/50 hover:text-primary" />
+        <GripVertical className="w-5 h-5 text-primary/50 hover:text-primary" />
       </div>
       
       <div className="font-bold text-primary/50 w-8 text-right flex-shrink-0">
