@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useTasks, useMilestones, useCreateTask, useCreateMilestone, useUpdateMilestone, useDeleteMilestone, useReorderTasks, useUpdateTask, useDeleteTask } from "@/hooks/useData";
 import { Layout } from "@/components/Layout";
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from "@dnd-kit/core";
@@ -52,6 +52,17 @@ export default function BoardPage() {
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [editForm, setEditForm] = useState({ title: "", description: "", definitionOfDone: "" });
   const [milestoneForm, setMilestoneForm] = useState({ title: "", description: "", definitionOfDone: "" });
+  const taskDescriptionRef = useRef<HTMLTextAreaElement>(null);
+  const taskDodRef = useRef<HTMLTextAreaElement>(null);
+  const milestoneDescriptionRef = useRef<HTMLTextAreaElement>(null);
+  const milestoneDodRef = useRef<HTMLTextAreaElement>(null);
+
+  const adjustTextareaHeight = (textarea: HTMLTextAreaElement | null) => {
+    if (textarea) {
+      textarea.style.height = "auto";
+      textarea.style.height = `${Math.min(textarea.scrollHeight, 300)}px`;
+    }
+  };
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -312,20 +323,32 @@ export default function BoardPage() {
               <div>
                 <label className="text-xs opacity-50 block mb-1">DESCRIPTION</label>
                 <textarea 
+                  ref={taskDescriptionRef}
                   data-testid="input-task-description"
                   value={editForm.description}
-                  onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
-                  className="w-full h-32 bg-black border border-primary p-2 text-sm md:text-base focus:outline-none focus:ring-1 focus:ring-primary resize-none"
+                  maxLength={2000}
+                  onChange={(e) => {
+                    setEditForm({ ...editForm, description: e.target.value });
+                    adjustTextareaHeight(taskDescriptionRef.current);
+                  }}
+                  className="w-full min-h-24 bg-black border border-primary p-2 text-sm md:text-base focus:outline-none focus:ring-1 focus:ring-primary resize-none overflow-hidden"
                 />
+                <div className="text-xs opacity-50 text-right mt-1">{editForm.description.length} / 2000</div>
               </div>
               <div>
                 <label className="text-xs opacity-50 block mb-1">DEFINITION OF DONE</label>
                 <textarea 
+                  ref={taskDodRef}
                   data-testid="input-task-dod"
                   value={editForm.definitionOfDone}
-                  onChange={(e) => setEditForm({ ...editForm, definitionOfDone: e.target.value })}
-                  className="w-full h-32 bg-black border border-primary p-2 text-sm md:text-base focus:outline-none focus:ring-1 focus:ring-primary resize-none"
+                  maxLength={2000}
+                  onChange={(e) => {
+                    setEditForm({ ...editForm, definitionOfDone: e.target.value });
+                    adjustTextareaHeight(taskDodRef.current);
+                  }}
+                  className="w-full min-h-24 bg-black border border-primary p-2 text-sm md:text-base focus:outline-none focus:ring-1 focus:ring-primary resize-none overflow-hidden"
                 />
+                <div className="text-xs opacity-50 text-right mt-1">{editForm.definitionOfDone.length} / 2000</div>
               </div>
             </div>
           </div>
@@ -394,20 +417,32 @@ export default function BoardPage() {
               <div>
                 <label className="text-xs opacity-50 block mb-1">DESCRIPTION</label>
                 <textarea 
+                  ref={milestoneDescriptionRef}
                   data-testid="input-milestone-description"
                   value={milestoneForm.description}
-                  onChange={(e) => setMilestoneForm({ ...milestoneForm, description: e.target.value })}
-                  className="w-full h-32 bg-black border border-primary p-2 text-sm md:text-base focus:outline-none focus:ring-1 focus:ring-primary resize-none"
+                  maxLength={2000}
+                  onChange={(e) => {
+                    setMilestoneForm({ ...milestoneForm, description: e.target.value });
+                    adjustTextareaHeight(milestoneDescriptionRef.current);
+                  }}
+                  className="w-full min-h-24 bg-black border border-primary p-2 text-sm md:text-base focus:outline-none focus:ring-1 focus:ring-primary resize-none overflow-hidden"
                 />
+                <div className="text-xs opacity-50 text-right mt-1">{milestoneForm.description.length} / 2000</div>
               </div>
               <div>
                 <label className="text-xs opacity-50 block mb-1">DEFINITION OF DONE</label>
                 <textarea 
+                  ref={milestoneDodRef}
                   data-testid="input-milestone-dod"
                   value={milestoneForm.definitionOfDone}
-                  onChange={(e) => setMilestoneForm({ ...milestoneForm, definitionOfDone: e.target.value })}
-                  className="w-full h-32 bg-black border border-primary p-2 text-sm md:text-base focus:outline-none focus:ring-1 focus:ring-primary resize-none"
+                  maxLength={2000}
+                  onChange={(e) => {
+                    setMilestoneForm({ ...milestoneForm, definitionOfDone: e.target.value });
+                    adjustTextareaHeight(milestoneDodRef.current);
+                  }}
+                  className="w-full min-h-24 bg-black border border-primary p-2 text-sm md:text-base focus:outline-none focus:ring-1 focus:ring-primary resize-none overflow-hidden"
                 />
+                <div className="text-xs opacity-50 text-right mt-1">{milestoneForm.definitionOfDone.length} / 2000</div>
               </div>
             </div>
           </div>

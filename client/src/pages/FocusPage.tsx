@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useTasks, useUpdateTask, useDeleteTask } from "@/hooks/useData";
 import { Layout } from "@/components/Layout";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -12,6 +12,15 @@ export default function FocusPage() {
   const deleteTask = useDeleteTask();
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [editForm, setEditForm] = useState({ title: "", description: "", definitionOfDone: "" });
+  const descriptionRef = useRef<HTMLTextAreaElement>(null);
+  const dodRef = useRef<HTMLTextAreaElement>(null);
+
+  const adjustTextareaHeight = (textarea: HTMLTextAreaElement | null) => {
+    if (textarea) {
+      textarea.style.height = "auto";
+      textarea.style.height = `${Math.min(textarea.scrollHeight, 300)}px`;
+    }
+  };
 
   useEffect(() => {
     if (selectedTask) {
@@ -158,20 +167,32 @@ export default function FocusPage() {
               <div>
                 <label className="text-xs opacity-50 block mb-1">DESCRIPTION</label>
                 <textarea 
+                  ref={descriptionRef}
                   data-testid="input-task-description"
                   value={editForm.description}
-                  onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
-                  className="w-full h-32 bg-black border border-primary p-2 text-sm md:text-base focus:outline-none focus:ring-1 focus:ring-primary resize-none"
+                  maxLength={2000}
+                  onChange={(e) => {
+                    setEditForm({ ...editForm, description: e.target.value });
+                    adjustTextareaHeight(descriptionRef.current);
+                  }}
+                  className="w-full min-h-24 bg-black border border-primary p-2 text-sm md:text-base focus:outline-none focus:ring-1 focus:ring-primary resize-none overflow-hidden"
                 />
+                <div className="text-xs opacity-50 text-right mt-1">{editForm.description.length} / 2000</div>
               </div>
               <div>
                 <label className="text-xs opacity-50 block mb-1">DEFINITION OF DONE</label>
                 <textarea 
+                  ref={dodRef}
                   data-testid="input-task-dod"
                   value={editForm.definitionOfDone}
-                  onChange={(e) => setEditForm({ ...editForm, definitionOfDone: e.target.value })}
-                  className="w-full h-32 bg-black border border-primary p-2 text-sm md:text-base focus:outline-none focus:ring-1 focus:ring-primary resize-none"
+                  maxLength={2000}
+                  onChange={(e) => {
+                    setEditForm({ ...editForm, definitionOfDone: e.target.value });
+                    adjustTextareaHeight(dodRef.current);
+                  }}
+                  className="w-full min-h-24 bg-black border border-primary p-2 text-sm md:text-base focus:outline-none focus:ring-1 focus:ring-primary resize-none overflow-hidden"
                 />
+                <div className="text-xs opacity-50 text-right mt-1">{editForm.definitionOfDone.length} / 2000</div>
               </div>
             </div>
           </div>
