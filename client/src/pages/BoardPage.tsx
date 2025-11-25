@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from "react";
-import { useTasks, useMilestones, useCreateTask, useCreateMilestone, useUpdateMilestone, useDeleteMilestone, useReorderTasks } from "@/hooks/useData";
+import { useTasks, useMilestones, useCreateTask, useCreateMilestone, useUpdateMilestone, useDeleteMilestone, useReorderTasks, useUpdateTask, useDeleteTask } from "@/hooks/useData";
 import { Layout } from "@/components/Layout";
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from "@dnd-kit/core";
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Trash2 } from "lucide-react";
+import { Trash2, CheckSquare } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Task, Milestone } from "@shared/schema";
 
-function SortableTaskCard({ task }: { task: Task }) {
+function SortableTaskCard({ task, onSelect }: { task: Task; onSelect: (task: Task) => void }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: task.id });
   
   const style = {
@@ -25,6 +25,7 @@ function SortableTaskCard({ task }: { task: Task }) {
       style={style}
       {...attributes}
       {...listeners}
+      onClick={() => !isDragging && onSelect(task)}
       data-testid={`card-task-${task.id}`}
       className={cn(
         "bg-black border border-primary/50 p-2 mb-2 text-xs cursor-grab active:cursor-grabbing hover:border-primary hover:bg-secondary/20 transition-colors",
@@ -45,8 +46,12 @@ export default function BoardPage() {
   const deleteMilestone = useDeleteMilestone();
   const createTask = useCreateTask();
   const reorderTasks = useReorderTasks();
+  const updateTask = useUpdateTask();
+  const deleteTask = useDeleteTask();
   const [selectedMilestone, setSelectedMilestone] = useState<Milestone | null>(null);
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [editForm, setEditForm] = useState({ title: "", description: "", definitionOfDone: "" });
+  const [milestoneForm, setMilestoneForm] = useState({ title: "", description: "", definitionOfDone: "" });
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -55,13 +60,23 @@ export default function BoardPage() {
 
   useEffect(() => {
     if (selectedMilestone) {
-      setEditForm({
+      setMilestoneForm({
         title: selectedMilestone.title,
         description: selectedMilestone.description || "",
         definitionOfDone: selectedMilestone.definitionOfDone || "",
       });
     }
   }, [selectedMilestone]);
+
+  useEffect(() => {
+    if (selectedTask) {
+      setEditForm({
+        title: selectedTask.title,
+        description: selectedTask.description || "",
+        definitionOfDone: selectedTask.definitionOfDone || "",
+      });
+    }
+  }, [selectedTask]);
 
   const handleDragEnd = (event: DragEndEvent, milestoneId: string) => {
     const { active, over } = event;
@@ -80,16 +95,37 @@ export default function BoardPage() {
     }
   };
 
-  const handleCloseDialog = () => {
+  const handleCloseMilestoneDialog = () => {
     if (selectedMilestone) {
       const hasChanges = 
-        editForm.title !== selectedMilestone.title ||
-        editForm.description !== (selectedMilestone.description || "") ||
-        editForm.definitionOfDone !== (selectedMilestone.definitionOfDone || "");
+        milestoneForm.title !== selectedMilestone.title ||
+        milestoneForm.description !== (selectedMilestone.description || "") ||
+        milestoneForm.definitionOfDone !== (selectedMilestone.definitionOfDone || "");
       
       if (hasChanges) {
         updateMilestone.mutate({
           id: selectedMilestone.id,
+          updates: {
+            title: milestoneForm.title,
+            description: milestoneForm.description,
+            definitionOfDone: milestoneForm.definitionOfDone,
+          }
+        });
+      }
+    }
+    setSelectedMilestone(null);
+  };
+
+  const handleCloseTaskDialog = () => {
+    if (selectedTask) {
+      const hasChanges = 
+        editForm.title !== selectedTask.title ||
+        editForm.description !== (selectedTask.description || "") ||
+        editForm.definitionOfDone !== (selectedTask.definitionOfDone || "");
+      
+      if (hasChanges) {
+        updateTask.mutate({
+          id: selectedTask.id,
           updates: {
             title: editForm.title,
             description: editForm.description,
@@ -98,7 +134,7 @@ export default function BoardPage() {
         });
       }
     }
-    setSelectedMilestone(null);
+    setSelectedTask(null);
   };
 
   if (milestonesLoading || tasksLoading) {
@@ -147,7 +183,7 @@ export default function BoardPage() {
                       strategy={verticalListSortingStrategy}
                     >
                       {milestoneTasks.map(task => (
-                        <SortableTaskCard key={task.id} task={task} />
+                        <SortableTaskCard key={task.id} task={task} onSelect={setSelectedTask} />
                       ))}
                     </SortableContext>
                   </DndContext>
@@ -219,7 +255,90 @@ export default function BoardPage() {
         </div>
       </div>
 
-      <Dialog open={!!selectedMilestone} onOpenChange={(open) => !open && handleCloseDialog()}>
+      {/* Task Edit Dialog */}
+      <Dialog open={!!selectedTask} onOpenChange={(open) => !open && handleCloseTaskDialog()}>
+        <DialogContent className="bg-black border-2 border-primary text-primary font-mono max-w-[95vw] sm:max-w-[600px] p-0 gap-0 shadow-[0_0_20px_rgba(0,255,0,0.2)] max-h-[90vh] flex flex-col">
+          <DialogHeader className="bg-primary/20 p-3 md:p-4 border-b border-primary shrink-0">
+            <DialogTitle className="text-base md:text-xl font-bold uppercase flex items-center gap-2">
+              <span className="animate-pulse">█</span>
+              <span className="truncate">EDIT_TASK: {selectedTask?.title}</span>
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="p-4 md:p-6 space-y-4 overflow-y-auto flex-1">
+            <div>
+              <label className="text-xs opacity-50 block mb-1">TITLE</label>
+              <input 
+                data-testid="input-task-title"
+                value={editForm.title}
+                onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
+                className="w-full bg-black border border-primary p-2 text-sm md:text-base focus:outline-none focus:ring-1 focus:ring-primary"
+              />
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="text-xs opacity-50 block mb-1">DESCRIPTION</label>
+                <textarea 
+                  data-testid="input-task-description"
+                  value={editForm.description}
+                  onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
+                  className="w-full h-32 bg-black border border-primary p-2 text-sm md:text-base focus:outline-none focus:ring-1 focus:ring-primary resize-none"
+                />
+              </div>
+              <div>
+                <label className="text-xs opacity-50 block mb-1">DEFINITION OF DONE</label>
+                <textarea 
+                  data-testid="input-task-dod"
+                  value={editForm.definitionOfDone}
+                  onChange={(e) => setEditForm({ ...editForm, definitionOfDone: e.target.value })}
+                  className="w-full h-32 bg-black border border-primary p-2 text-sm md:text-base focus:outline-none focus:ring-1 focus:ring-primary resize-none"
+                />
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter className="border-t border-primary p-3 md:p-4 flex flex-col sm:flex-row justify-between gap-2 bg-black shrink-0">
+            <Button 
+              data-testid="button-delete-task"
+              variant="destructive" 
+              onClick={() => { selectedTask && deleteTask.mutate(selectedTask.id); setSelectedTask(null); }}
+              className="bg-transparent border border-destructive text-destructive hover:bg-destructive hover:text-white font-mono rounded-none text-xs md:text-sm w-full sm:w-auto"
+            >
+              <Trash2 className="w-3 h-3 md:w-4 md:h-4 mr-2" /> DELETE
+            </Button>
+
+            <div className="flex gap-2 w-full sm:w-auto">
+              <Button 
+                data-testid="button-cancel-task"
+                variant="outline" 
+                onClick={handleCloseTaskDialog}
+                className="bg-transparent border border-primary text-primary hover:bg-primary hover:text-black font-mono rounded-none text-xs md:text-sm flex-1 sm:flex-none"
+              >
+                CLOSE
+              </Button>
+              <Button 
+                data-testid="button-complete-task"
+                onClick={() => {
+                  if (selectedTask) {
+                    updateTask.mutate({
+                      id: selectedTask.id,
+                      updates: { isCompleted: true, completedAt: new Date() }
+                    });
+                    setSelectedTask(null);
+                  }
+                }}
+                className="bg-primary text-black hover:bg-primary/80 font-mono rounded-none text-xs md:text-sm flex-1 sm:flex-none"
+              >
+                <CheckSquare className="w-3 h-3 md:w-4 md:h-4 mr-2" /> COMPLETE
+              </Button>
+            </div>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Milestone Edit Dialog */}
+      <Dialog open={!!selectedMilestone} onOpenChange={(open) => !open && handleCloseMilestoneDialog()}>
         <DialogContent className="bg-black border-2 border-primary text-primary font-mono max-w-[95vw] sm:max-w-[600px] p-0 gap-0 shadow-[0_0_20px_rgba(0,255,0,0.2)] max-h-[90vh] flex flex-col">
           <DialogHeader className="bg-primary/20 p-3 md:p-4 border-b border-primary shrink-0">
             <DialogTitle className="text-base md:text-xl font-bold uppercase flex items-center gap-2">
@@ -233,8 +352,8 @@ export default function BoardPage() {
               <label className="text-xs opacity-50 block mb-1">TITLE</label>
               <input 
                 data-testid="input-milestone-title"
-                value={editForm.title}
-                onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
+                value={milestoneForm.title}
+                onChange={(e) => setMilestoneForm({ ...milestoneForm, title: e.target.value })}
                 className="w-full bg-black border border-primary p-2 text-sm md:text-base focus:outline-none focus:ring-1 focus:ring-primary"
               />
             </div>
@@ -244,8 +363,8 @@ export default function BoardPage() {
                 <label className="text-xs opacity-50 block mb-1">DESCRIPTION</label>
                 <textarea 
                   data-testid="input-milestone-description"
-                  value={editForm.description}
-                  onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
+                  value={milestoneForm.description}
+                  onChange={(e) => setMilestoneForm({ ...milestoneForm, description: e.target.value })}
                   className="w-full h-32 bg-black border border-primary p-2 text-sm md:text-base focus:outline-none focus:ring-1 focus:ring-primary resize-none"
                 />
               </div>
@@ -253,8 +372,8 @@ export default function BoardPage() {
                 <label className="text-xs opacity-50 block mb-1">DEFINITION OF DONE</label>
                 <textarea 
                   data-testid="input-milestone-dod"
-                  value={editForm.definitionOfDone}
-                  onChange={(e) => setEditForm({ ...editForm, definitionOfDone: e.target.value })}
+                  value={milestoneForm.definitionOfDone}
+                  onChange={(e) => setMilestoneForm({ ...milestoneForm, definitionOfDone: e.target.value })}
                   className="w-full h-32 bg-black border border-primary p-2 text-sm md:text-base focus:outline-none focus:ring-1 focus:ring-primary resize-none"
                 />
               </div>
@@ -274,7 +393,7 @@ export default function BoardPage() {
             <Button 
               data-testid="button-close"
               variant="outline" 
-              onClick={handleCloseDialog}
+              onClick={handleCloseMilestoneDialog}
               className="bg-transparent border border-primary text-primary hover:bg-primary hover:text-black font-mono rounded-none text-xs md:text-sm w-full sm:w-auto"
             >
               CLOSE
