@@ -1,9 +1,19 @@
 import React, { useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
+import { useIsMobile } from "@/hooks/use-mobile";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
+import { Menu } from "lucide-react";
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const [location, setLocation] = useLocation();
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -32,7 +42,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <Link href={href}>
         <div
           className={cn(
-            "px-4 py-2 font-bold cursor-pointer border border-primary transition-all",
+            "px-4 py-2 font-bold cursor-pointer border border-primary transition-all whitespace-nowrap",
             isActive
               ? "bg-primary text-primary-foreground"
               : "bg-background text-primary hover:bg-secondary"
@@ -40,6 +50,21 @@ export function Layout({ children }: { children: React.ReactNode }) {
         >
           <span className="opacity-50 mr-2">[{hotkey}]</span>
           {label}
+        </div>
+      </Link>
+    );
+  };
+
+  const MobileNavItem = ({ href, label, hotkey }: { href: string; label: string; hotkey: string }) => {
+    const isActive = location === href;
+    return (
+      <Link href={href}>
+        <div className={cn(
+          "w-full flex items-center px-2 py-2 cursor-pointer hover:bg-primary/10",
+          isActive && "bg-primary/20 font-bold"
+        )}>
+           <span className="opacity-50 mr-2 w-8">[{hotkey}]</span>
+           {label}
         </div>
       </Link>
     );
@@ -62,12 +87,41 @@ export function Layout({ children }: { children: React.ReactNode }) {
       </header>
 
       {/* Navigation */}
-      <nav className="flex border-b border-primary z-10 bg-background overflow-x-auto scrollbar-hide">
-        <NavItem href="/" label="FOCUS" hotkey="F1" />
-        <NavItem href="/list" label="LIST" hotkey="F2" />
-        <NavItem href="/board" label="BOARD" hotkey="F3" />
-        <NavItem href="/trash" label="TRASH" hotkey="F4" />
-      </nav>
+      {isMobile ? (
+        <div className="border-b border-primary p-2 z-10 bg-background flex justify-between items-center">
+           <div className="text-xs font-bold px-2">
+             CURRENT_VIEW: {location === "/" ? "FOCUS" : location.substring(1).toUpperCase()}
+           </div>
+           <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="border-primary text-primary rounded-none h-8 w-8 p-0">
+                <Menu className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56 bg-black border-2 border-primary text-primary font-mono rounded-none p-0">
+              <DropdownMenuItem asChild className="focus:bg-primary focus:text-black rounded-none p-0">
+                <MobileNavItem href="/" label="FOCUS" hotkey="F1" />
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild className="focus:bg-primary focus:text-black rounded-none p-0">
+                <MobileNavItem href="/list" label="LIST" hotkey="F2" />
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild className="focus:bg-primary focus:text-black rounded-none p-0">
+                <MobileNavItem href="/board" label="BOARD" hotkey="F3" />
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild className="focus:bg-primary focus:text-black rounded-none p-0">
+                <MobileNavItem href="/trash" label="TRASH" hotkey="F4" />
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      ) : (
+        <nav className="flex border-b border-primary z-10 bg-background overflow-x-auto scrollbar-hide">
+          <NavItem href="/" label="FOCUS" hotkey="F1" />
+          <NavItem href="/list" label="LIST" hotkey="F2" />
+          <NavItem href="/board" label="BOARD" hotkey="F3" />
+          <NavItem href="/trash" label="TRASH" hotkey="F4" />
+        </nav>
+      )}
 
       {/* Main Content */}
       <main className="flex-1 p-6 overflow-auto z-0 relative">
