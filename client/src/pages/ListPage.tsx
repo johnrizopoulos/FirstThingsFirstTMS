@@ -194,14 +194,17 @@ export default function ListPage() {
             strategy={verticalListSortingStrategy}
           >
             <div className="space-y-2">
-              {filteredTasks.map((task, index) => (
-                <SortableTaskRow 
-                  key={task.id} 
-                  task={task} 
-                  index={index}
-                  onEdit={(task) => setSelectedTask(task)} 
-                />
-              ))}
+              {filteredTasks.map((task) => {
+                const originalIndex = activeTasks.findIndex(t => t.id === task.id);
+                return (
+                  <SortableTaskRow 
+                    key={task.id} 
+                    task={task} 
+                    index={originalIndex}
+                    onEdit={(task) => setSelectedTask(task)} 
+                  />
+                );
+              })}
               
               {filteredTasks.length === 0 && activeTasks.length > 0 && (
                 <div className="text-center border border-dashed border-primary/30 p-6 md:p-8 text-primary/50 text-sm md:text-base">
