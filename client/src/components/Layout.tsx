@@ -89,7 +89,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <header className="border-b border-primary p-4 flex items-center justify-between z-10 bg-background">
         <div className="flex items-center gap-2 overflow-hidden">
           <div className="w-3 h-3 bg-primary animate-blink shrink-0" />
-          <h1 className="text-sm md:text-xl font-bold tracking-widest truncate">FIRST_THINGS_FIRST_SYS // V.1.0</h1>
+          <h1 className="text-sm md:text-xl font-bold tracking-widest truncate">FIRST_THINGS_FIRST_TMS</h1>
         </div>
         <div className="flex items-center gap-2 ml-2">
           <Button
