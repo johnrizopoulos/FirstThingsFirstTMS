@@ -228,7 +228,7 @@ export default function BoardPage() {
     );
   }
 
-  const activeMilestones = milestones.filter(m => !m.isDeleted).sort((a, b) => a.displayOrder - b.displayOrder);
+  const activeMilestones = milestones.filter(m => !m.isDeleted && !m.isCompleted).sort((a, b) => a.displayOrder - b.displayOrder);
 
   return (
     <Layout>
