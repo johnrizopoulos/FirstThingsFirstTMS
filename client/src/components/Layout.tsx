@@ -13,7 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Menu, Moon, Sun } from "lucide-react";
 
-export function Layout({ children }: { children: React.ReactNode }) {
+export function Layout({ children, mobileHeaderContent }: { children: React.ReactNode; mobileHeaderContent?: React.ReactNode }) {
   const [location, setLocation] = useLocation();
   const isMobile = useIsMobile();
   const { theme, toggleTheme } = useTheme();
@@ -114,13 +114,17 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
       {/* Navigation */}
       {isMobile ? (
-        <div className="border-b border-primary p-2 z-10 bg-background flex justify-between items-center">
-           <div className="text-xs font-bold px-2">
-             CURRENT_VIEW: {location === "/" ? "FOCUS" : location === "/tutorial" ? "TUTORIAL" : location.substring(1).toUpperCase()}
-           </div>
+        <div className="border-b border-primary p-2 z-10 bg-background flex justify-between items-center gap-2">
+           {mobileHeaderContent ? (
+             <div className="flex-1">{mobileHeaderContent}</div>
+           ) : (
+             <div className="text-xs font-bold px-2">
+               CURRENT_VIEW: {location === "/" ? "FOCUS" : location === "/tutorial" ? "TUTORIAL" : location.substring(1).toUpperCase()}
+             </div>
+           )}
            <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="border-primary text-primary rounded-none h-8 w-8 p-0" data-testid="button-mobile-menu">
+              <Button variant="outline" size="sm" className="border-primary text-primary rounded-none h-8 w-8 p-0 shrink-0" data-testid="button-mobile-menu">
                 <Menu className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>

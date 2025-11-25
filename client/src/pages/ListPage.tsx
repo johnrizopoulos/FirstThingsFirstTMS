@@ -140,8 +140,19 @@ export default function ListPage() {
     );
   }
 
+  const mobileSearchContent = (
+    <input
+      type="text"
+      placeholder="SEARCH..."
+      value={searchQuery}
+      onChange={(e) => setSearchQuery(e.target.value)}
+      data-testid="input-search-tasks"
+      className="w-full bg-black border border-primary p-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-primary placeholder:text-primary/30 font-mono"
+    />
+  );
+
   return (
-    <Layout>
+    <Layout mobileHeaderContent={mobileSearchContent}>
       <div className="max-w-4xl mx-auto">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4 md:mb-6">
           <h2 className="text-base md:text-xl font-bold border-b-2 border-primary pr-4">
@@ -157,13 +168,13 @@ export default function ListPage() {
           </Button>
         </div>
 
-        <div className="mb-4">
+        <div className="mb-4 hidden sm:block">
           <input
             type="text"
             placeholder="SEARCH_TASKS..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            data-testid="input-search-tasks"
+            data-testid="input-search-tasks-desktop"
             className="w-full bg-black border border-primary p-2 text-sm md:text-base focus:outline-none focus:ring-1 focus:ring-primary placeholder:text-primary/30 font-mono"
           />
           {searchQuery && (
