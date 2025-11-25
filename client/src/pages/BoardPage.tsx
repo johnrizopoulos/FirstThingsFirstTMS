@@ -149,8 +149,7 @@ export default function BoardPage() {
             isDeleted: false,
           },
           {
-            onSuccess: async () => {
-              await new Promise(resolve => setTimeout(resolve, 100));
+            onSuccess: () => {
               setSelectedMilestone(null);
             },
           }
@@ -203,8 +202,7 @@ export default function BoardPage() {
             isDeleted: false,
           },
           {
-            onSuccess: async () => {
-              await new Promise(resolve => setTimeout(resolve, 100));
+            onSuccess: () => {
               setSelectedTask(null);
             },
           }
