@@ -6,7 +6,6 @@ export default function LandingPage() {
     <div className="min-h-screen bg-background text-primary font-mono relative overflow-hidden">
       {/* CRT Overlay */}
       <div className="fixed inset-0 crt-overlay pointer-events-none z-50" />
-      
       {/* Hero Section */}
       <section className="relative z-10 min-h-screen flex flex-col items-center justify-center px-4 py-16">
         <div className="max-w-4xl mx-auto text-center">
@@ -38,7 +37,6 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
-
       {/* Problem Statement */}
       <section className="relative z-10 py-24 px-4 border-t-4 border-primary">
         <div className="max-w-4xl mx-auto">
@@ -70,7 +68,6 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
-
       {/* Features Section */}
       <section id="features" className="relative z-10 py-24 px-4 border-t-4 border-primary">
         <div className="max-w-6xl mx-auto">
@@ -167,7 +164,6 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
-
       {/* Terminal Aesthetic Section */}
       <section className="relative z-10 py-24 px-4 border-t-4 border-primary">
         <div className="max-w-4xl mx-auto text-center">
@@ -191,7 +187,7 @@ export default function LandingPage() {
               <div className="opacity-50 mb-2">&gt; KEYBOARD_NAVIGATION</div>
               <div className="space-y-1 mb-4">
                 <div>[F1] → FOCUS MODE</div>
-                <div>[F2] → GLOBAL LIST</div>
+                <div>[F2] → LIST VIEW</div>
                 <div>[F3] → KANBAN BOARD</div>
                 <div>[F4] → COMPLETED ARCHIVE</div>
               </div>
@@ -209,7 +205,6 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
-
       {/* Social Proof / Philosophy */}
       <section className="relative z-10 py-24 px-4 border-t-4 border-primary">
         <div className="max-w-3xl mx-auto text-center">
@@ -240,7 +235,6 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
-
       {/* CTA Section */}
       <section className="relative z-10 py-24 px-4 border-t-4 border-primary">
         <div className="max-w-2xl mx-auto text-center">
@@ -263,7 +257,6 @@ export default function LandingPage() {
           </p>
         </div>
       </section>
-
       {/* Footer */}
       <footer className="relative z-10 border-t-4 border-primary p-6 text-center">
         <div className="max-w-4xl mx-auto">
