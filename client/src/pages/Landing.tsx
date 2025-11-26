@@ -46,7 +46,7 @@ export default function LoginPage() {
         <a
           href="/api/login"
           onClick={handleLogin}
-          className="inline-block border-2 border-primary bg-primary text-black px-4 py-3 md:px-8 md:py-4 font-bold text-sm md:text-lg hover:bg-primary/80 transition-colors cursor-pointer"
+          className="inline-block border-2 border-primary bg-primary text-primary-foreground px-4 py-3 md:px-8 md:py-4 font-bold text-sm md:text-lg hover:bg-primary/80 transition-colors cursor-pointer"
         >
           <span className="hidden sm:inline">
             {isRequestingAccess ? "[REQUESTING ACCESS...]" : "[ENTER] AUTHENTICATE_AND_CONTINUE"}
@@ -99,7 +99,7 @@ export default function LoginPage() {
         <a
           href="/api/login"
           onClick={handleLogin}
-          className="inline-block border-2 border-primary bg-primary text-black px-4 py-3 md:px-8 md:py-4 font-bold text-sm md:text-lg hover:bg-primary/80 transition-colors cursor-pointer"
+          className="inline-block border-2 border-primary bg-primary text-primary-foreground px-4 py-3 md:px-8 md:py-4 font-bold text-sm md:text-lg hover:bg-primary/80 transition-colors cursor-pointer"
         >
           <span className="hidden sm:inline">
             {isRequestingAccess ? "[REQUESTING ACCESS...]" : "[ENTER] AUTHENTICATE_AND_CONTINUE"}
