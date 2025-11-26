@@ -167,7 +167,15 @@ export async function setupAuth(app: Express) {
 
   app.get("/api/logout", (req, res) => {
     req.logout(() => {
-      // Use CLIENT_ID for production, REPL_ID for development
+      // Development mode: simple session destroy and redirect
+      if (process.env.NODE_ENV === 'development') {
+        req.session.destroy(() => {
+          res.redirect('/');
+        });
+        return;
+      }
+      
+      // Production: use OIDC logout flow
       const clientId = process.env.CLIENT_ID || process.env.REPL_ID;
       
       res.redirect(
@@ -188,30 +196,9 @@ export async function setupAuth(app: Express) {
 }
 
 export const isAuthenticated: RequestHandler = async (req, res, next) => {
-  // Development mode bypass - auto-authenticate with mock user
-  if (process.env.NODE_ENV === 'development' && !req.isAuthenticated()) {
-    const mockUser = {
-      claims: {
-        sub: 'dev-user-123',
-        email: 'dev@localhost',
-        first_name: 'Dev',
-        last_name: 'User',
-        profile_image_url: '',
-      },
-      access_token: 'dev-token',
-      refresh_token: 'dev-refresh-token',
-      expires_at: Math.floor(Date.now() / 1000) + 86400, // 24 hours
-    };
-    
-    // Set the mock user on the request
-    (req as any).user = mockUser;
-    req.login?.(mockUser, () => next());
-    return;
-  }
-
   const user = req.user as any;
 
-  if (!req.isAuthenticated() || !user.expires_at) {
+  if (!req.isAuthenticated() || !user?.expires_at) {
     return res.status(401).json({ message: "Unauthorized" });
   }
 
