@@ -18,9 +18,7 @@ export default function LandingPage() {
             </h1>
           </div>
           
-          <p className="text-xl md:text-2xl mb-4 opacity-90">
-            DO THE MOST IMPORTANT THING. ALWAYS.
-          </p>
+          <p className="text-xl md:text-2xl mb-4 opacity-90">_DO THE MOST IMPORTANT THINGS FIRST_</p>
           
           <p className="text-sm md:text-base mb-12 opacity-70 max-w-2xl mx-auto">
             A terminal-inspired task management system that helps you focus on what truly matters.
