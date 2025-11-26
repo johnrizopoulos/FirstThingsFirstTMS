@@ -128,7 +128,7 @@ export default function LandingPage() {
             <div className="border-2 border-primary p-6 bg-card/30">
               <div className="flex items-start gap-4 mb-4">
                 <div className="w-3 h-3 bg-primary animate-blink shrink-0 mt-1" />
-                <h3 className="text-xl font-bold">MILESTONE_BOARD</h3>
+                <h3 className="text-xl font-bold">BOARD_VIEW</h3>
               </div>
               <p className="text-sm mb-4 opacity-80">
                 Organize tasks into milestones. Max 5 active milestones to prevent overwhelm. 
