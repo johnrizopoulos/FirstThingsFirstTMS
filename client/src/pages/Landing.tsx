@@ -6,7 +6,7 @@ export default function Landing() {
       
       <div className="relative z-10 max-w-2xl mx-auto py-8 text-center w-full">
         <div className="mb-8 md:mb-12">
-          <div className="flex items-center justify-center gap-2 mb-4 md:mb-6 flex-wrap">
+          <div className="flex items-center justify-center gap-2 mb-4 md:mb-6">
             <div className="w-3 h-3 md:w-4 md:h-4 bg-primary animate-blink shrink-0" />
             <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-6xl font-bold tracking-wide md:tracking-widest break-words">
               FIRST_THINGS_FIRST
