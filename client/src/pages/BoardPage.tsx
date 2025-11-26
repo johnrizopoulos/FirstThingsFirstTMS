@@ -519,7 +519,7 @@ export default function BoardPage() {
                   <Button 
                     data-testid="button-complete-task"
                     onClick={handleCompleteTask}
-                    className="bg-primary text-primary-foreground hover:bg-primary/80 font-mono rounded-none p-2 h-auto flex-1"
+                    className="bg-transparent border border-primary text-primary hover:bg-primary hover:text-primary-foreground font-mono rounded-none p-2 h-auto flex-1"
                     title="Mark as complete"
                   >
                     <Check className="w-4 h-4" />
@@ -617,7 +617,7 @@ export default function BoardPage() {
                   <Button 
                     data-testid="button-complete-milestone"
                     onClick={handleCompleteMilestone}
-                    className="bg-primary text-primary-foreground hover:bg-primary/80 font-mono rounded-none p-2 h-auto flex-1"
+                    className="bg-transparent border border-primary text-primary hover:bg-primary hover:text-primary-foreground font-mono rounded-none p-2 h-auto flex-1"
                     title="Mark as complete"
                   >
                     <Check className="w-4 h-4" />
