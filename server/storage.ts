@@ -3,7 +3,7 @@ import {
   milestones,
   tasks,
   type User,
-  type UpsertUser,
+  type InsertUser,
   type Milestone,
   type InsertMilestone,
   type Task,
@@ -13,9 +13,10 @@ import { db } from "./db";
 import { eq, and, desc, asc, sql } from "drizzle-orm";
 
 export interface IStorage {
-  // User operations (required for Replit Auth)
+  // User operations
   getUser(id: string): Promise<User | undefined>;
-  upsertUser(user: UpsertUser): Promise<User>;
+  upsertUser(user: InsertUser): Promise<User>;
+  upsertUserByEmail(user: Omit<InsertUser, 'id'>): Promise<User>;
 
   // Milestone operations
   getMilestones(userId: string): Promise<Milestone[]>;
@@ -53,12 +54,27 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
-  async upsertUser(userData: UpsertUser): Promise<User> {
+  async upsertUser(userData: InsertUser): Promise<User> {
     const [user] = await db
       .insert(users)
       .values(userData)
       .onConflictDoUpdate({
         target: users.id,
+        set: {
+          ...userData,
+          updatedAt: new Date(),
+        },
+      })
+      .returning();
+    return user;
+  }
+
+  async upsertUserByEmail(userData: Omit<InsertUser, 'id'>): Promise<User> {
+    const [user] = await db
+      .insert(users)
+      .values(userData)
+      .onConflictDoUpdate({
+        target: users.email,
         set: {
           ...userData,
           updatedAt: new Date(),

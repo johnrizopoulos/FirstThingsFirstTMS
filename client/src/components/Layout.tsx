@@ -89,21 +89,33 @@ export function Layout({ children, mobileHeaderContent }: { children: React.Reac
           <div className="w-3 h-3 bg-primary animate-blink shrink-0" />
           <h1 className="text-sm md:text-xl font-bold tracking-widest truncate">FIRST_THINGS_FIRST_TMS</h1>
         </div>
-        <Button
-          onClick={toggleTheme}
-          variant="ghost"
-          size="sm"
-          className="text-[10px] md:text-xs opacity-70 hover:opacity-100 transition-opacity p-0 h-auto flex items-center gap-1 ml-2"
-          data-testid="button-toggle-theme"
-          title={`Theme: ${theme} mode`}
-        >
-          <span>
-            {theme === "terminal" ? "█" : theme === "dark" ? <Moon className="w-3 h-3 md:w-4 md:h-4 inline" /> : <Sun className="w-3 h-3 md:w-4 md:h-4 inline" />}
-          </span>
-          <span className="hidden sm:inline">
-            [{theme === "terminal" ? "TERMINAL" : theme === "dark" ? "DARK" : "LIGHT"}]
-          </span>
-        </Button>
+        <div className="flex items-center gap-2 ml-2">
+          <Button
+            onClick={toggleTheme}
+            variant="ghost"
+            size="sm"
+            className="text-[10px] md:text-xs opacity-70 hover:opacity-100 transition-opacity p-0 h-auto flex items-center gap-1"
+            data-testid="button-toggle-theme"
+            title={`Theme: ${theme} mode`}
+          >
+            <span>
+              {theme === "terminal" ? "█" : theme === "dark" ? <Moon className="w-3 h-3 md:w-4 md:h-4 inline" /> : <Sun className="w-3 h-3 md:w-4 md:h-4 inline" />}
+            </span>
+            <span className="hidden sm:inline">
+              [{theme === "terminal" ? "TERMINAL" : theme === "dark" ? "DARK" : "LIGHT"}]
+            </span>
+          </Button>
+          <button 
+            onClick={async () => {
+              await fetch("/api/logout", { method: "POST" });
+              window.location.href = "/";
+            }}
+            className="text-[10px] md:text-xs opacity-70 hover:opacity-100 transition-opacity underline whitespace-nowrap"
+            data-testid="button-logout"
+          >
+            [LOGOUT]
+          </button>
+        </div>
       </header>
 
       {/* Navigation */}
