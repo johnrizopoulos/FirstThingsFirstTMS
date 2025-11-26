@@ -17,11 +17,15 @@ export default function LoginPage() {
 
         <a
           href="/api/login"
-          className="inline-block border-2 border-primary bg-primary text-black px-4 py-3 md:px-8 md:py-4 font-bold text-sm md:text-lg hover:bg-primary/80 transition-colors mb-6 md:mb-8"
+          className="inline-block border-2 border-primary bg-primary text-black px-4 py-3 md:px-8 md:py-4 font-bold text-sm md:text-lg hover:bg-primary/80 transition-colors"
         >
           <span className="hidden sm:inline">[ENTER] AUTHENTICATE_AND_CONTINUE</span>
           <span className="sm:hidden">AUTHENTICATE</span>
         </a>
+
+        <div className="mt-6 mb-6 md:mb-8 text-sm md:text-base opacity-70 italic max-w-2xl mx-auto text-justify">
+          <p>"If you can't focus, you can't create, build, or achieve anything meaningful. The best ideas, the biggest dreams, and even the simplest daily tasks need one thing—your undivided attention."</p>
+        </div>
 
         <div className="border-2 md:border-4 border-primary p-4 md:p-8 mb-6 md:mb-8 bg-card/50 relative">
           {/* Corners */}
