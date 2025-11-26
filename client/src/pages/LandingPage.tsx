@@ -252,6 +252,10 @@ export default function LandingPage() {
                 [ENTER] START_NOW
               </a>
             </Link>
+            <div className="mt-6 text-2xl md:text-4xl opacity-70 italic max-w-3xl mx-auto text-justify">
+              <p>"Focusing on everything is synonymous with not focusing on anything."</p>
+              <p className="mt-2">— <span className="font-bold">Eliyahu M. Goldratt</span></p>
+            </div>
           </div>
         </div>
       </section>
