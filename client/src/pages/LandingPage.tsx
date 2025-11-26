@@ -67,6 +67,9 @@ export default function LandingPage() {
                 [ENTER] START_NOW
               </a>
             </Link>
+            <p className="mt-6 text-sm md:text-base opacity-70 italic max-w-2xl mx-auto">
+              "It is not enough to do your best; you must know what to do, and then do your best" - W. Edward Deming
+            </p>
           </div>
         </div>
       </section>
