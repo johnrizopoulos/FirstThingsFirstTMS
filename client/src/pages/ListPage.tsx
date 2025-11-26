@@ -350,7 +350,7 @@ export default function ListPage() {
               <Button 
                 data-testid="button-save"
                 onClick={handleSaveChanges}
-                className="bg-primary text-black hover:bg-primary/80 font-mono rounded-none text-xs md:text-sm w-full"
+                className="bg-primary text-primary-foreground hover:bg-primary/80 font-mono rounded-none text-xs md:text-sm w-full"
               >
                 SAVE
               </Button>
@@ -359,7 +359,7 @@ export default function ListPage() {
                   data-testid="button-cancel"
                   variant="outline" 
                   onClick={handleCloseWithoutSaving}
-                  className={`bg-transparent border border-primary text-primary hover:bg-primary hover:text-black font-mono rounded-none text-xs md:text-sm ${selectedTask?.isNew ? "flex-1" : "flex-[2]"}`}
+                  className={`bg-transparent border border-primary text-primary hover:bg-primary hover:text-primary-foreground font-mono rounded-none text-xs md:text-sm ${selectedTask?.isNew ? "flex-1" : "flex-[2]"}`}
                 >
                   CANCEL
                 </Button>
@@ -368,7 +368,7 @@ export default function ListPage() {
                     <Button 
                       data-testid="button-complete"
                       onClick={handleComplete}
-                      className="bg-primary text-black hover:bg-primary/80 font-mono rounded-none p-2 h-auto flex-1"
+                      className="bg-primary text-primary-foreground hover:bg-primary/80 font-mono rounded-none p-2 h-auto flex-1"
                       title="Mark as complete"
                     >
                       <Check className="w-4 h-4" />
@@ -377,7 +377,7 @@ export default function ListPage() {
                       data-testid="button-delete"
                       variant="destructive" 
                       onClick={handleDelete}
-                      className="bg-transparent border border-destructive text-destructive hover:bg-destructive hover:text-white font-mono rounded-none p-2 h-auto flex-1"
+                      className="bg-transparent border border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground font-mono rounded-none p-2 h-auto flex-1"
                       title="Delete task"
                     >
                       <Trash2 className="w-4 h-4" />
