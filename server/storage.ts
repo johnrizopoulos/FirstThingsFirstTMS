@@ -136,12 +136,25 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteMilestone(id: string, userId: string): Promise<void> {
+    const now = new Date();
+    
+    // Mark all tasks linked to this milestone as deleted
+    await db
+      .update(tasks)
+      .set({
+        isDeleted: true,
+        deletedAt: now,
+        updatedAt: now,
+      })
+      .where(eq(tasks.milestoneId, id));
+    
+    // Mark the milestone as deleted
     await db
       .update(milestones)
       .set({
         isDeleted: true,
-        deletedAt: new Date(),
-        updatedAt: new Date(),
+        deletedAt: now,
+        updatedAt: now,
       })
       .where(and(eq(milestones.id, id), eq(milestones.userId, userId)));
   }
