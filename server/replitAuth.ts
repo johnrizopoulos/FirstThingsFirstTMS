@@ -79,9 +79,14 @@ export async function setupAuth(app: Express) {
     verified: passport.AuthenticateCallback
   ) => {
     try {
+      const claims = tokens.claims();
+      console.log("Auth verify - claims:", { sub: claims.sub, email: claims.email });
+      
       const user = {} as any;
       updateUserSession(user, tokens);
-      await upsertUser(tokens.claims());
+      await upsertUser(claims);
+      
+      console.log("Auth verify - user created with expires_at:", user.expires_at);
       verified(null, user);
     } catch (error) {
       console.error("Verification error:", error);
@@ -131,10 +136,21 @@ export async function setupAuth(app: Express) {
   app.get("/api/callback", (req, res, next) => {
     const callbackUrl = getCallbackUrl(req);
     const strategyName = getOrCreateStrategy(callbackUrl);
+    
     passport.authenticate(strategyName, {
       successReturnToOrRedirect: "/",
       failureRedirect: "/",
-    })(req, res, next);
+    })(req, res, (err: any) => {
+      if (err) {
+        console.error("Callback authentication error:", err);
+        return res.redirect("/");
+      }
+      if (res.headersSent) {
+        return;
+      }
+      console.log("Callback auth complete, user:", req.user ? "present" : "missing");
+      res.redirect("/");
+    });
   });
 
   app.get("/api/logout", (req, res) => {
