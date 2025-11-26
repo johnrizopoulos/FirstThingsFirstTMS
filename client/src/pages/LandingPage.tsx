@@ -4,8 +4,27 @@ import { useTheme } from "@/contexts/theme";
 
 export default function LandingPage() {
   const { theme, setTheme } = useTheme();
+  
+  const handleThemeChange = () => {
+    const themes = ["terminal", "dark", "light"] as const;
+    const currentIndex = themes.indexOf(theme as any);
+    const nextIndex = (currentIndex + 1) % themes.length;
+    setTheme(themes[nextIndex]);
+  };
+  
   return (
     <div className="min-h-screen bg-background text-primary font-mono relative overflow-hidden">
+      {/* Theme Button - Top Right */}
+      <div className="fixed top-4 right-4 z-40">
+        <button
+          onClick={handleThemeChange}
+          className="border-2 border-primary bg-background text-primary px-4 py-2 font-bold text-xs md:text-sm hover:bg-primary hover:text-primary-foreground transition-colors"
+          title="Change theme"
+          data-testid="button-theme-toggle"
+        >
+          [{theme.toUpperCase()}]
+        </button>
+      </div>
       {/* CRT Overlay */}
       <div className="fixed inset-0 crt-overlay pointer-events-none z-50" />
       {/* Hero Section */}
