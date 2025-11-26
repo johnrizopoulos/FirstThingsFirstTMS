@@ -111,8 +111,16 @@ export async function setupAuth(app: Express) {
   passport.serializeUser((user: Express.User, cb) => cb(null, user));
   passport.deserializeUser((user: Express.User, cb) => cb(null, user));
 
+  // Build canonical callback URL - Replit provides X-Forwarded-Host for preview mode
+  const getCallbackUrl = (req: any) => {
+    const forwardedHost = req.get('x-forwarded-host');
+    const forwardedProto = req.get('x-forwarded-proto') || 'https';
+    const host = forwardedHost || req.get('host');
+    return `${forwardedProto}://${host}/api/callback`;
+  };
+
   app.get("/api/login", (req, res, next) => {
-    const callbackUrl = `${req.protocol}://${req.get('host')}/api/callback`;
+    const callbackUrl = getCallbackUrl(req);
     const strategyName = getOrCreateStrategy(callbackUrl);
     passport.authenticate(strategyName, {
       prompt: "login consent",
@@ -121,11 +129,11 @@ export async function setupAuth(app: Express) {
   });
 
   app.get("/api/callback", (req, res, next) => {
-    const callbackUrl = `${req.protocol}://${req.get('host')}/api/callback`;
+    const callbackUrl = getCallbackUrl(req);
     const strategyName = getOrCreateStrategy(callbackUrl);
     passport.authenticate(strategyName, {
       successReturnToOrRedirect: "/",
-      failureRedirect: "/api/login",
+      failureRedirect: "/",
     })(req, res, next);
   });
 
