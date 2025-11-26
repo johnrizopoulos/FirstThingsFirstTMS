@@ -135,14 +135,14 @@ export default function FocusPage() {
             </div>
           </div>
           
-          <div className="hidden md:block absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity text-xs bg-primary text-black px-2 py-1">
+          <div className="hidden md:block absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity text-xs bg-primary text-primary-foreground px-2 py-1">
             CLICK TO EDIT
           </div>
         </div>
       </div>
 
       <Dialog open={!!selectedTask} onOpenChange={(open) => !open && handleCloseWithoutSaving()}>
-        <DialogContent className="bg-black border-2 border-primary text-primary font-mono max-w-[95vw] sm:max-w-[600px] p-0 gap-0 shadow-[0_0_20px_rgba(0,255,0,0.2)] max-h-[90vh] flex flex-col">
+        <DialogContent className="bg-background border-2 border-primary text-foreground font-mono max-w-[95vw] sm:max-w-[600px] p-0 gap-0 shadow-[0_0_20px_rgba(0,255,0,0.2)] max-h-[90vh] flex flex-col" aria-describedby={undefined}>
           <DialogHeader className="bg-primary/20 p-3 md:p-4 border-b border-primary shrink-0">
             <DialogTitle className="text-base md:text-xl font-bold uppercase flex items-center gap-2">
               <span className="animate-pulse">█</span> 
@@ -157,7 +157,7 @@ export default function FocusPage() {
                 data-testid="input-task-title"
                 value={editForm.title}
                 onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
-                className="w-full bg-black border border-primary p-2 text-sm md:text-base focus:outline-none focus:ring-1 focus:ring-primary"
+                className="w-full bg-input border border-primary p-2 text-sm md:text-base text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
               />
             </div>
             
@@ -173,7 +173,7 @@ export default function FocusPage() {
                     setEditForm({ ...editForm, description: e.target.value });
                     adjustTextareaHeight(descriptionRef.current);
                   }}
-                  className="w-full min-h-24 bg-black border border-primary p-2 text-sm md:text-base focus:outline-none focus:ring-1 focus:ring-primary resize-none overflow-hidden"
+                  className="w-full min-h-24 bg-input border border-primary p-2 text-sm md:text-base text-foreground focus:outline-none focus:ring-1 focus:ring-primary resize-none overflow-hidden"
                 />
                 <div className="text-xs opacity-50 text-right mt-1">{editForm.description.length} / 2000</div>
               </div>
@@ -188,18 +188,18 @@ export default function FocusPage() {
                     setEditForm({ ...editForm, definitionOfDone: e.target.value });
                     adjustTextareaHeight(dodRef.current);
                   }}
-                  className="w-full min-h-24 bg-black border border-primary p-2 text-sm md:text-base focus:outline-none focus:ring-1 focus:ring-primary resize-none overflow-hidden"
+                  className="w-full min-h-24 bg-input border border-primary p-2 text-sm md:text-base text-foreground focus:outline-none focus:ring-1 focus:ring-primary resize-none overflow-hidden"
                 />
                 <div className="text-xs opacity-50 text-right mt-1">{editForm.definitionOfDone.length} / 2000</div>
               </div>
             </div>
           </div>
 
-          <DialogFooter className="border-t border-primary p-3 md:p-4 flex flex-col gap-3 bg-black shrink-0">
+          <DialogFooter className="border-t border-primary p-3 md:p-4 flex flex-col gap-3 bg-background shrink-0">
             <Button 
               data-testid="button-save"
               onClick={handleSaveChanges}
-              className="bg-primary text-black hover:bg-primary/80 font-mono rounded-none text-xs md:text-sm w-full"
+              className="bg-primary text-primary-foreground hover:bg-primary/80 font-mono rounded-none text-xs md:text-sm w-full"
             >
               SAVE
             </Button>
@@ -208,14 +208,14 @@ export default function FocusPage() {
                 data-testid="button-cancel"
                 variant="outline" 
                 onClick={handleCloseWithoutSaving}
-                className="bg-transparent border border-primary text-primary hover:bg-primary hover:text-black font-mono rounded-none text-xs md:text-sm flex-[2]"
+                className="bg-transparent border border-primary text-primary hover:bg-primary hover:text-primary-foreground font-mono rounded-none text-xs md:text-sm flex-[2]"
               >
                 CANCEL
               </Button>
               <Button 
                 data-testid="button-complete"
                 onClick={handleComplete}
-                className="bg-primary text-black hover:bg-primary/80 font-mono rounded-none p-2 h-auto flex-1"
+                className="bg-primary text-primary-foreground hover:bg-primary/80 font-mono rounded-none p-2 h-auto flex-1"
                 title="Mark as complete"
               >
                 <Check className="w-4 h-4" />
