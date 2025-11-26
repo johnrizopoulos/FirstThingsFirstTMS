@@ -13,6 +13,17 @@ export default function LandingPage() {
   
   return (
     <div className="min-h-screen bg-background text-primary font-mono relative overflow-hidden">
+      {/* Sign In Button - Top Left */}
+      <div className="fixed top-4 left-4 z-40">
+        <Link href="/signin">
+          <button
+            className="border-2 border-primary bg-background text-primary px-4 py-2 font-bold text-xs md:text-sm hover:bg-primary hover:text-primary-foreground transition-colors"
+            data-testid="button-signin"
+          >
+            [SIGN IN]
+          </button>
+        </Link>
+      </div>
       {/* Theme Button - Top Right */}
       <div className="fixed top-4 right-4 z-40">
         <button
