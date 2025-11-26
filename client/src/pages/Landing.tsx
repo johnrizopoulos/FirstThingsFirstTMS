@@ -73,6 +73,7 @@ export default function LoginPage() {
 
         <div className="mt-6 mb-8 md:mb-12 text-sm md:text-base opacity-70 italic max-w-2xl mx-auto text-justify">
           <p>"Extraordinary success comes from doing ordinary things, with extraordinary focus, over an extraordinary period of time."</p>
+          <p className="mt-4 not-italic">Application is still in development, for support or questions please contact: <span className="font-bold">firstthingsfirsttms@gmail.com</span></p>
         </div>
 
         <div className="mt-8 md:mt-12 text-[10px] md:text-xs opacity-50">
