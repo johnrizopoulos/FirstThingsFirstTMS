@@ -1,54 +1,10 @@
-import { useState } from "react";
-import { useLocation } from "wouter";
+import { Link } from "wouter";
 import { useTheme } from "@/contexts/theme";
 import { Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
 
 export default function LoginPage() {
-  const [, setLocation] = useLocation();
   const { theme, toggleTheme } = useTheme();
-  const { toast } = useToast();
-  const [email, setEmail] = useState("");
-  const [name, setName] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!email || !name) {
-      toast({
-        title: "ERROR",
-        description: "Email and name are required",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsSubmitting(true);
-
-    try {
-      const response = await fetch("/api/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, name }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Login failed");
-      }
-
-      // Redirect to app
-      setLocation("/");
-    } catch (error) {
-      toast({
-        title: "ERROR",
-        description: "Failed to log in. Please try again.",
-        variant: "destructive",
-      });
-      setIsSubmitting(false);
-    }
-  };
 
   return (
     <div className="min-h-screen bg-background text-primary font-mono relative overflow-hidden flex flex-col items-center justify-center px-4">
@@ -74,87 +30,75 @@ export default function LoginPage() {
         </Button>
       </div>
 
-      <div className="relative z-10 max-w-md mx-auto w-full">
-        <div className="mb-6 text-center">
-          <div className="flex items-center justify-center gap-2 mb-4">
-            <div className="w-3 h-3 bg-primary animate-blink shrink-0" />
-            <h1 className="text-xl md:text-3xl font-bold tracking-widest">
+      <div className="relative z-10 max-w-2xl mx-auto py-8 text-center w-full">
+        <div className="mb-8 md:mb-12">
+          <div className="flex items-center justify-center gap-2 mb-4 md:mb-6">
+            <div className="w-3 h-3 md:w-4 md:h-4 bg-primary animate-blink shrink-0" />
+            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-6xl font-bold tracking-wide md:tracking-widest break-words">
               FIRST_THINGS_FIRST
             </h1>
           </div>
-          <p className="text-sm md:text-base opacity-70">TASK MANAGEMENT SYSTEM</p>
+          <p className="text-sm md:text-lg opacity-70 mb-2">TASK MANAGEMENT SYSTEM // V.1.1</p>
         </div>
 
-        <div className="border-2 border-primary p-6 md:p-8 bg-card/50 relative">
+        <Link href="/signin" className="inline-block border-2 border-primary bg-primary text-primary-foreground px-4 py-3 md:px-8 md:py-4 font-bold text-sm md:text-lg hover:bg-primary/80 transition-colors cursor-pointer" data-testid="button-get-authenticated">
+          <span className="hidden sm:inline">[ENTER] GET_AUTHENTICATED</span>
+          <span className="sm:hidden">GET AUTHENTICATED</span>
+        </Link>
+
+        <div className="mt-6 mb-6 md:mb-8 text-sm md:text-base opacity-70 italic max-w-2xl mx-auto text-justify">
+          <p>"If you can't focus, you can't create, build, or achieve anything meaningful. The best ideas, the biggest dreams, and even the simplest daily tasks need one thing—your undivided attention."</p>
+        </div>
+
+        <div className="border-2 md:border-4 border-primary p-4 md:p-8 mb-6 md:mb-8 bg-card/50 relative">
           {/* Corners */}
-          <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-primary" />
-          <div className="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 border-primary" />
-          <div className="absolute bottom-0 left-0 w-3 h-3 border-b-2 border-l-2 border-primary" />
-          <div className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-primary" />
+          <div className="absolute top-0 left-0 w-3 h-3 md:w-4 md:h-4 border-t-2 border-l-2 md:border-t-4 md:border-l-4 border-primary" />
+          <div className="absolute top-0 right-0 w-3 h-3 md:w-4 md:h-4 border-t-2 border-r-2 md:border-t-4 md:border-r-4 border-primary" />
+          <div className="absolute bottom-0 left-0 w-3 h-3 md:w-4 md:h-4 border-b-2 border-l-2 md:border-b-4 md:border-l-4 border-primary" />
+          <div className="absolute bottom-0 right-0 w-3 h-3 md:w-4 md:h-4 border-b-2 border-r-2 md:border-b-4 md:border-r-4 border-primary" />
 
-          <h2 className="text-lg md:text-xl font-bold mb-4 text-center">_ACCESS_SYSTEM_</h2>
-          <p className="text-xs md:text-sm opacity-70 mb-6 text-center">
-            Enter your details to continue
-          </p>
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label htmlFor="email" className="block text-xs md:text-sm font-bold mb-2">
-                EMAIL_ADDRESS:
-              </label>
-              <input
-                type="email"
-                id="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full bg-input border-2 border-primary px-3 py-2 text-sm md:text-base font-mono focus:outline-none focus:ring-2 focus:ring-primary"
-                placeholder="user@example.com"
-                required
-                disabled={isSubmitting}
-                data-testid="input-email"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="name" className="block text-xs md:text-sm font-bold mb-2">
-                FULL_NAME:
-              </label>
-              <input
-                type="text"
-                id="name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="w-full bg-input border-2 border-primary px-3 py-2 text-sm md:text-base font-mono focus:outline-none focus:ring-2 focus:ring-primary"
-                placeholder="John Doe"
-                required
-                disabled={isSubmitting}
-                data-testid="input-name"
-              />
-            </div>
-
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="w-full border-2 border-primary bg-primary text-primary-foreground px-4 py-3 font-bold text-sm md:text-base hover:bg-primary/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              data-testid="button-submit"
-            >
-              {isSubmitting ? "[PROCESSING...]" : "[ENTER] ACCESS_SYSTEM"}
-            </button>
-          </form>
-
-          <p className="mt-6 text-[10px] md:text-xs opacity-50 text-center">
-            No password required. Your information is stored securely.
-          </p>
+          <h2 className="text-lg md:text-2xl font-bold mb-3 md:mb-4">_KEY_FEATURES_</h2>
+          <ul className="text-left space-y-2 mb-4 md:mb-6 text-xs md:text-base">
+            <li className="flex items-start gap-2">
+              <span className="text-primary shrink-0">▸</span>
+              <span>Focus mode displays only your highest priority task</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-primary shrink-0">▸</span>
+              <span>Ordered task list view with drag-and-drop prioritization</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-primary shrink-0">▸</span>
+              <span>Board view with Milestones (max 5 active)</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-primary shrink-0">▸</span>
+              <span>30-day trash retention with automatic cleanup</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-primary shrink-0">▸</span>
+              <span>Keyboard-driven navigation (F1-F6)</span>
+            </li>
+          </ul>
         </div>
 
-        <div className="mt-6 text-center">
-          <a
-            href="/"
-            className="text-xs md:text-sm opacity-70 hover:opacity-100 transition-opacity underline"
-            data-testid="link-back"
-          >
-            ← BACK TO HOME
-          </a>
+        <Link href="/signin" className="inline-block border-2 border-primary bg-primary text-primary-foreground px-4 py-3 md:px-8 md:py-4 font-bold text-sm md:text-lg hover:bg-primary/80 transition-colors cursor-pointer" data-testid="button-continue">
+          <span className="hidden sm:inline">[ENTER] CONTINUE</span>
+          <span className="sm:hidden">CONTINUE</span>
+        </Link>
+
+        <div className="mt-6 mb-8 md:mb-12 text-sm md:text-base opacity-70 italic max-w-2xl mx-auto text-justify">
+          <p>"Extraordinary success comes from doing ordinary things, with extraordinary focus, over an extraordinary period of time."</p>
+          <div className="mt-4 not-italic">
+            <p>Application is still in development.</p>
+            <p className="mt-1">For support or questions please contact: <span className="font-bold">firstthingsfirsttms@gmail.com</span></p>
+          </div>
+        </div>
+
+        <div className="mt-8 md:mt-12 text-[10px] md:text-xs opacity-50">
+          <p>© 2025 FIRST THINGS FIRST TMS</p>
+          <p className="mt-2">DESIGNED FOR MAXIMUM PRODUCTIVITY</p>
+          <p className="mt-2">BUILT WITH <a href="https://www.replit.com" target="_blank" rel="noopener noreferrer" className="underline hover:opacity-100">REPLIT</a> BY <a href="https://www.johnrizopoulos.com" target="_blank" rel="noopener noreferrer" className="underline hover:opacity-100">JOHN RIZOPOULOS</a></p>
         </div>
       </div>
     </div>
