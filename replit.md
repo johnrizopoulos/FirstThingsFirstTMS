@@ -1,9 +1,30 @@
 # First Things First - Task Management App
 
 ## Overview
-A terminal-inspired task management web application with IBM 3270/Bloomberg aesthetic. Features Focus mode for single-task concentration, global task queue, milestone-based Kanban board (max 5 columns), 30-day trash retention, and a Completed view for permanently viewing completed tasks/milestones. Includes three theme modes: Terminal (green-on-black), Dark (light gray-on-black), and Light (black-on-white). Uses Replit Auth for authentication and PostgreSQL for data storage.
+A terminal-inspired task management web application with IBM 3270/Bloomberg aesthetic. Features Focus mode for single-task concentration, global task queue, milestone-based Kanban board (max 5 columns), 30-day trash retention, and a Completed view for permanently viewing completed tasks/milestones. Includes three theme modes: Terminal (green-on-black), Dark (light gray-on-black), and Light (black-on-white). Uses email + name passwordless authentication with PostgreSQL for data storage.
 
-## Recent Changes (Nov 26, 2025)
+## Version 2.0 (Nov 26, 2025)
+
+### Three-Page Authentication Flow
+- Replaced Replit Auth with custom email + name passwordless authentication system
+- Implemented three-page user journey:
+  1. **Landing Page (/)** - Elaborate marketing page with multiple sections (Problem, Features, Terminal Design, Philosophy, Footer)
+  2. **Login Page (/login)** - Brief page with key features and GET_AUTHENTICATED button
+  3. **Sign In Page (/signin)** - Email + name form for actual authentication
+- Added [SIGN IN] button to landing page (top left) for quick access to sign-in page
+- Added [HOME] buttons to Login and Sign In pages (top left) to return to landing page
+- Session-based authentication with httpOnly cookies, CSRF protection
+- User data stored in PostgreSQL with consent tracking (consentTimestamp, consentPurpose, consentSource)
+- Landing page hero section updated: "Just pure productivity." now appears on separate line in bold
+
+### Authentication Technical Details
+- Email is unique identifier with upsert on login
+- Session cookies use httpOnly, secure (production), sameSite: 'lax'
+- No password required - simplified authentication flow
+- Fixed constant page reloading bug by using wouter's Redirect component instead of window.location.href
+- Adjusted React Query settings: staleTime: Infinity, refetchOnWindowFocus: false
+
+## Version 1.x Changes (Nov 26, 2025)
 
 ### Task Count Limit Per Milestone
 - Implemented 10-task-per-milestone limit to enforce focus and prevent milestone bloat
