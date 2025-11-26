@@ -1,4 +1,4 @@
-import { Switch, Route } from "wouter";
+import { Switch, Route, Redirect } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -36,12 +36,12 @@ function AuthRouter() {
         <>
           <Route path="/" component={LandingPage} />
           <Route path="/login" component={LoginPage} />
-          <Route path="*">{() => { window.location.href = '/'; return null; }}</Route>
+          <Route path="*"><Redirect to="/" /></Route>
         </>
       ) : (
         <>
           <Route path="/" component={FocusPage} />
-          <Route path="/login">{() => { window.location.href = '/'; return null; }}</Route>
+          <Route path="/login"><Redirect to="/" /></Route>
           <Route path="/list" component={ListPage} />
           <Route path="/board" component={BoardPage} />
           <Route path="/completed" component={CompletedPage} />
