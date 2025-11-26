@@ -10,9 +10,20 @@ import { storage } from "./storage";
 
 const getOidcConfig = memoize(
   async () => {
+    // REPL_ID is not available in Autoscale deployments
+    // Use CLIENT_ID env var for production, fallback to REPL_ID for development
+    const clientId = process.env.CLIENT_ID || process.env.REPL_ID;
+    
+    if (!clientId) {
+      throw new Error(
+        "CLIENT_ID or REPL_ID environment variable must be set for authentication. " +
+        "In Autoscale deployments, set CLIENT_ID to your Replit application's OAuth client ID."
+      );
+    }
+    
     return await client.discovery(
       new URL(process.env.ISSUER_URL ?? "https://replit.com/oidc"),
-      process.env.REPL_ID!
+      clientId
     );
   },
   { maxAge: 3600 * 1000 }
@@ -127,9 +138,12 @@ export async function setupAuth(app: Express) {
 
   app.get("/api/logout", (req, res) => {
     req.logout(() => {
+      // Use CLIENT_ID for production, REPL_ID for development
+      const clientId = process.env.CLIENT_ID || process.env.REPL_ID;
+      
       res.redirect(
         client.buildEndSessionUrl(config, {
-          client_id: process.env.REPL_ID!,
+          client_id: clientId!,
           post_logout_redirect_uri: `${req.protocol}://${req.hostname}`,
         }).href
       );

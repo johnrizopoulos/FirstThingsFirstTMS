@@ -40,15 +40,13 @@ export async function serveStatic(app: Express, server: Server) {
       process.exit(1);
     }
     
-    if (!process.env.REPL_ID) {
-      console.error("ERROR: REPL_ID environment variable is not set");
-      process.exit(1);
-    }
+    // REPL_ID is not available in Autoscale deployments, only check in development
+    // It will be used by auth setup if available
     
     console.log("Environment variables validated");
     console.log("Database URL configured:", process.env.DATABASE_URL ? "✓" : "✗");
     console.log("Session secret configured:", process.env.SESSION_SECRET ? "✓" : "✗");
-    console.log("Repl ID configured:", process.env.REPL_ID ? "✓" : "✗");
+    console.log("REPL_ID configured:", process.env.REPL_ID ? "✓" : "✗ (optional in production)");
     
     await runApp(serveStatic);
     console.log("Production server started successfully");
