@@ -30,6 +30,11 @@ export default function FocusPage() {
         description: selectedTask.description || "",
         definitionOfDone: selectedTask.definitionOfDone || "",
       });
+      // Adjust textarea heights after content is set
+      setTimeout(() => {
+        adjustTextareaHeight(descriptionRef.current);
+        adjustTextareaHeight(dodRef.current);
+      }, 0);
     }
   }, [selectedTask]);
 
