@@ -46,6 +46,7 @@ export function getSession() {
     cookie: {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production', // Only require HTTPS in production
+      sameSite: 'lax', // Allow cookies in same-site navigation
       maxAge: sessionTtl,
     },
   });
