@@ -124,13 +124,20 @@ export function useReorderTasks() {
       // Get previous data
       const previousTasks = queryClient.getQueryData<Task[]>(["/api/tasks"]);
 
-      // Optimistically update cache with new order
+      // Optimistically update cache with new order and globalOrder values
       if (previousTasks) {
         const taskMap = new Map(previousTasks.map(t => [t.id, t]));
-        const reorderedTasks = taskIds.map(id => taskMap.get(id)).filter((t): t is Task => !!t);
+        const reorderedTasks = taskIds
+          .map((id, index) => {
+            const task = taskMap.get(id);
+            return task ? { ...task, globalOrder: index } : null;
+          })
+          .filter((t): t is Task => !!t);
         
-        // Maintain any tasks that weren't in the reorder list
-        const unmovedTasks = previousTasks.filter(t => !taskIds.includes(t.id));
+        // Maintain any tasks that weren't in the reorder list (append at end)
+        const unmovedTasks = previousTasks
+          .filter(t => !taskIds.includes(t.id))
+          .map((t, index) => ({ ...t, globalOrder: taskIds.length + index }));
         
         queryClient.setQueryData(["/api/tasks"], [...reorderedTasks, ...unmovedTasks]);
       }
@@ -143,9 +150,6 @@ export function useReorderTasks() {
         queryClient.setQueryData(["/api/tasks"], context.previousTasks);
       }
       console.error("Error reordering tasks:", error);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/tasks"] });
     },
   });
 }
