@@ -41,11 +41,9 @@ export default function LandingPage() {
           <p className="text-sm md:text-lg opacity-70 mb-2">TASK MANAGEMENT SYSTEM // V.1.1</p>
         </div>
 
-        <Link href="/login">
-          <a className="inline-block border-2 border-primary bg-primary text-primary-foreground px-4 py-3 md:px-8 md:py-4 font-bold text-sm md:text-lg hover:bg-primary/80 transition-colors cursor-pointer" data-testid="button-get-started">
-            <span className="hidden sm:inline">[ENTER] GET_STARTED</span>
-            <span className="sm:hidden">GET STARTED</span>
-          </a>
+        <Link href="/login" className="inline-block border-2 border-primary bg-primary text-primary-foreground px-4 py-3 md:px-8 md:py-4 font-bold text-sm md:text-lg hover:bg-primary/80 transition-colors cursor-pointer" data-testid="button-get-started">
+          <span className="hidden sm:inline">[ENTER] GET_STARTED</span>
+          <span className="sm:hidden">GET STARTED</span>
         </Link>
 
         <div className="mt-6 mb-6 md:mb-8 text-sm md:text-base opacity-70 italic max-w-2xl mx-auto text-justify">
@@ -84,11 +82,9 @@ export default function LandingPage() {
           </ul>
         </div>
 
-        <Link href="/login">
-          <a className="inline-block border-2 border-primary bg-primary text-primary-foreground px-4 py-3 md:px-8 md:py-4 font-bold text-sm md:text-lg hover:bg-primary/80 transition-colors cursor-pointer" data-testid="button-continue">
-            <span className="hidden sm:inline">[ENTER] CONTINUE</span>
-            <span className="sm:hidden">CONTINUE</span>
-          </a>
+        <Link href="/login" className="inline-block border-2 border-primary bg-primary text-primary-foreground px-4 py-3 md:px-8 md:py-4 font-bold text-sm md:text-lg hover:bg-primary/80 transition-colors cursor-pointer" data-testid="button-continue">
+          <span className="hidden sm:inline">[ENTER] CONTINUE</span>
+          <span className="sm:hidden">CONTINUE</span>
         </Link>
 
         <div className="mt-6 mb-8 md:mb-12 text-sm md:text-base opacity-70 italic max-w-2xl mx-auto text-justify">
