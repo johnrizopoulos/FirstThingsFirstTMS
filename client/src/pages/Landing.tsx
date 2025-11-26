@@ -82,7 +82,7 @@ export default function LoginPage() {
         <div className="mt-8 md:mt-12 text-[10px] md:text-xs opacity-50">
           <p>© 2025 FIRST THINGS FIRST TMS</p>
           <p className="mt-2">DESIGNED FOR MAXIMUM PRODUCTIVITY</p>
-          <p className="mt-2">BUILT USING REPLIT BY <a href="https://www.johnrizopoulos.com.au" target="_blank" rel="noopener noreferrer" className="underline hover:opacity-100">JOHN RIZOPOULOS</a></p>
+          <p className="mt-2">BUILT USING <a href="https://www.replit.com" target="_blank" rel="noopener noreferrer" className="underline hover:opacity-100">REPLIT</a> BY <a href="https://www.johnrizopoulos.com.au" target="_blank" rel="noopener noreferrer" className="underline hover:opacity-100">JOHN RIZOPOULOS</a></p>
         </div>
       </div>
     </div>
