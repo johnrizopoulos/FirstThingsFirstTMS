@@ -56,7 +56,7 @@ export default function TrashPage() {
                       size="sm" 
                       variant="outline" 
                       data-testid={`button-restore-milestone-${m.id}`}
-                      className="border-destructive text-destructive hover:bg-destructive hover:text-black rounded-none font-mono text-xs w-full sm:w-auto shrink-0"
+                      className="border-destructive text-destructive hover:bg-destructive hover:text-white rounded-none font-mono text-xs w-full sm:w-auto shrink-0"
                       onClick={() => updateMilestone.mutate({ id: m.id, updates: { isDeleted: false, deletedAt: null } })}
                     >
                       <RotateCcw className="w-3 h-3 mr-2" /> RESTORE
@@ -85,7 +85,7 @@ export default function TrashPage() {
                       size="sm" 
                       variant="outline" 
                       data-testid={`button-restore-task-${t.id}`}
-                      className="border-destructive text-destructive hover:bg-destructive hover:text-black rounded-none font-mono text-xs w-full sm:w-auto shrink-0"
+                      className="border-destructive text-destructive hover:bg-destructive hover:text-white rounded-none font-mono text-xs w-full sm:w-auto shrink-0"
                       onClick={() => updateTask.mutate({ id: t.id, updates: { isDeleted: false, deletedAt: null } })}
                     >
                       <RotateCcw className="w-3 h-3 mr-2" /> RESTORE
