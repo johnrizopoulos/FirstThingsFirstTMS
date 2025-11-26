@@ -27,9 +27,6 @@ export function getSession() {
     ttl: sessionTtl,
     tableName: "sessions",
   });
-  
-  const isProduction = process.env.NODE_ENV === "production";
-  
   return session({
     secret: process.env.SESSION_SECRET!,
     store: sessionStore,
@@ -37,8 +34,7 @@ export function getSession() {
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      secure: isProduction,
-      sameSite: isProduction ? "strict" : "lax",
+      secure: true,
       maxAge: sessionTtl,
     },
   });
@@ -78,79 +74,50 @@ export async function setupAuth(app: Express) {
     tokens: client.TokenEndpointResponse & client.TokenEndpointResponseHelpers,
     verified: passport.AuthenticateCallback
   ) => {
-    try {
-      const claims = tokens.claims();
-      console.log("Auth verify - claims:", { sub: claims.sub, email: claims.email });
-      
-      const user = {} as any;
-      updateUserSession(user, tokens);
-      await upsertUser(claims);
-      
-      console.log("Auth verify - user created with expires_at:", user.expires_at);
-      verified(null, user);
-    } catch (error) {
-      console.error("Verification error:", error);
-      verified(error as any);
-    }
+    const user = {};
+    updateUserSession(user, tokens);
+    await upsertUser(tokens.claims());
+    verified(null, user);
   };
 
-  // Map to store strategies by callback URL to avoid recreating them
-  const strategies = new Map<string, Strategy>();
+  // Keep track of registered strategies
+  const registeredStrategies = new Set<string>();
 
-  const getOrCreateStrategy = (callbackUrl: string) => {
-    if (!strategies.has(callbackUrl)) {
+  // Helper function to ensure strategy exists for a domain
+  const ensureStrategy = (domain: string) => {
+    const strategyName = `replitauth:${domain}`;
+    if (!registeredStrategies.has(strategyName)) {
       const strategy = new Strategy(
         {
+          name: strategyName,
           config,
           scope: "openid email profile offline_access",
-          callbackURL: callbackUrl,
+          callbackURL: `https://${domain}/api/callback`,
         },
         verify,
       );
-      strategies.set(callbackUrl, strategy);
-      passport.use(`replitauth:${callbackUrl}`, strategy);
+      passport.use(strategy);
+      registeredStrategies.add(strategyName);
     }
-    return `replitauth:${callbackUrl}`;
   };
 
   passport.serializeUser((user: Express.User, cb) => cb(null, user));
   passport.deserializeUser((user: Express.User, cb) => cb(null, user));
 
-  // Build canonical callback URL - Replit provides X-Forwarded-Host for preview mode
-  const getCallbackUrl = (req: any) => {
-    const forwardedHost = req.get('x-forwarded-host');
-    const forwardedProto = req.get('x-forwarded-proto') || 'https';
-    const host = forwardedHost || req.get('host');
-    return `${forwardedProto}://${host}/api/callback`;
-  };
-
   app.get("/api/login", (req, res, next) => {
-    const callbackUrl = getCallbackUrl(req);
-    const strategyName = getOrCreateStrategy(callbackUrl);
-    passport.authenticate(strategyName, {
+    ensureStrategy(req.hostname);
+    passport.authenticate(`replitauth:${req.hostname}`, {
       prompt: "login consent",
-      scope: "openid email profile offline_access",
+      scope: ["openid", "email", "profile", "offline_access"],
     })(req, res, next);
   });
 
   app.get("/api/callback", (req, res, next) => {
-    const callbackUrl = getCallbackUrl(req);
-    const strategyName = getOrCreateStrategy(callbackUrl);
-    
-    passport.authenticate(strategyName, {
+    ensureStrategy(req.hostname);
+    passport.authenticate(`replitauth:${req.hostname}`, {
       successReturnToOrRedirect: "/",
-      failureRedirect: "/",
-    })(req, res, (err: any) => {
-      if (err) {
-        console.error("Callback authentication error:", err);
-        return res.redirect("/");
-      }
-      if (res.headersSent) {
-        return;
-      }
-      console.log("Callback auth complete, user:", req.user ? "present" : "missing");
-      res.redirect("/");
-    });
+      failureRedirect: "/api/login",
+    })(req, res, next);
   });
 
   app.get("/api/logout", (req, res) => {
@@ -158,7 +125,7 @@ export async function setupAuth(app: Express) {
       res.redirect(
         client.buildEndSessionUrl(config, {
           client_id: process.env.REPL_ID!,
-          post_logout_redirect_uri: `${req.protocol}://${req.get('host')}`,
+          post_logout_redirect_uri: `${req.protocol}://${req.hostname}`,
         }).href
       );
     });
