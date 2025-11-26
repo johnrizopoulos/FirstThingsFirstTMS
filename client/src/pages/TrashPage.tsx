@@ -29,7 +29,7 @@ export default function TrashPage() {
       <div className="max-w-4xl mx-auto">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-4 md:mb-6 border-b-2 border-destructive pb-2">
           <h2 className="text-base md:text-xl font-bold text-destructive">
-            <span className="hidden sm:inline">// SYSTEM_RECYCLE_BIN</span>
+            <span className="hidden sm:inline">// TRASH_BIN</span>
             <span className="sm:hidden">// RECYCLE_BIN</span>
           </h2>
           <div className="text-[10px] md:text-xs text-destructive/70">
