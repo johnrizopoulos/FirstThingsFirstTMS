@@ -68,14 +68,12 @@ export function Layout({ children, mobileHeaderContent }: { children: React.Reac
   const MobileNavItem = ({ href, label, hotkey }: { href: string; label: string; hotkey: string }) => {
     const isActive = location === href;
     return (
-      <Link href={href}>
-        <div className={cn(
-          "w-full flex items-center px-2 py-2 cursor-pointer hover:bg-primary/10",
-          isActive && "bg-primary/20 font-bold"
-        )}>
-           <span className="opacity-50 mr-2 w-8">[{hotkey}]</span>
-           {label}
-        </div>
+      <Link href={href} className={cn(
+        "w-full flex items-center px-2 py-2 cursor-pointer hover:bg-primary/10",
+        isActive && "bg-primary/20 font-bold"
+      )}>
+        <span className="opacity-50 mr-2 w-8">[{hotkey}]</span>
+        {label}
       </Link>
     );
   };

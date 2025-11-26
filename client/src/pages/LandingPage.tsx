@@ -26,10 +26,8 @@ export default function LandingPage() {
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/login">
-              <a className="inline-block border-2 border-primary bg-primary text-black px-8 py-4 font-bold text-lg hover:bg-primary/80 transition-colors">
-                [ENTER] GET_STARTED
-              </a>
+            <Link href="/login" className="inline-block border-2 border-primary bg-primary text-black px-8 py-4 font-bold text-lg hover:bg-primary/80 transition-colors">
+              [ENTER] GET_STARTED
             </Link>
             <a href="#features" className="inline-block border-2 border-primary bg-background text-primary px-8 py-4 font-bold text-lg hover:bg-primary/10 transition-colors">
               LEARN_MORE
@@ -65,10 +63,8 @@ export default function LandingPage() {
           </div>
           
           <div className="text-center mt-12">
-            <Link href="/login">
-              <a className="inline-block border-4 border-primary bg-primary text-black px-12 py-5 font-bold text-xl hover:bg-primary/80 transition-colors">
-                [ENTER] START_NOW
-              </a>
+            <Link href="/login" className="inline-block border-4 border-primary bg-primary text-black px-12 py-5 font-bold text-xl hover:bg-primary/80 transition-colors">
+              [ENTER] START_NOW
             </Link>
             <div className="mt-6 text-2xl md:text-4xl opacity-70 italic max-w-3xl mx-auto text-justify">
               <p>"There is nothing so useless as doing efficiently that which should not be done at all."</p>
@@ -159,10 +155,8 @@ export default function LandingPage() {
           </div>
           
           <div className="text-center mt-12">
-            <Link href="/login">
-              <a className="inline-block border-4 border-primary bg-primary text-black px-12 py-5 font-bold text-xl hover:bg-primary/80 transition-colors">
-                [ENTER] START_NOW
-              </a>
+            <Link href="/login" className="inline-block border-4 border-primary bg-primary text-black px-12 py-5 font-bold text-xl hover:bg-primary/80 transition-colors">
+              [ENTER] START_NOW
             </Link>
             <div className="mt-6 text-2xl md:text-4xl opacity-70 italic max-w-3xl mx-auto text-justify">
               <p>"Simplicity has a way of improving performance by enabling us to understand better what we are doing."</p>
@@ -239,10 +233,8 @@ export default function LandingPage() {
           </div>
           
           <div className="text-center mt-12">
-            <Link href="/login">
-              <a className="inline-block border-4 border-primary bg-primary text-black px-12 py-5 font-bold text-xl hover:bg-primary/80 transition-colors">
-                [ENTER] START_NOW
-              </a>
+            <Link href="/login" className="inline-block border-4 border-primary bg-primary text-black px-12 py-5 font-bold text-xl hover:bg-primary/80 transition-colors">
+              [ENTER] START_NOW
             </Link>
             <div className="mt-6 text-2xl md:text-4xl opacity-70 italic max-w-3xl mx-auto text-justify">
               <p>"Focusing on everything is synonymous with not focusing on anything."</p>
@@ -273,10 +265,8 @@ export default function LandingPage() {
           </div>
           
           <div className="text-center mt-12">
-            <Link href="/login">
-              <a className="inline-block border-4 border-primary bg-primary text-black px-12 py-5 font-bold text-xl hover:bg-primary/80 transition-colors">
-                [ENTER] START_NOW
-              </a>
+            <Link href="/login" className="inline-block border-4 border-primary bg-primary text-black px-12 py-5 font-bold text-xl hover:bg-primary/80 transition-colors">
+              [ENTER] START_NOW
             </Link>
             <div className="mt-6 text-2xl md:text-4xl opacity-70 italic max-w-3xl mx-auto text-justify">
               <p>"Multitasking doesn't work. It limits our potential."</p>
@@ -296,15 +286,13 @@ export default function LandingPage() {
             Simple. Focused. Effective.
           </p>
           
-          <Link href="/login">
-            <a className="inline-block border-4 border-primary bg-primary text-black px-12 py-5 font-bold text-xl hover:bg-primary/80 transition-colors">
-              [ENTER] START_NOW
-            </a>
+          <Link href="/login" className="inline-block border-4 border-primary bg-primary text-black px-12 py-5 font-bold text-xl hover:bg-primary/80 transition-colors">
+            [ENTER] START_NOW
           </Link>
           
           <div className="mt-8 text-sm opacity-50">
             <p>No credit card required.</p>
-            <p className="mt-1">Free to use [you'll be notified of changes]</p>
+            <p className="mt-1">Free to use [temporary, you'll be notified of changes].</p>
           </div>
         </div>
       </section>
