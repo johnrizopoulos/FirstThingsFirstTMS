@@ -136,9 +136,15 @@ export async function setupAuth(app: Express) {
         expires_at: Math.floor(Date.now() / 1000) + 86400,
       };
       
-      req.login(mockUser, (err) => {
-        if (err) return next(err);
-        res.redirect('/');
+      // Upsert mock user to database
+      upsertUser(mockUser.claims).then(() => {
+        req.login(mockUser, (err) => {
+          if (err) return next(err);
+          res.redirect('/');
+        });
+      }).catch((err) => {
+        console.error('Failed to upsert dev user:', err);
+        next(err);
       });
       return;
     }
