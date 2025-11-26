@@ -396,8 +396,8 @@ export default function BoardPage() {
               }}
               data-testid="button-add-milestone"
             >
-              <div className="rotate-90 text-primary/50 font-bold whitespace-nowrap text-xs md:text-sm">
-                + NEW
+              <div className="text-primary/50 font-bold text-lg md:text-xl">
+                +
               </div>
             </div>
           )}

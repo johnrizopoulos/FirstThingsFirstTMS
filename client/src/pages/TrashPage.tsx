@@ -15,7 +15,11 @@ export default function TrashPage() {
   const [restoreError, setRestoreError] = useState<string | null>(null);
 
   useEffect(() => {
-    cleanupTrash.mutate();
+    cleanupTrash.mutate(undefined, {
+      onError: (error: any) => {
+        console.error("Trash cleanup failed:", error);
+      },
+    });
   }, []);
 
   const deletedTasks = tasks.filter(t => t.isDeleted).sort((a, b) => 
