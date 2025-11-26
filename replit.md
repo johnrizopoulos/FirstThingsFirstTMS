@@ -3,7 +3,13 @@
 ## Overview
 A terminal-inspired task management web application with IBM 3270/Bloomberg aesthetic. Features Focus mode for single-task concentration, global task queue, milestone-based Kanban board (max 5 columns), 30-day trash retention, and a Completed view for permanently viewing completed tasks/milestones. Includes three theme modes: Terminal (green-on-black), Dark (light gray-on-black), and Light (black-on-white). Uses Replit Auth for authentication and PostgreSQL for data storage.
 
-## Recent Changes (Nov 25, 2025)
+## Recent Changes (Nov 26, 2025)
+
+### Landing Page Layout Fix
+- Fixed blinking cursor div wrapping above "FIRST_THINGS_FIRST" title on narrow screens
+- Removed `flex-wrap` class from title container to keep cursor always to the left of title
+
+## Previous Changes (Nov 25, 2025)
 
 ### Task Creation Fix
 - Fixed critical bug where new tasks weren't appearing in List view after creation
