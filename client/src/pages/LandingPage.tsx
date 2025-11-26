@@ -286,6 +286,10 @@ export default function LandingPage() {
                 [ENTER] START_NOW
               </a>
             </Link>
+            <div className="mt-6 text-2xl md:text-4xl opacity-70 italic max-w-3xl mx-auto text-justify">
+              <p>"Multitasking doesn't work. It limits our potential."</p>
+              <p className="mt-2">— <span className="font-bold">Charlie Munger</span></p>
+            </div>
           </div>
         </div>
       </section>
