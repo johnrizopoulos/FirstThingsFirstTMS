@@ -169,3 +169,25 @@ export function useCleanupTrash() {
     },
   });
 }
+
+export function useRestoreTask() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: api.restoreTask,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/tasks"] });
+    },
+  });
+}
+
+export function useRestoreMilestone() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: api.restoreMilestone,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/milestones"] });
+    },
+  });
+}

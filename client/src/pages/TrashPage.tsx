@@ -1,16 +1,18 @@
-import React, { useEffect } from "react";
-import { useTasks, useMilestones, useUpdateTask, useUpdateMilestone, useCleanupTrash } from "@/hooks/useData";
+import React, { useEffect, useState } from "react";
+import { useTasks, useMilestones, useRestoreTask, useRestoreMilestone, useCleanupTrash } from "@/hooks/useData";
 import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { RotateCcw } from "lucide-react";
 import { formatDistance } from "date-fns";
+import { toast } from "sonner";
 
 export default function TrashPage() {
   const { data: tasks = [] } = useTasks();
   const { data: milestones = [] } = useMilestones();
-  const updateTask = useUpdateTask();
-  const updateMilestone = useUpdateMilestone();
+  const restoreTask = useRestoreTask();
+  const restoreMilestone = useRestoreMilestone();
   const cleanupTrash = useCleanupTrash();
+  const [restoreError, setRestoreError] = useState<string | null>(null);
 
   useEffect(() => {
     cleanupTrash.mutate();
@@ -24,6 +26,34 @@ export default function TrashPage() {
     (b.deletedAt ? new Date(b.deletedAt).getTime() : 0) - (a.deletedAt ? new Date(a.deletedAt).getTime() : 0)
   );
 
+  const handleRestoreTask = (taskId: string) => {
+    setRestoreError(null);
+    restoreTask.mutate(taskId, {
+      onSuccess: () => {
+        toast.success("Task restored");
+      },
+      onError: (error: any) => {
+        const message = error?.message || "Failed to restore task";
+        setRestoreError(message);
+        toast.error(message);
+      },
+    });
+  };
+
+  const handleRestoreMilestone = (milestoneId: string) => {
+    setRestoreError(null);
+    restoreMilestone.mutate(milestoneId, {
+      onSuccess: () => {
+        toast.success("Milestone restored");
+      },
+      onError: (error: any) => {
+        const message = error?.message || "Failed to restore milestone";
+        setRestoreError(message);
+        toast.error(message);
+      },
+    });
+  };
+
   return (
     <Layout>
       <div className="max-w-4xl mx-auto">
@@ -36,6 +66,12 @@ export default function TrashPage() {
             AUTO-PURGED AFTER 30 DAYS
           </div>
         </div>
+
+        {restoreError && (
+          <div className="mb-4 p-3 border border-destructive/50 bg-destructive/10 text-destructive text-xs rounded" data-testid="alert-restore-error">
+            {restoreError}
+          </div>
+        )}
 
         <div className="space-y-6 md:space-y-8">
           <section>
@@ -57,9 +93,10 @@ export default function TrashPage() {
                       variant="outline" 
                       data-testid={`button-restore-milestone-${m.id}`}
                       className="border-destructive text-destructive hover:bg-destructive hover:text-white rounded-none font-mono text-xs w-full sm:w-auto shrink-0"
-                      onClick={() => updateMilestone.mutate({ id: m.id, updates: { isDeleted: false, deletedAt: null } })}
+                      onClick={() => handleRestoreMilestone(m.id)}
+                      disabled={restoreMilestone.isPending}
                     >
-                      <RotateCcw className="w-3 h-3 mr-2" /> RESTORE
+                      <RotateCcw className="w-3 h-3 mr-2" /> {restoreMilestone.isPending ? "RESTORING..." : "RESTORE"}
                     </Button>
                   </div>
                 ))}
@@ -86,9 +123,10 @@ export default function TrashPage() {
                       variant="outline" 
                       data-testid={`button-restore-task-${t.id}`}
                       className="border-destructive text-destructive hover:bg-destructive hover:text-white rounded-none font-mono text-xs w-full sm:w-auto shrink-0"
-                      onClick={() => updateTask.mutate({ id: t.id, updates: { isDeleted: false, deletedAt: null } })}
+                      onClick={() => handleRestoreTask(t.id)}
+                      disabled={restoreTask.isPending}
                     >
-                      <RotateCcw className="w-3 h-3 mr-2" /> RESTORE
+                      <RotateCcw className="w-3 h-3 mr-2" /> {restoreTask.isPending ? "RESTORING..." : "RESTORE"}
                     </Button>
                   </div>
                 ))}
