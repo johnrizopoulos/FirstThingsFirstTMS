@@ -105,7 +105,7 @@ export default function FocusPage() {
       <div className="h-full flex flex-col items-center justify-center max-w-4xl mx-auto px-2">
         <div className="w-full mb-4 md:mb-8 text-center">
           <h2 className="text-primary/50 text-sm md:text-lg mb-2">
-            <span className="hidden sm:inline">:: CURRENT PRIORITY TARGET ::</span>
+            <span className="hidden sm:inline">:: CURRENT PRIORITY TAST ::</span>
             <span className="sm:hidden">:: PRIORITY ::</span>
           </h2>
         </div>
@@ -140,7 +140,6 @@ export default function FocusPage() {
           </div>
         </div>
       </div>
-
       <Dialog open={!!selectedTask} onOpenChange={(open) => !open && handleCloseWithoutSaving()}>
         <DialogContent className="bg-background border-2 border-primary text-foreground font-mono max-w-[95vw] sm:max-w-[600px] p-0 gap-0 shadow-[0_0_20px_rgba(0,255,0,0.2)] max-h-[90vh] flex flex-col" aria-describedby={undefined}>
           <DialogHeader className="bg-primary/20 p-3 md:p-4 border-b border-primary shrink-0">
