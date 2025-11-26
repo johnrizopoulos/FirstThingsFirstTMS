@@ -24,7 +24,7 @@ export default function LoginPage() {
 
           <h2 className="text-lg md:text-2xl font-bold mb-3 md:mb-4">_AUTHENTICATION_REQUIRED_</h2>
           <div className="text-sm md:text-base mb-6 opacity-80">
-            <p>Sign in to access the FIRST_THINGS_FIRST terminal based task management system.</p>
+            <p>Sign in to access FIRST_THINGS_FIRST_TMS.</p>
             <p className="mt-2">[Replit Auth in use, account creation is easy and offers greater security while app is in development]</p>
           </div>
           <ul className="text-left space-y-2 mb-4 md:mb-6 text-xs md:text-base">
