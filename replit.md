@@ -5,6 +5,14 @@ A terminal-inspired task management web application with IBM 3270/Bloomberg aest
 
 ## Recent Changes (Nov 26, 2025)
 
+### Deployment Fixes & Error Handling
+- Enhanced production server startup with comprehensive error handling and logging
+- Added environment variable validation (DATABASE_URL, SESSION_SECRET, REPL_ID)
+- Improved server initialization logging to diagnose deployment issues
+- Added error handlers for auth setup and database connection failures
+- Server already correctly configured to listen on 0.0.0.0:5000 (required for Autoscale)
+- Production startup now validates all critical environment variables before initialization
+
 ### Landing Page Enhancements
 - Fixed blinking cursor div wrapping above "FIRST_THINGS_FIRST" title on narrow screens
 - Removed `flex-wrap` class from title container to keep cursor always to the left of title

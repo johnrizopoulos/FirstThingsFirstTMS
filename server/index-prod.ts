@@ -24,5 +24,37 @@ export async function serveStatic(app: Express, server: Server) {
 }
 
 (async () => {
-  await runApp(serveStatic);
+  try {
+    console.log("Starting production server...");
+    console.log("NODE_ENV:", process.env.NODE_ENV);
+    console.log("PORT:", process.env.PORT || "5000 (default)");
+    
+    // Check critical environment variables
+    if (!process.env.DATABASE_URL) {
+      console.error("ERROR: DATABASE_URL environment variable is not set");
+      process.exit(1);
+    }
+    
+    if (!process.env.SESSION_SECRET) {
+      console.error("ERROR: SESSION_SECRET environment variable is not set");
+      process.exit(1);
+    }
+    
+    if (!process.env.REPL_ID) {
+      console.error("ERROR: REPL_ID environment variable is not set");
+      process.exit(1);
+    }
+    
+    console.log("Environment variables validated");
+    console.log("Database URL configured:", process.env.DATABASE_URL ? "✓" : "✗");
+    console.log("Session secret configured:", process.env.SESSION_SECRET ? "✓" : "✗");
+    console.log("Repl ID configured:", process.env.REPL_ID ? "✓" : "✗");
+    
+    await runApp(serveStatic);
+    console.log("Production server started successfully");
+  } catch (error) {
+    console.error("FATAL ERROR during server startup:");
+    console.error(error);
+    process.exit(1);
+  }
 })();

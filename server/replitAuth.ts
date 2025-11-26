@@ -63,12 +63,17 @@ async function upsertUser(
 }
 
 export async function setupAuth(app: Express) {
-  app.set("trust proxy", 1);
-  app.use(getSession());
-  app.use(passport.initialize());
-  app.use(passport.session());
+  try {
+    console.log("Setting up authentication...");
+    
+    app.set("trust proxy", 1);
+    app.use(getSession());
+    app.use(passport.initialize());
+    app.use(passport.session());
 
-  const config = await getOidcConfig();
+    console.log("Fetching OIDC configuration...");
+    const config = await getOidcConfig();
+    console.log("OIDC configuration loaded successfully");
 
   const verify: VerifyFunction = async (
     tokens: client.TokenEndpointResponse & client.TokenEndpointResponseHelpers,
@@ -130,6 +135,13 @@ export async function setupAuth(app: Express) {
       );
     });
   });
+
+    console.log("Authentication setup completed successfully");
+  } catch (error) {
+    console.error("FATAL ERROR during authentication setup:");
+    console.error(error);
+    throw error;
+  }
 }
 
 export const isAuthenticated: RequestHandler = async (req, res, next) => {
