@@ -274,7 +274,7 @@ export default function ListPage() {
         </DndContext>
 
         <Dialog open={!!selectedTask} onOpenChange={(open) => !open && handleCloseWithoutSaving()}>
-          <DialogContent className="bg-black border-2 border-primary text-primary font-mono max-w-[95vw] sm:max-w-[600px] p-0 gap-0 shadow-[0_0_20px_rgba(0,255,0,0.2)] max-h-[90vh] flex flex-col">
+          <DialogContent className="bg-background border-2 border-primary text-foreground font-mono max-w-[95vw] sm:max-w-[600px] p-0 gap-0 shadow-[0_0_20px_rgba(0,255,0,0.2)] max-h-[90vh] flex flex-col" aria-describedby={undefined}>
             <DialogHeader className="bg-primary/20 p-3 md:p-4 border-b border-primary shrink-0">
               <DialogTitle className="text-base md:text-xl font-bold uppercase flex items-center gap-2">
                 <span className="animate-pulse">█</span> 
@@ -289,7 +289,7 @@ export default function ListPage() {
                   data-testid="input-task-title"
                   value={editForm.title}
                   onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
-                  className="w-full bg-black border border-primary p-2 text-sm md:text-base focus:outline-none focus:ring-1 focus:ring-primary"
+                  className="w-full bg-input border border-primary p-2 text-sm md:text-base text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
                 />
               </div>
 
@@ -299,7 +299,7 @@ export default function ListPage() {
                   data-testid="select-milestone"
                   value={editForm.milestoneId || ""}
                   onChange={(e) => setEditForm({ ...editForm, milestoneId: e.target.value || undefined })}
-                  className="w-full bg-black border border-primary p-2 text-sm md:text-base focus:outline-none focus:ring-1 focus:ring-primary"
+                  className="w-full bg-input border border-primary p-2 text-sm md:text-base text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
                 >
                   <option value="">-- NONE --</option>
                   {activeMilestones.length === 0 ? (
@@ -324,7 +324,7 @@ export default function ListPage() {
                       setEditForm({ ...editForm, description: e.target.value });
                       adjustTextareaHeight(descriptionRef.current);
                     }}
-                    className="w-full min-h-24 bg-black border border-primary p-2 text-sm md:text-base focus:outline-none focus:ring-1 focus:ring-primary resize-none overflow-hidden"
+                    className="w-full min-h-24 bg-input border border-primary p-2 text-sm md:text-base text-foreground focus:outline-none focus:ring-1 focus:ring-primary resize-none overflow-hidden"
                   />
                   <div className="text-xs opacity-50 text-right mt-1">{editForm.description.length} / 2000</div>
                 </div>
@@ -339,14 +339,14 @@ export default function ListPage() {
                       setEditForm({ ...editForm, definitionOfDone: e.target.value });
                       adjustTextareaHeight(dodRef.current);
                     }}
-                    className="w-full min-h-24 bg-black border border-primary p-2 text-sm md:text-base focus:outline-none focus:ring-1 focus:ring-primary resize-none overflow-hidden"
+                    className="w-full min-h-24 bg-input border border-primary p-2 text-sm md:text-base text-foreground focus:outline-none focus:ring-1 focus:ring-primary resize-none overflow-hidden"
                   />
                   <div className="text-xs opacity-50 text-right mt-1">{editForm.definitionOfDone.length} / 2000</div>
                 </div>
               </div>
             </div>
 
-            <DialogFooter className="border-t border-primary p-3 md:p-4 flex flex-col gap-3 bg-black shrink-0">
+            <DialogFooter className="border-t border-primary p-3 md:p-4 flex flex-col gap-3 bg-background shrink-0">
               <Button 
                 data-testid="button-save"
                 onClick={handleSaveChanges}
