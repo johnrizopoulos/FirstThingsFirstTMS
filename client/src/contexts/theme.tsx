@@ -5,6 +5,7 @@ type Theme = "terminal" | "dark" | "light";
 interface ThemeContextType {
   theme: Theme;
   toggleTheme: () => void;
+  setTheme: (theme: Theme) => void;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
@@ -90,20 +91,24 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     });
   };
 
-  const toggleTheme = () => {
-    const themeOrder: Theme[] = ["terminal", "dark", "light"];
-    const currentIndex = themeOrder.indexOf(theme);
-    const nextIndex = (currentIndex + 1) % themeOrder.length;
-    const newTheme = themeOrder[nextIndex];
+  const changeTheme = (newTheme: Theme) => {
     setTheme(newTheme);
     localStorage.setItem("theme", newTheme);
     applyTheme(newTheme);
   };
 
+  const toggleTheme = () => {
+    const themeOrder: Theme[] = ["terminal", "dark", "light"];
+    const currentIndex = themeOrder.indexOf(theme);
+    const nextIndex = (currentIndex + 1) % themeOrder.length;
+    const newTheme = themeOrder[nextIndex];
+    changeTheme(newTheme);
+  };
+
   if (!mounted) return <>{children}</>;
 
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme }}>
+    <ThemeContext.Provider value={{ theme, toggleTheme, setTheme: changeTheme }}>
       {children}
     </ThemeContext.Provider>
   );

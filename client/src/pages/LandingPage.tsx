@@ -1,7 +1,9 @@
 
 import { Link } from "wouter";
+import { useTheme } from "@/contexts/theme";
 
 export default function LandingPage() {
+  const { theme, setTheme } = useTheme();
   return (
     <div className="min-h-screen bg-background text-primary font-mono relative overflow-hidden">
       {/* CRT Overlay */}
@@ -170,12 +172,45 @@ export default function LandingPage() {
           <h2 className="text-3xl md:text-4xl font-bold mb-8">
             &gt;&gt; TERMINAL_INSPIRED_DESIGN &lt;&lt;
           </h2>
-          <p className="text-lg mb-12 opacity-80">
-            Inspired by Bloomberg Terminal and IBM 3270 mainframes. Three beautiful themes: 
-            <span className="text-primary font-bold"> Terminal</span>, 
-            <span className="font-bold"> Dark</span>, and 
-            <span className="font-bold"> Light</span>.
+          <p className="text-lg mb-8 opacity-80">
+            Inspired by Bloomberg Terminal and IBM 3270 mainframes. Try our three themes:
           </p>
+          
+          <div className="flex gap-4 justify-center mb-12">
+            <button
+              onClick={() => setTheme("terminal")}
+              className={`border-2 px-6 py-3 font-bold transition-all ${
+                theme === "terminal"
+                  ? "border-primary bg-primary text-black"
+                  : "border-primary bg-background text-primary hover:bg-primary/10"
+              }`}
+              data-testid="button-theme-terminal"
+            >
+              TERMINAL
+            </button>
+            <button
+              onClick={() => setTheme("dark")}
+              className={`border-2 px-6 py-3 font-bold transition-all ${
+                theme === "dark"
+                  ? "border-primary bg-primary text-primary-foreground"
+                  : "border-primary bg-background text-primary hover:bg-primary/10"
+              }`}
+              data-testid="button-theme-dark"
+            >
+              DARK
+            </button>
+            <button
+              onClick={() => setTheme("light")}
+              className={`border-2 px-6 py-3 font-bold transition-all ${
+                theme === "light"
+                  ? "border-primary bg-primary text-primary-foreground"
+                  : "border-primary bg-background text-primary hover:bg-primary/10"
+              }`}
+              data-testid="button-theme-light"
+            >
+              LIGHT
+            </button>
+          </div>
           
           <div className="border-4 border-primary p-8 bg-card/50 relative">
             <div className="absolute top-0 left-0 w-4 h-4 border-t-4 border-l-4 border-primary" />
