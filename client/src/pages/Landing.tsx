@@ -80,7 +80,7 @@ export default function LoginPage() {
         </div>
 
         <div className="mt-8 md:mt-12 text-[10px] md:text-xs opacity-50">
-          <p>TERMINAL_INTERFACE © 2025 FIRST THINGS FIRST CORP.</p>
+          <p>© 2025 FIRST THINGS FIRST TMS</p>
           <p className="mt-2">DESIGNED FOR MAXIMUM PRODUCTIVITY</p>
           <p className="mt-2">BUILT USING REPLIT BY <a href="https://www.johnrizopoulos.com.au" target="_blank" rel="noopener noreferrer" className="underline hover:opacity-100">JOHN RIZOPOULOS</a></p>
         </div>
