@@ -23,9 +23,10 @@ export default function LoginPage() {
           <div className="absolute bottom-0 right-0 w-3 h-3 md:w-4 md:h-4 border-b-2 border-r-2 md:border-b-4 md:border-r-4 border-primary" />
 
           <h2 className="text-lg md:text-2xl font-bold mb-3 md:mb-4">AUTHENTICATION_REQUIRED</h2>
-          <p className="text-sm md:text-base mb-6 opacity-80">
-            Sign in with your Replit account to access the task management system.
-          </p>
+          <div className="text-sm md:text-base mb-6 opacity-80">
+            <p>Sign in with your Replit account to access the task management system.</p>
+            <p className="mt-2">[Replit Auth in use, account creation is easy and offers greater security while app is in development]</p>
+          </div>
           <ul className="text-left space-y-2 mb-4 md:mb-6 text-xs md:text-base">
             <li className="flex items-start gap-2">
               <span className="text-primary shrink-0">▸</span>
