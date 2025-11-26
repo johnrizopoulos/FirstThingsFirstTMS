@@ -100,35 +100,29 @@ export default function ListPage() {
     });
   };
 
-  const handleSaveChanges = async () => {
+  const handleSaveChanges = () => {
     if (selectedTask) {
       if (selectedTask.isNew) {
-        return new Promise<void>((resolve) => {
-          createTask.mutate(
-            {
-              title: editForm.title || "NEW_TASK",
-              milestoneId: editForm.milestoneId || undefined,
-              description: editForm.description,
-              definitionOfDone: editForm.definitionOfDone,
-              milestoneOrder: 0,
-              globalOrder: tasks.length,
-              isCompleted: false,
-              isDeleted: false,
+        createTask.mutate(
+          {
+            title: editForm.title || "NEW_TASK",
+            milestoneId: editForm.milestoneId || undefined,
+            description: editForm.description,
+            definitionOfDone: editForm.definitionOfDone,
+            milestoneOrder: 0,
+            globalOrder: tasks.length,
+            isCompleted: false,
+            isDeleted: false,
+          },
+          {
+            onSuccess: () => {
+              setSelectedTask(null);
             },
-            {
-              onSuccess: () => {
-                setTimeout(() => {
-                  setSelectedTask(null);
-                  resolve();
-                }, 50);
-              },
-              onError: (error) => {
-                console.error("Failed to create task:", error);
-                resolve();
-              },
-            }
-          );
-        });
+            onError: (error) => {
+              console.error("Failed to create task:", error);
+            },
+          }
+        );
       } else {
         const hasChanges = 
           editForm.title !== selectedTask.title ||
@@ -150,6 +144,9 @@ export default function ListPage() {
             {
               onSuccess: () => {
                 setSelectedTask(null);
+              },
+              onError: (error) => {
+                console.error("Failed to update task:", error);
               },
             }
           );
