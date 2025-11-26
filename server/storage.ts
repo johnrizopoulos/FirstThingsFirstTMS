@@ -31,6 +31,7 @@ export interface IStorage {
   // Task operations
   getTasks(userId: string): Promise<Task[]>;
   getTask(id: string, userId: string): Promise<Task | undefined>;
+  getTaskCountForMilestone(milestoneId: string): Promise<number>;
   createTask(task: InsertTask): Promise<Task>;
   updateTask(id: string, userId: string, updates: Partial<Task>): Promise<Task | undefined>;
   completeTask(id: string, userId: string): Promise<Task | undefined>;
@@ -194,6 +195,18 @@ export class DatabaseStorage implements IStorage {
       .from(tasks)
       .where(and(eq(tasks.id, id), eq(tasks.userId, userId)));
     return task;
+  }
+
+  async getTaskCountForMilestone(milestoneId: string): Promise<number> {
+    const result = await db
+      .select({ count: sql<number>`cast(count(*) as integer)` })
+      .from(tasks)
+      .where(and(
+        eq(tasks.milestoneId, milestoneId),
+        eq(tasks.isDeleted, false),
+        eq(tasks.isCompleted, false)
+      ));
+    return result[0]?.count ?? 0;
   }
 
   async createTask(task: InsertTask): Promise<Task> {

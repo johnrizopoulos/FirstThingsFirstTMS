@@ -152,11 +152,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       
-      // If milestoneId is provided, verify it belongs to user
+      // If milestoneId is provided, verify it belongs to user and check task limit
       if (req.body.milestoneId) {
         const milestone = await storage.getMilestone(req.body.milestoneId, userId);
         if (!milestone) {
           return res.status(404).json({ message: "Milestone not found" });
+        }
+        
+        // Check task count limit (max 10 tasks per milestone)
+        const taskCount = await storage.getTaskCountForMilestone(req.body.milestoneId);
+        if (taskCount >= 10) {
+          return res.status(400).json({ message: "Milestone task limit (10) reached" });
         }
       }
       

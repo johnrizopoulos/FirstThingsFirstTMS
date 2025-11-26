@@ -5,6 +5,17 @@ A terminal-inspired task management web application with IBM 3270/Bloomberg aest
 
 ## Recent Changes (Nov 26, 2025)
 
+### Task Count Limit Per Milestone
+- Implemented 10-task-per-milestone limit to enforce focus and prevent milestone bloat
+- Backend validation in POST /api/tasks route returns 400 error "Milestone task limit (10) reached"
+- Task count only includes active (non-deleted, non-completed) tasks
+- Frontend will need to show error toast when limit is reached
+
+### Character Limits & Dynamic Textarea
+- Task and milestone titles limited to 250 characters with visible character count display
+- Description and definition of done fields support multi-line text with `whitespace-pre-wrap` preservation
+- Textarea height dynamically adjusts to fit content (max 300px with scrolling)
+
 ### Deployment Fixes & Error Handling
 - Enhanced production server startup with comprehensive error handling and logging
 - Added environment variable validation (DATABASE_URL, SESSION_SECRET)
