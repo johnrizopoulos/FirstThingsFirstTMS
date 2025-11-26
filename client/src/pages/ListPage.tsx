@@ -377,7 +377,7 @@ export default function ListPage() {
                       data-testid="button-delete"
                       variant="destructive" 
                       onClick={handleDelete}
-                      className="bg-transparent border border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground font-mono rounded-none p-2 h-auto flex-1"
+                      className="bg-transparent border border-destructive text-destructive hover:bg-destructive hover:text-white font-mono rounded-none p-2 h-auto flex-1"
                       title="Delete task"
                     >
                       <Trash2 className="w-4 h-4" />
