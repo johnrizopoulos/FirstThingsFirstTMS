@@ -40,6 +40,7 @@ function AuthRouter() {
       ) : (
         <>
           <Route path="/" component={FocusPage} />
+          <Route path="/login">{() => { window.location.href = '/'; return null; }}</Route>
           <Route path="/list" component={ListPage} />
           <Route path="/board" component={BoardPage} />
           <Route path="/completed" component={CompletedPage} />
