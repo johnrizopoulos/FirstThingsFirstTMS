@@ -27,6 +27,9 @@ export function getSession() {
     ttl: sessionTtl,
     tableName: "sessions",
   });
+  
+  const isProduction = process.env.NODE_ENV === "production";
+  
   return session({
     secret: process.env.SESSION_SECRET!,
     store: sessionStore,
@@ -34,7 +37,8 @@ export function getSession() {
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      secure: true,
+      secure: isProduction,
+      sameSite: isProduction ? "strict" : "lax",
       maxAge: sessionTtl,
     },
   });
@@ -93,7 +97,7 @@ export async function setupAuth(app: Express) {
         {
           name: strategyName,
           config,
-          scope: ["openid", "email", "profile", "offline_access"],
+          scope: "openid email profile offline_access",
           callbackURL: `${callbackBase}/api/callback`,
         },
         verify,
