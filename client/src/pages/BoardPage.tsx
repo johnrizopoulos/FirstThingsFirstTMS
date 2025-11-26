@@ -296,15 +296,15 @@ export default function BoardPage() {
 
   return (
     <Layout>
-      <div className="h-full overflow-x-auto pb-4">
-        <div className={cn("flex h-full gap-3 md:gap-4", activeMilestones.length > 0 ? "min-w-max" : "w-full")}>
+      <div className="h-full w-full pb-4">
+        <div className="flex h-full gap-2 md:gap-3 w-full">
           {activeMilestones.map(milestone => {
             const milestoneTasks = tasks
               .filter(t => t.milestoneId && t.milestoneId === milestone.id && !t.isDeleted && !t.isCompleted)
               .sort((a, b) => a.milestoneOrder - b.milestoneOrder);
               
             return (
-              <div key={milestone.id} className="w-64 md:w-72 flex flex-col h-full border-2 border-primary/20 bg-card/50">
+              <div key={milestone.id} className="flex-1 min-w-0 flex flex-col h-full border-2 border-primary/20 bg-card/50">
                 <div 
                   className="p-2 md:p-3 border-b-2 border-primary/20 bg-primary/5 flex justify-between items-center cursor-pointer hover:bg-primary/20"
                   onClick={() => setSelectedMilestone(milestone)}
@@ -370,7 +370,7 @@ export default function BoardPage() {
 
           {activeMilestones.length > 0 && activeMilestones.length < 5 && (
             <div 
-              className="w-12 h-full flex items-center justify-center border-2 border-dashed border-primary/20 hover:border-primary/50 cursor-pointer transition-colors"
+              className="flex-shrink-0 w-12 h-full flex items-center justify-center border-2 border-dashed border-primary/20 hover:border-primary/50 cursor-pointer transition-colors"
               onClick={() => {
                 const draftMilestone = {
                   id: "draft",
