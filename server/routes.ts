@@ -1,30 +1,27 @@
-import type { Express } from "express";
+import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { setupAuth, isAuthenticated } from "./replitAuth";
 import { insertMilestoneSchema, insertTaskSchema } from "@shared/schema";
 import { nanoid } from "nanoid";
 
+// Middleware to extract anonymous user ID from header
+function getUserId(req: Request, res: Response, next: NextFunction) {
+  const userId = req.headers['x-user-id'] as string;
+  
+  if (!userId) {
+    return res.status(401).json({ message: "User ID required" });
+  }
+  
+  // Attach userId to request for use in handlers
+  (req as any).userId = userId;
+  next();
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Auth middleware
-  await setupAuth(app);
-
-  // Auth routes
-  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
-      res.json(user);
-    } catch (error) {
-      console.error("Error fetching user:", error);
-      res.status(500).json({ message: "Failed to fetch user" });
-    }
-  });
-
   // Milestone routes
-  app.get("/api/milestones", isAuthenticated, async (req: any, res) => {
+  app.get("/api/milestones", getUserId, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.userId;
       const milestones = await storage.getMilestones(userId);
       res.json(milestones);
     } catch (error) {
@@ -33,9 +30,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/milestones", isAuthenticated, async (req: any, res) => {
+  app.post("/api/milestones", getUserId, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.userId;
       const validatedData = insertMilestoneSchema.parse({
         ...req.body,
         id: nanoid(),
@@ -50,9 +47,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch("/api/milestones/:id", isAuthenticated, async (req: any, res) => {
+  app.patch("/api/milestones/:id", getUserId, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.userId;
       const { id } = req.params;
       
       const updated = await storage.updateMilestone(id, userId, req.body);
@@ -67,9 +64,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/milestones/:id/complete", isAuthenticated, async (req: any, res) => {
+  app.put("/api/milestones/:id/complete", getUserId, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.userId;
       const { id } = req.params;
       
       const completed = await storage.completeMilestone(id, userId);
@@ -84,9 +81,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/milestones/active", isAuthenticated, async (req: any, res) => {
+  app.get("/api/milestones/active", getUserId, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.userId;
       const active = await storage.getActiveMilestones(userId);
       res.json(active);
     } catch (error) {
@@ -95,9 +92,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/milestones/completed", isAuthenticated, async (req: any, res) => {
+  app.get("/api/milestones/completed", getUserId, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.userId;
       const completed = await storage.getCompletedMilestones(userId);
       res.json(completed);
     } catch (error) {
@@ -106,9 +103,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/milestones/:id", isAuthenticated, async (req: any, res) => {
+  app.delete("/api/milestones/:id", getUserId, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.userId;
       const { id } = req.params;
       
       await storage.deleteMilestone(id, userId);
@@ -119,9 +116,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/milestones/:id/restore", isAuthenticated, async (req: any, res) => {
+  app.put("/api/milestones/:id/restore", getUserId, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.userId;
       const { id } = req.params;
       
       const result = await storage.restoreMilestone(id, userId);
@@ -137,9 +134,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Task routes
-  app.get("/api/tasks", isAuthenticated, async (req: any, res) => {
+  app.get("/api/tasks", getUserId, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.userId;
       const tasks = await storage.getTasks(userId);
       res.json(tasks);
     } catch (error) {
@@ -148,9 +145,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/tasks", isAuthenticated, async (req: any, res) => {
+  app.post("/api/tasks", getUserId, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.userId;
       
       // If milestoneId is provided, verify it belongs to user and check task limit
       if (req.body.milestoneId) {
@@ -180,9 +177,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch("/api/tasks/:id", isAuthenticated, async (req: any, res) => {
+  app.patch("/api/tasks/:id", getUserId, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.userId;
       const { id } = req.params;
       
       const updated = await storage.updateTask(id, userId, req.body);
@@ -197,9 +194,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/tasks/:id/complete", isAuthenticated, async (req: any, res) => {
+  app.put("/api/tasks/:id/complete", getUserId, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.userId;
       const { id } = req.params;
       
       const completed = await storage.completeTask(id, userId);
@@ -214,9 +211,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/tasks/completed", isAuthenticated, async (req: any, res) => {
+  app.get("/api/tasks/completed", getUserId, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.userId;
       const completed = await storage.getCompletedTasks(userId);
       res.json(completed);
     } catch (error) {
@@ -225,9 +222,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/tasks/:id", isAuthenticated, async (req: any, res) => {
+  app.delete("/api/tasks/:id", getUserId, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.userId;
       const { id } = req.params;
       
       await storage.deleteTask(id, userId);
@@ -238,9 +235,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/tasks/:id/restore", isAuthenticated, async (req: any, res) => {
+  app.put("/api/tasks/:id/restore", getUserId, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.userId;
       const { id } = req.params;
       
       const result = await storage.restoreTask(id, userId);
@@ -256,9 +253,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Batch operations
-  app.post("/api/tasks/reorder", isAuthenticated, async (req: any, res) => {
+  app.post("/api/tasks/reorder", getUserId, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.userId;
       const { taskIds } = req.body;
       
       if (!Array.isArray(taskIds)) {
@@ -274,9 +271,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Cleanup
-  app.post("/api/cleanup-trash", isAuthenticated, async (req: any, res) => {
+  app.post("/api/cleanup-trash", getUserId, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.userId;
       await storage.cleanupTrash(userId);
       res.status(204).send();
     } catch (error) {
