@@ -51,7 +51,7 @@ function SortableTaskCard({ task, onSelect }: { task: Task; onSelect: (task: Tas
       onPointerUp={handlePointerUp}
       data-testid={`card-task-${task.id}`}
       className={cn(
-        "bg-black border border-primary/50 p-2 mb-2 text-xs cursor-grab active:cursor-grabbing hover:border-primary hover:bg-secondary/20 transition-colors",
+        "bg-input border border-primary/50 p-2 mb-2 text-xs cursor-grab active:cursor-grabbing hover:border-primary hover:bg-secondary/20 transition-colors",
         isDragging && "opacity-50 bg-secondary border-dashed",
         task.isCompleted && "opacity-50 line-through"
       )}
@@ -444,7 +444,7 @@ export default function BoardPage() {
 
       {/* Task Edit Dialog */}
       <Dialog open={!!selectedTask} onOpenChange={(open) => !open && handleCloseTaskWithoutSaving()}>
-        <DialogContent className="bg-black border-2 border-primary text-primary font-mono max-w-[95vw] sm:max-w-[600px] p-0 gap-0 shadow-[0_0_20px_rgba(0,255,0,0.2)] max-h-[90vh] flex flex-col">
+        <DialogContent className="bg-background border-2 border-primary text-foreground font-mono max-w-[95vw] sm:max-w-[600px] p-0 gap-0 shadow-[0_0_20px_rgba(0,255,0,0.2)] max-h-[90vh] flex flex-col" aria-describedby={undefined}>
           <DialogHeader className="bg-primary/20 p-3 md:p-4 border-b border-primary shrink-0">
             <DialogTitle className="text-base md:text-xl font-bold uppercase flex items-center gap-2">
               <span className="animate-pulse">█</span>
@@ -459,7 +459,7 @@ export default function BoardPage() {
                 data-testid="input-task-title"
                 value={editForm.title}
                 onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
-                className="w-full bg-black border border-primary p-2 text-sm md:text-base focus:outline-none focus:ring-1 focus:ring-primary"
+                className="w-full bg-input border border-primary p-2 text-sm md:text-base text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
               />
             </div>
             
@@ -475,7 +475,7 @@ export default function BoardPage() {
                     setEditForm({ ...editForm, description: e.target.value });
                     adjustTextareaHeight(taskDescriptionRef.current);
                   }}
-                  className="w-full min-h-24 bg-black border border-primary p-2 text-sm md:text-base focus:outline-none focus:ring-1 focus:ring-primary resize-none overflow-hidden"
+                  className="w-full min-h-24 bg-input border border-primary p-2 text-sm md:text-base text-foreground focus:outline-none focus:ring-1 focus:ring-primary resize-none overflow-hidden"
                 />
                 <div className="text-xs opacity-50 text-right mt-1">{editForm.description.length} / 2000</div>
               </div>
@@ -490,18 +490,18 @@ export default function BoardPage() {
                     setEditForm({ ...editForm, definitionOfDone: e.target.value });
                     adjustTextareaHeight(taskDodRef.current);
                   }}
-                  className="w-full min-h-24 bg-black border border-primary p-2 text-sm md:text-base focus:outline-none focus:ring-1 focus:ring-primary resize-none overflow-hidden"
+                  className="w-full min-h-24 bg-input border border-primary p-2 text-sm md:text-base text-foreground focus:outline-none focus:ring-1 focus:ring-primary resize-none overflow-hidden"
                 />
                 <div className="text-xs opacity-50 text-right mt-1">{editForm.definitionOfDone.length} / 2000</div>
               </div>
             </div>
           </div>
 
-          <DialogFooter className="border-t border-primary p-3 md:p-4 flex flex-col gap-3 bg-black shrink-0">
+          <DialogFooter className="border-t border-primary p-3 md:p-4 flex flex-col gap-3 bg-background shrink-0">
             <Button 
               data-testid="button-save-task"
               onClick={handleSaveTaskChanges}
-              className="bg-primary text-black hover:bg-primary/80 font-mono rounded-none text-xs md:text-sm w-full"
+              className="bg-primary text-primary-foreground hover:bg-primary/80 font-mono rounded-none text-xs md:text-sm w-full"
             >
               SAVE
             </Button>
@@ -510,7 +510,7 @@ export default function BoardPage() {
                 data-testid="button-cancel-task"
                 variant="outline" 
                 onClick={handleCloseTaskWithoutSaving}
-                className={`bg-transparent border border-primary text-primary hover:bg-primary hover:text-black font-mono rounded-none text-xs md:text-sm ${selectedTask?.isNew ? "flex-1" : "flex-[2]"}`}
+                className={`bg-transparent border border-primary text-primary hover:bg-primary hover:text-primary-foreground font-mono rounded-none text-xs md:text-sm ${selectedTask?.isNew ? "flex-1" : "flex-[2]"}`}
               >
                 CANCEL
               </Button>
@@ -519,7 +519,7 @@ export default function BoardPage() {
                   <Button 
                     data-testid="button-complete-task"
                     onClick={handleCompleteTask}
-                    className="bg-primary text-black hover:bg-primary/80 font-mono rounded-none p-2 h-auto flex-1"
+                    className="bg-primary text-primary-foreground hover:bg-primary/80 font-mono rounded-none p-2 h-auto flex-1"
                     title="Mark as complete"
                   >
                     <Check className="w-4 h-4" />
@@ -542,7 +542,7 @@ export default function BoardPage() {
 
       {/* Milestone Edit Dialog */}
       <Dialog open={!!selectedMilestone} onOpenChange={(open) => !open && handleCloseMilestoneWithoutSaving()}>
-        <DialogContent className="bg-black border-2 border-primary text-primary font-mono max-w-[95vw] sm:max-w-[600px] p-0 gap-0 shadow-[0_0_20px_rgba(0,255,0,0.2)] max-h-[90vh] flex flex-col">
+        <DialogContent className="bg-background border-2 border-primary text-foreground font-mono max-w-[95vw] sm:max-w-[600px] p-0 gap-0 shadow-[0_0_20px_rgba(0,255,0,0.2)] max-h-[90vh] flex flex-col" aria-describedby={undefined}>
           <DialogHeader className="bg-primary/20 p-3 md:p-4 border-b border-primary shrink-0">
             <DialogTitle className="text-base md:text-xl font-bold uppercase flex items-center gap-2">
               <span className="animate-pulse">█</span>
@@ -557,7 +557,7 @@ export default function BoardPage() {
                 data-testid="input-milestone-title"
                 value={milestoneForm.title}
                 onChange={(e) => setMilestoneForm({ ...milestoneForm, title: e.target.value })}
-                className="w-full bg-black border border-primary p-2 text-sm md:text-base focus:outline-none focus:ring-1 focus:ring-primary"
+                className="w-full bg-input border border-primary p-2 text-sm md:text-base text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
               />
             </div>
             
@@ -573,7 +573,7 @@ export default function BoardPage() {
                     setMilestoneForm({ ...milestoneForm, description: e.target.value });
                     adjustTextareaHeight(milestoneDescriptionRef.current);
                   }}
-                  className="w-full min-h-24 bg-black border border-primary p-2 text-sm md:text-base focus:outline-none focus:ring-1 focus:ring-primary resize-none overflow-hidden"
+                  className="w-full min-h-24 bg-input border border-primary p-2 text-sm md:text-base text-foreground focus:outline-none focus:ring-1 focus:ring-primary resize-none overflow-hidden"
                 />
                 <div className="text-xs opacity-50 text-right mt-1">{milestoneForm.description.length} / 2000</div>
               </div>
@@ -588,18 +588,18 @@ export default function BoardPage() {
                     setMilestoneForm({ ...milestoneForm, definitionOfDone: e.target.value });
                     adjustTextareaHeight(milestoneDodRef.current);
                   }}
-                  className="w-full min-h-24 bg-black border border-primary p-2 text-sm md:text-base focus:outline-none focus:ring-1 focus:ring-primary resize-none overflow-hidden"
+                  className="w-full min-h-24 bg-input border border-primary p-2 text-sm md:text-base text-foreground focus:outline-none focus:ring-1 focus:ring-primary resize-none overflow-hidden"
                 />
                 <div className="text-xs opacity-50 text-right mt-1">{milestoneForm.definitionOfDone.length} / 2000</div>
               </div>
             </div>
           </div>
 
-          <DialogFooter className="border-t border-primary p-3 md:p-4 flex flex-col gap-3 bg-black shrink-0">
+          <DialogFooter className="border-t border-primary p-3 md:p-4 flex flex-col gap-3 bg-background shrink-0">
             <Button 
               data-testid="button-save-milestone"
               onClick={handleSaveMilestoneChanges}
-              className="bg-primary text-black hover:bg-primary/80 font-mono rounded-none text-xs md:text-sm w-full"
+              className="bg-primary text-primary-foreground hover:bg-primary/80 font-mono rounded-none text-xs md:text-sm w-full"
             >
               SAVE
             </Button>
@@ -608,7 +608,7 @@ export default function BoardPage() {
                 data-testid="button-close-milestone"
                 variant="outline" 
                 onClick={handleCloseMilestoneWithoutSaving}
-                className={`bg-transparent border border-primary text-primary hover:bg-primary hover:text-black font-mono rounded-none text-xs md:text-sm ${selectedMilestone?.isNew ? "flex-1" : "flex-[2]"}`}
+                className={`bg-transparent border border-primary text-primary hover:bg-primary hover:text-primary-foreground font-mono rounded-none text-xs md:text-sm ${selectedMilestone?.isNew ? "flex-1" : "flex-[2]"}`}
               >
                 CANCEL
               </Button>
@@ -617,7 +617,7 @@ export default function BoardPage() {
                   <Button 
                     data-testid="button-complete-milestone"
                     onClick={handleCompleteMilestone}
-                    className="bg-primary text-black hover:bg-primary/80 font-mono rounded-none p-2 h-auto flex-1"
+                    className="bg-primary text-primary-foreground hover:bg-primary/80 font-mono rounded-none p-2 h-auto flex-1"
                     title="Mark as complete"
                   >
                     <Check className="w-4 h-4" />
