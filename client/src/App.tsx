@@ -7,7 +7,8 @@ import { ThemeProvider } from "@/contexts/theme";
 import { OnboardingProvider, useOnboarding } from "@/contexts/onboarding";
 import { useAuth } from "@/hooks/useAuth";
 import NotFound from "@/pages/not-found";
-import Landing from "@/pages/Landing";
+import LandingPage from "@/pages/LandingPage";
+import LoginPage from "@/pages/Landing";
 import OnboardingPage from "@/pages/OnboardingPage";
 import FocusPage from "@/pages/FocusPage";
 import ListPage from "@/pages/ListPage";
@@ -32,7 +33,10 @@ function AuthRouter() {
   return (
     <Switch>
       {!isAuthenticated ? (
-        <Route path="/" component={Landing} />
+        <>
+          <Route path="/" component={LandingPage} />
+          <Route path="/login" component={LoginPage} />
+        </>
       ) : (
         <>
           <Route path="/" component={FocusPage} />
