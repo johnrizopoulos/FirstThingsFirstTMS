@@ -5,9 +5,13 @@ A terminal-inspired task management web application with IBM 3270/Bloomberg aest
 
 ## Recent Changes (Nov 26, 2025)
 
-### Landing Page Layout Fix
+### Landing Page Enhancements
 - Fixed blinking cursor div wrapping above "FIRST_THINGS_FIRST" title on narrow screens
 - Removed `flex-wrap` class from title container to keep cursor always to the left of title
+- Added "[ENTER] START_NOW" CTA buttons between each section (Problem, Features, Terminal Design, Philosophy)
+- Converted theme names to interactive buttons that directly change the theme (Terminal, Dark, Light)
+- Updated keyboard navigation list to show all 6 pages (F1-F6) including Trash and Tutorial
+- Extended ThemeContext to support direct theme setting via `setTheme()` function
 
 ## Previous Changes (Nov 25, 2025)
 
