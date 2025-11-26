@@ -1,5 +1,33 @@
+import { useState } from "react";
 
 export default function LoginPage() {
+  const [isRequestingAccess, setIsRequestingAccess] = useState(false);
+
+  const handleLogin = async (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
+    
+    // Check if we're in an iframe
+    const isInIframe = window.self !== window.top;
+    
+    if (isInIframe && document.hasStorageAccess) {
+      try {
+        setIsRequestingAccess(true);
+        // Request storage access for Safari in iframe
+        const hasAccess = await document.hasStorageAccess();
+        if (!hasAccess) {
+          await document.requestStorageAccess();
+        }
+        setIsRequestingAccess(false);
+      } catch (error) {
+        console.error('Storage access request failed:', error);
+        setIsRequestingAccess(false);
+      }
+    }
+    
+    // Proceed to login
+    window.location.href = '/api/login';
+  };
+
   return (
     <div className="min-h-screen bg-background text-primary font-mono relative overflow-hidden flex flex-col items-center justify-center px-4">
       {/* CRT Overlay */}
@@ -17,10 +45,15 @@ export default function LoginPage() {
 
         <a
           href="/api/login"
-          className="inline-block border-2 border-primary bg-primary text-black px-4 py-3 md:px-8 md:py-4 font-bold text-sm md:text-lg hover:bg-primary/80 transition-colors"
+          onClick={handleLogin}
+          className="inline-block border-2 border-primary bg-primary text-black px-4 py-3 md:px-8 md:py-4 font-bold text-sm md:text-lg hover:bg-primary/80 transition-colors cursor-pointer"
         >
-          <span className="hidden sm:inline">[ENTER] AUTHENTICATE_AND_CONTINUE</span>
-          <span className="sm:hidden">AUTHENTICATE</span>
+          <span className="hidden sm:inline">
+            {isRequestingAccess ? "[REQUESTING ACCESS...]" : "[ENTER] AUTHENTICATE_AND_CONTINUE"}
+          </span>
+          <span className="sm:hidden">
+            {isRequestingAccess ? "REQUESTING..." : "AUTHENTICATE"}
+          </span>
         </a>
 
         <div className="mt-6 mb-6 md:mb-8 text-sm md:text-base opacity-70 italic max-w-2xl mx-auto text-justify">
@@ -65,10 +98,15 @@ export default function LoginPage() {
 
         <a
           href="/api/login"
-          className="inline-block border-2 border-primary bg-primary text-black px-4 py-3 md:px-8 md:py-4 font-bold text-sm md:text-lg hover:bg-primary/80 transition-colors"
+          onClick={handleLogin}
+          className="inline-block border-2 border-primary bg-primary text-black px-4 py-3 md:px-8 md:py-4 font-bold text-sm md:text-lg hover:bg-primary/80 transition-colors cursor-pointer"
         >
-          <span className="hidden sm:inline">[ENTER] AUTHENTICATE_AND_CONTINUE</span>
-          <span className="sm:hidden">AUTHENTICATE</span>
+          <span className="hidden sm:inline">
+            {isRequestingAccess ? "[REQUESTING ACCESS...]" : "[ENTER] AUTHENTICATE_AND_CONTINUE"}
+          </span>
+          <span className="sm:hidden">
+            {isRequestingAccess ? "REQUESTING..." : "AUTHENTICATE"}
+          </span>
         </a>
 
         <div className="mt-6 mb-8 md:mb-12 text-sm md:text-base opacity-70 italic max-w-2xl mx-auto text-justify">
