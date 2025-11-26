@@ -1,106 +1,330 @@
 import { Link } from "wouter";
 import { useTheme } from "@/contexts/theme";
-import { Moon, Sun } from "lucide-react";
-import { Button } from "@/components/ui/button";
 
 export default function LandingPage() {
-  const { theme, toggleTheme } = useTheme();
-
+  const { theme, setTheme } = useTheme();
+  
+  const handleThemeChange = () => {
+    const themes = ["terminal", "dark", "light"] as const;
+    const currentIndex = themes.indexOf(theme as any);
+    const nextIndex = (currentIndex + 1) % themes.length;
+    setTheme(themes[nextIndex]);
+  };
+  
   return (
-    <div className="min-h-screen bg-background text-primary font-mono relative overflow-hidden flex flex-col items-center justify-center px-4">
+    <div className="min-h-screen bg-background text-primary font-mono relative overflow-hidden">
+      {/* Theme Button - Top Right */}
+      <div className="fixed top-4 right-4 z-40">
+        <button
+          onClick={handleThemeChange}
+          className="border-2 border-primary bg-background text-primary px-4 py-2 font-bold text-xs md:text-sm hover:bg-primary hover:text-primary-foreground transition-colors"
+          title="Change theme"
+          data-testid="button-theme-toggle"
+        >
+          [{theme.toUpperCase()}]
+        </button>
+      </div>
       {/* CRT Overlay */}
       <div className="fixed inset-0 crt-overlay pointer-events-none z-50" />
-      
-      {/* Theme Toggle in Top Right */}
-      <div className="absolute top-4 right-4 z-20">
-        <Button
-          onClick={toggleTheme}
-          variant="ghost"
-          size="sm"
-          className="text-[10px] md:text-xs opacity-70 hover:opacity-100 transition-opacity p-0 h-auto flex items-center gap-1"
-          data-testid="button-toggle-theme"
-          title={`Theme: ${theme} mode`}
-        >
-          <span>
-            {theme === "terminal" ? "█" : theme === "dark" ? <Moon className="w-3 h-3 md:w-4 md:h-4 inline" /> : <Sun className="w-3 h-3 md:w-4 md:h-4 inline" />}
-          </span>
-          <span className="hidden sm:inline">
-            [{theme === "terminal" ? "TERMINAL" : theme === "dark" ? "DARK" : "LIGHT"}]
-          </span>
-        </Button>
-      </div>
-
-      <div className="relative z-10 max-w-2xl mx-auto py-8 text-center w-full">
-        <div className="mb-8 md:mb-12">
-          <div className="flex items-center justify-center gap-2 mb-4 md:mb-6">
-            <div className="w-3 h-3 md:w-4 md:h-4 bg-primary animate-blink shrink-0" />
-            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-6xl font-bold tracking-wide md:tracking-widest break-words">
+      {/* Hero Section */}
+      <section className="relative z-10 min-h-screen flex flex-col items-center justify-center px-4 py-16">
+        <div className="max-w-4xl mx-auto text-center">
+          <div className="flex items-center justify-center gap-2 mb-6">
+            <div className="w-4 h-4 bg-primary animate-blink" />
+            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-widest">
               FIRST_THINGS_FIRST
             </h1>
           </div>
-          <p className="text-sm md:text-lg opacity-70 mb-2">TASK MANAGEMENT SYSTEM // V.1.1</p>
-        </div>
-
-        <Link href="/login" className="inline-block border-2 border-primary bg-primary text-primary-foreground px-4 py-3 md:px-8 md:py-4 font-bold text-sm md:text-lg hover:bg-primary/80 transition-colors cursor-pointer" data-testid="button-get-started">
-          <span className="hidden sm:inline">[ENTER] GET_STARTED</span>
-          <span className="sm:hidden">GET STARTED</span>
-        </Link>
-
-        <div className="mt-6 mb-6 md:mb-8 text-sm md:text-base opacity-70 italic max-w-2xl mx-auto text-justify">
-          <p>"If you can't focus, you can't create, build, or achieve anything meaningful. The best ideas, the biggest dreams, and even the simplest daily tasks need one thing—your undivided attention."</p>
-        </div>
-
-        <div className="border-2 md:border-4 border-primary p-4 md:p-8 mb-6 md:mb-8 bg-card/50 relative">
-          {/* Corners */}
-          <div className="absolute top-0 left-0 w-3 h-3 md:w-4 md:h-4 border-t-2 border-l-2 md:border-t-4 md:border-l-4 border-primary" />
-          <div className="absolute top-0 right-0 w-3 h-3 md:w-4 md:h-4 border-t-2 border-r-2 md:border-t-4 md:border-r-4 border-primary" />
-          <div className="absolute bottom-0 left-0 w-3 h-3 md:w-4 md:h-4 border-b-2 border-l-2 md:border-b-4 md:border-l-4 border-primary" />
-          <div className="absolute bottom-0 right-0 w-3 h-3 md:w-4 md:h-4 border-b-2 border-r-2 md:border-b-4 md:border-r-4 border-primary" />
-
-          <h2 className="text-lg md:text-2xl font-bold mb-3 md:mb-4">_KEY_FEATURES_</h2>
-          <ul className="text-left space-y-2 mb-4 md:mb-6 text-xs md:text-base">
-            <li className="flex items-start gap-2">
-              <span className="text-primary shrink-0">▸</span>
-              <span>Focus mode displays only your highest priority task</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-primary shrink-0">▸</span>
-              <span>Ordered task list view with drag-and-drop prioritization</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-primary shrink-0">▸</span>
-              <span>Board view with Milestones (max 5 active)</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-primary shrink-0">▸</span>
-              <span>30-day trash retention with automatic cleanup</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-primary shrink-0">▸</span>
-              <span>Keyboard-driven navigation (F1-F6)</span>
-            </li>
-          </ul>
-        </div>
-
-        <Link href="/login" className="inline-block border-2 border-primary bg-primary text-primary-foreground px-4 py-3 md:px-8 md:py-4 font-bold text-sm md:text-lg hover:bg-primary/80 transition-colors cursor-pointer" data-testid="button-continue">
-          <span className="hidden sm:inline">[ENTER] CONTINUE</span>
-          <span className="sm:hidden">CONTINUE</span>
-        </Link>
-
-        <div className="mt-6 mb-8 md:mb-12 text-sm md:text-base opacity-70 italic max-w-2xl mx-auto text-justify">
-          <p>"Extraordinary success comes from doing ordinary things, with extraordinary focus, over an extraordinary period of time."</p>
-          <div className="mt-4 not-italic">
-            <p>Application is still in development.</p>
-            <p className="mt-1">For support or questions please contact: <span className="font-bold">firstthingsfirsttms@gmail.com</span></p>
+          
+          <p className="text-xl md:text-2xl mb-4 opacity-90">_DO THE MOST IMPORTANT THINGS FIRST_</p>
+          
+          <p className="text-sm md:text-base mb-12 opacity-70 max-w-2xl mx-auto">
+            A terminal-inspired task management system that helps you focus on what truly matters.
+            No distractions. No overwhelm. Just pure productivity.
+          </p>
+          
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link href="/login" className="inline-block border-2 border-primary bg-primary text-primary-foreground px-8 py-4 font-bold text-lg hover:bg-primary/80 transition-colors">
+              [ENTER] GET_STARTED
+            </Link>
+            <a href="#features" className="inline-block border-2 border-primary bg-background text-primary px-8 py-4 font-bold text-lg hover:bg-primary/10 transition-colors">
+              LEARN_MORE
+            </a>
+          </div>
+          
+          <div className="mt-12 text-2xl md:text-4xl opacity-70 italic max-w-3xl mx-auto text-justify">
+            <p>"It is not enough to do your best; you must know what to do, and then do your best"</p>
+            <p className="mt-2">- <span className="font-bold">W. Edward Deming</span></p>
           </div>
         </div>
-
-        <div className="mt-8 md:mt-12 text-[10px] md:text-xs opacity-50">
-          <p>© 2025 FIRST THINGS FIRST TMS</p>
-          <p className="mt-2">DESIGNED FOR MAXIMUM PRODUCTIVITY</p>
-          <p className="mt-2">BUILT USING <a href="https://www.replit.com" target="_blank" rel="noopener noreferrer" className="underline hover:opacity-100">REPLIT</a> BY <a href="https://www.johnrizopoulos.com.au" target="_blank" rel="noopener noreferrer" className="underline hover:opacity-100">JOHN RIZOPOULOS</a></p>
+      </section>
+      {/* Problem Statement */}
+      <section className="relative z-10 py-24 px-4 border-t-4 border-primary">
+        <div className="max-w-4xl mx-auto">
+          <div className="border-4 border-primary p-8 md:p-12 bg-card/50 relative">
+            <div className="absolute top-0 left-0 w-4 h-4 border-t-4 border-l-4 border-primary" />
+            <div className="absolute top-0 right-0 w-4 h-4 border-t-4 border-r-4 border-primary" />
+            <div className="absolute bottom-0 left-0 w-4 h-4 border-b-4 border-l-4 border-primary" />
+            <div className="absolute bottom-0 right-0 w-4 h-4 border-b-4 border-r-4 border-primary" />
+            
+            <h2 className="text-2xl md:text-3xl font-bold mb-6 text-center">
+              &gt;&gt; THE_PROBLEM &lt;&lt;
+            </h2>
+            <p className="text-base md:text-lg mb-4 opacity-80">
+              Traditional task managers let you pile up hundreds of tasks. They give you endless lists, 
+              infinite categories, and overwhelming dashboards. The result? Paralysis by analysis.
+            </p>
+            <p className="text-base md:text-lg opacity-80">
+              <span className="text-primary font-bold">FIRST_THINGS_FIRST</span> is different. 
+              We believe in ruthless prioritization. At any moment, you should know exactly what to work on next.
+            </p>
+          </div>
+          
+          <div className="text-center mt-12">
+            <Link href="/login" className="inline-block border-4 border-primary bg-primary text-primary-foreground px-12 py-5 font-bold text-xl hover:bg-primary/80 transition-colors">
+              [ENTER] START_NOW
+            </Link>
+            <div className="mt-6 text-2xl md:text-4xl opacity-70 italic max-w-3xl mx-auto text-justify">
+              <p>"There is nothing so useless as doing efficiently that which should not be done at all."</p>
+              <p className="mt-2">- <span className="font-bold">Peter Drucker</span></p>
+            </div>
+          </div>
         </div>
-      </div>
+      </section>
+      {/* Features Section */}
+      <section id="features" className="relative z-10 py-24 px-4 border-t-4 border-primary">
+        <div className="max-w-6xl mx-auto">
+          <h2 className="text-3xl md:text-4xl font-bold mb-16 text-center">
+            &gt;&gt; CORE_FEATURES &lt;&lt;
+          </h2>
+          
+          <div className="grid md:grid-cols-2 gap-8">
+            {/* Focus Mode */}
+            <div className="border-2 border-primary p-6 bg-card/30">
+              <div className="flex items-start gap-4 mb-4">
+                <div className="w-3 h-3 bg-primary animate-blink shrink-0 mt-1" />
+                <h3 className="text-xl font-bold">FOCUS_MODE</h3>
+              </div>
+              <p className="text-sm mb-4 opacity-80">See only your highest priority task. No distractions, no alternatives. Complete it or repriotise. It's that simple.</p>
+              <div className="border border-primary bg-background/50 p-4 text-xs font-mono">
+                <div className="opacity-50 mb-2">[F1] FOCUS</div>
+                <div className="border border-primary p-3 bg-primary/5">
+                  <div className="font-bold mb-1">▸ YOUR TOP TASK</div>
+                  <div className="opacity-70 text-xs">The one thing you should be doing right now.</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Global Queue */}
+            <div className="border-2 border-primary p-6 bg-card/30">
+              <div className="flex items-start gap-4 mb-4">
+                <div className="w-3 h-3 bg-primary animate-blink shrink-0 mt-1" />
+                <h3 className="text-xl font-bold">LIST_VIEW</h3>
+              </div>
+              <p className="text-sm mb-4 opacity-80">All your tasks in one prioritized list. Drag and drop to reorder. The top task is always the most important. Max 50 tasks.</p>
+              <div className="border border-primary bg-background/50 p-4 text-xs font-mono">
+                <div className="opacity-50 mb-2">[F2] LIST</div>
+                <div className="space-y-1">
+                  <div className="border border-primary bg-primary/10 p-2">1. Critical task</div>
+                  <div className="border border-primary p-2">2. Important task</div>
+                  <div className="border border-primary p-2">3. Regular task</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Kanban Board */}
+            <div className="border-2 border-primary p-6 bg-card/30">
+              <div className="flex items-start gap-4 mb-4">
+                <div className="w-3 h-3 bg-primary animate-blink shrink-0 mt-1" />
+                <h3 className="text-xl font-bold">BOARD_VIEW</h3>
+              </div>
+              <p className="text-sm mb-4 opacity-80">
+                Organize tasks into milestones. Max 5 active milestones to prevent overwhelm. 
+                Move tasks between stages as you progress.
+              </p>
+              <div className="border border-primary bg-background/50 p-4 text-xs font-mono">
+                <div className="opacity-50 mb-2">[F3] BOARD</div>
+                <div className="grid grid-cols-3 gap-1">
+                  <div className="border border-primary p-2 text-center">PROJECT A</div>
+                  <div className="border border-primary p-2 text-center">PROJECT B</div>
+                  <div className="border border-primary p-2 text-center">PROJECT C</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Smart Retention */}
+            <div className="border-2 border-primary p-6 bg-card/30">
+              <div className="flex items-start gap-4 mb-4">
+                <div className="w-3 h-3 bg-primary animate-blink shrink-0 mt-1" />
+                <h3 className="text-xl font-bold">SMART_RETENTION</h3>
+              </div>
+              <p className="text-sm mb-4 opacity-80">
+                Completed tasks archived permanently. Deleted tasks held for 30 days. 
+                Automatic cleanup keeps your system lean.
+              </p>
+              <div className="border border-primary bg-background/50 p-4 text-xs font-mono">
+                <div className="opacity-50 mb-2">SYSTEM_STATUS</div>
+                <div className="space-y-1">
+                  <div>✓ COMPLETED: 47 tasks archived</div>
+                  <div>⊗ TRASH: 3 tasks (auto-delete in 12d)</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div className="text-center mt-12">
+            <Link href="/login" className="inline-block border-4 border-primary bg-primary text-primary-foreground px-12 py-5 font-bold text-xl hover:bg-primary/80 transition-colors">
+              [ENTER] START_NOW
+            </Link>
+            <div className="mt-6 text-2xl md:text-4xl opacity-70 italic max-w-3xl mx-auto text-justify">
+              <p>"Simplicity has a way of improving performance by enabling us to understand better what we are doing."</p>
+              <p className="mt-2">— <span className="font-bold">Charlie Munger</span></p>
+            </div>
+          </div>
+        </div>
+      </section>
+      {/* Terminal Aesthetic Section */}
+      <section className="relative z-10 py-24 px-4 border-t-4 border-primary">
+        <div className="max-w-4xl mx-auto text-center">
+          <h2 className="text-3xl md:text-4xl font-bold mb-8">
+            &gt;&gt; TERMINAL_INSPIRED_DESIGN &lt;&lt;
+          </h2>
+          <p className="text-lg mb-8 opacity-80">
+            Inspired by Bloomberg Terminal and IBM 3270 mainframes. Try our three themes:
+          </p>
+          
+          <div className="flex gap-4 justify-center mb-12">
+            <button
+              onClick={() => setTheme("terminal")}
+              className={`border-2 px-6 py-3 font-bold transition-all ${
+                theme === "terminal"
+                  ? "border-primary bg-primary text-black"
+                  : "border-primary bg-background text-primary hover:bg-primary/10"
+              }`}
+              data-testid="button-theme-terminal"
+            >
+              TERMINAL
+            </button>
+            <button
+              onClick={() => setTheme("dark")}
+              className={`border-2 px-6 py-3 font-bold transition-all ${
+                theme === "dark"
+                  ? "border-primary bg-primary text-primary-foreground"
+                  : "border-primary bg-background text-primary hover:bg-primary/10"
+              }`}
+              data-testid="button-theme-dark"
+            >
+              DARK
+            </button>
+            <button
+              onClick={() => setTheme("light")}
+              className={`border-2 px-6 py-3 font-bold transition-all ${
+                theme === "light"
+                  ? "border-primary bg-primary text-primary-foreground"
+                  : "border-primary bg-background text-primary hover:bg-primary/10"
+              }`}
+              data-testid="button-theme-light"
+            >
+              LIGHT
+            </button>
+          </div>
+          
+          <div className="border-4 border-primary p-8 bg-card/50 relative">
+            <div className="absolute top-0 left-0 w-4 h-4 border-t-4 border-l-4 border-primary" />
+            <div className="absolute top-0 right-0 w-4 h-4 border-t-4 border-r-4 border-primary" />
+            <div className="absolute bottom-0 left-0 w-4 h-4 border-b-4 border-l-4 border-primary" />
+            <div className="absolute bottom-0 right-0 w-4 h-4 border-b-4 border-r-4 border-primary" />
+            
+            <div className="font-mono text-left text-sm md:text-base">
+              <div className="opacity-50 mb-2">&gt; KEYBOARD_NAVIGATION</div>
+              <div className="space-y-1 mb-4">
+                <div>[F1] → FOCUS MODE</div>
+                <div>[F2] → LIST VIEW</div>
+                <div>[F3] → BOARD VIEW</div>
+                <div>[F4] → COMPLETED ARCHIVE</div>
+                <div>[F5] → TRASH</div>
+                <div>[F6] → TUTORIAL</div>
+              </div>
+              <div className="opacity-50 mb-2">&gt; EFFICIENCY_FIRST</div>
+              <div>No mouse required. Navigate at the speed of thought.</div>
+            </div>
+          </div>
+          
+          <div className="text-center mt-12">
+            <Link href="/login" className="inline-block border-4 border-primary bg-primary text-primary-foreground px-12 py-5 font-bold text-xl hover:bg-primary/80 transition-colors">
+              [ENTER] START_NOW
+            </Link>
+            <div className="mt-6 text-2xl md:text-4xl opacity-70 italic max-w-3xl mx-auto text-justify">
+              <p>"Focusing on everything is synonymous with not focusing on anything."</p>
+              <p className="mt-2">— <span className="font-bold">Eliyahu M. Goldratt</span></p>
+            </div>
+          </div>
+        </div>
+      </section>
+      {/* Social Proof / Philosophy */}
+      <section className="relative z-10 py-24 px-4 border-t-4 border-primary">
+        <div className="max-w-3xl mx-auto text-center">
+          <h2 className="text-3xl md:text-4xl font-bold mb-8">
+            &gt;&gt; THE_PHILOSOPHY &lt;&lt;
+          </h2>
+          <div className="space-y-6 text-left text-base md:text-lg opacity-80">
+            <p className="border-l-4 border-primary pl-4">
+              "Do the most important thing first. When it's done, do the next most important thing. 
+              Repeat until you've accomplished everything that matters."
+            </p>
+            <p className="border-l-4 border-primary pl-4">
+              "Limitations breed creativity. By capping active milestones at 5 and showing only one 
+              task in Focus mode, we force you to make real decisions about what matters."
+            </p>
+            <p className="border-l-4 border-primary pl-4">
+              "Your task manager shouldn't be another source of stress. It should be a tool that 
+              brings clarity and calm to your work."
+            </p>
+          </div>
+          
+          <div className="text-center mt-12">
+            <Link href="/login" className="inline-block border-4 border-primary bg-primary text-primary-foreground px-12 py-5 font-bold text-xl hover:bg-primary/80 transition-colors">
+              [ENTER] START_NOW
+            </Link>
+            <div className="mt-6 text-2xl md:text-4xl opacity-70 italic max-w-3xl mx-auto text-justify">
+              <p>"Multitasking doesn't work. It limits our potential."</p>
+              <p className="mt-2">— <span className="font-bold">Charlie Munger</span></p>
+            </div>
+          </div>
+        </div>
+      </section>
+      {/* CTA Section */}
+      <section className="relative z-10 py-24 px-4 border-t-4 border-primary">
+        <div className="max-w-2xl mx-auto text-center">
+          <h2 className="text-3xl md:text-5xl font-bold mb-6">
+            READY_TO_FOCUS?
+          </h2>
+          <p className="text-lg mb-12 opacity-80">
+            Start managing your tasks the way they should be managed. 
+            Simple. Focused. Effective.
+          </p>
+          
+          <Link href="/login" className="inline-block border-4 border-primary bg-primary text-primary-foreground px-12 py-5 font-bold text-xl hover:bg-primary/80 transition-colors">
+            [ENTER] START_NOW
+          </Link>
+          
+          <div className="mt-8 text-sm opacity-50">
+            <p>No credit card required.</p>
+            <p className="mt-1">Free to use [temporary, you'll be notified of changes].</p>
+          </div>
+        </div>
+      </section>
+      {/* Footer */}
+      <footer className="relative z-10 border-t-4 border-primary p-6 text-center">
+        <div className="max-w-4xl mx-auto">
+          <p className="text-xs opacity-50 mb-2">
+            TERMINAL_INTERFACE © 2025 FIRST THINGS FIRST CORP.
+          </p>
+          <p className="text-xs opacity-50">
+            DESIGNED FOR MAXIMUM PRODUCTIVITY // INSPIRED BY BLOOMBERG TERMINAL & IBM 3270
+          </p>
+        </div>
+      </footer>
     </div>
   );
 }
