@@ -60,6 +60,14 @@ export default function LandingPage() {
               We believe in ruthless prioritization. At any moment, you should know exactly what to work on next.
             </p>
           </div>
+          
+          <div className="text-center mt-12">
+            <Link href="/login">
+              <a className="inline-block border-4 border-primary bg-primary text-black px-12 py-5 font-bold text-xl hover:bg-primary/80 transition-colors">
+                [ENTER] START_NOW
+              </a>
+            </Link>
+          </div>
         </div>
       </section>
 
@@ -149,6 +157,14 @@ export default function LandingPage() {
               </div>
             </div>
           </div>
+          
+          <div className="text-center mt-12">
+            <Link href="/login">
+              <a className="inline-block border-4 border-primary bg-primary text-black px-12 py-5 font-bold text-xl hover:bg-primary/80 transition-colors">
+                [ENTER] START_NOW
+              </a>
+            </Link>
+          </div>
         </div>
       </section>
 
@@ -183,6 +199,14 @@ export default function LandingPage() {
               <div>No mouse required. Navigate at the speed of thought.</div>
             </div>
           </div>
+          
+          <div className="text-center mt-12">
+            <Link href="/login">
+              <a className="inline-block border-4 border-primary bg-primary text-black px-12 py-5 font-bold text-xl hover:bg-primary/80 transition-colors">
+                [ENTER] START_NOW
+              </a>
+            </Link>
+          </div>
         </div>
       </section>
 
@@ -205,6 +229,14 @@ export default function LandingPage() {
               "Your task manager shouldn't be another source of stress. It should be a tool that 
               brings clarity and calm to your work."
             </p>
+          </div>
+          
+          <div className="text-center mt-12">
+            <Link href="/login">
+              <a className="inline-block border-4 border-primary bg-primary text-black px-12 py-5 font-bold text-xl hover:bg-primary/80 transition-colors">
+                [ENTER] START_NOW
+              </a>
+            </Link>
           </div>
         </div>
       </section>
