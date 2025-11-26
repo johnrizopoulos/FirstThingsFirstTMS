@@ -9,6 +9,7 @@ import { useAuth } from "@/hooks/useAuth";
 import NotFound from "@/pages/not-found";
 import LandingPage from "@/pages/LandingPage";
 import LoginPage from "@/pages/LoginPage";
+import SignInPage from "@/pages/SignInPage";
 import OnboardingPage from "@/pages/OnboardingPage";
 import FocusPage from "@/pages/FocusPage";
 import ListPage from "@/pages/ListPage";
@@ -36,12 +37,14 @@ function AuthRouter() {
         <>
           <Route path="/" component={LandingPage} />
           <Route path="/login" component={LoginPage} />
+          <Route path="/signin" component={SignInPage} />
           <Route path="*"><Redirect to="/" /></Route>
         </>
       ) : (
         <>
           <Route path="/" component={FocusPage} />
           <Route path="/login"><Redirect to="/" /></Route>
+          <Route path="/signin"><Redirect to="/" /></Route>
           <Route path="/list" component={ListPage} />
           <Route path="/board" component={BoardPage} />
           <Route path="/completed" component={CompletedPage} />
