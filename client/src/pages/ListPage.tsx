@@ -285,9 +285,11 @@ export default function ListPage() {
                 <input 
                   data-testid="input-task-title"
                   value={editForm.title}
+                  maxLength={250}
                   onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
                   className="w-full bg-input border border-primary p-2 text-sm md:text-base text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
                 />
+                <div className="text-xs opacity-50 text-right mt-1">{editForm.title.length} / 250</div>
               </div>
 
               <div>
