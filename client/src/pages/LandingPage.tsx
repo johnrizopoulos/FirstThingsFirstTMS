@@ -110,10 +110,7 @@ export default function LandingPage() {
                 <div className="w-3 h-3 bg-primary animate-blink shrink-0 mt-1" />
                 <h3 className="text-xl font-bold">LIST_VIEW</h3>
               </div>
-              <p className="text-sm mb-4 opacity-80">
-                All your tasks in one prioritized list. Drag and drop to reorder. 
-                The top task is always the most important.
-              </p>
+              <p className="text-sm mb-4 opacity-80">All your tasks in one prioritized list. Drag and drop to reorder. The top task is always the most important. Max 50 tasks.</p>
               <div className="border border-primary bg-background/50 p-4 text-xs font-mono">
                 <div className="opacity-50 mb-2">[F2] LIST</div>
                 <div className="space-y-1">
