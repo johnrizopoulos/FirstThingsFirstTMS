@@ -121,6 +121,29 @@ export async function setupAuth(app: Express) {
   passport.deserializeUser((user: Express.User, cb) => cb(null, user));
 
   app.get("/api/login", (req, res, next) => {
+    // Development mode: auto-authenticate without OAuth
+    if (process.env.NODE_ENV === 'development') {
+      const mockUser = {
+        claims: {
+          sub: 'dev-user-123',
+          email: 'dev@localhost',
+          first_name: 'Dev',
+          last_name: 'User',
+          profile_image_url: '',
+        },
+        access_token: 'dev-token',
+        refresh_token: 'dev-refresh-token',
+        expires_at: Math.floor(Date.now() / 1000) + 86400,
+      };
+      
+      req.login(mockUser, (err) => {
+        if (err) return next(err);
+        res.redirect('/');
+      });
+      return;
+    }
+
+    // Production: use OAuth
     ensureStrategy(req.hostname);
     passport.authenticate(`replitauth:${req.hostname}`, {
       prompt: "login consent",
