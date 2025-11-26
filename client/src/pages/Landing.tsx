@@ -39,7 +39,7 @@ export default function LoginPage() {
             </li>
             <li className="flex items-start gap-2">
               <span className="text-primary shrink-0">▸</span>
-              <span>Milestone-based project organization (max 5 active)</span>
+              <span>Board view with Milestones (max 5 active)</span>
             </li>
             <li className="flex items-start gap-2">
               <span className="text-primary shrink-0">▸</span>
