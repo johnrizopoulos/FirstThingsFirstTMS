@@ -84,15 +84,17 @@ export async function setupAuth(app: Express) {
   const registeredStrategies = new Set<string>();
 
   // Helper function to ensure strategy exists for a domain
-  const ensureStrategy = (domain: string) => {
+  const ensureStrategy = (domain: string, origin?: string) => {
     const strategyName = `replitauth:${domain}`;
     if (!registeredStrategies.has(strategyName)) {
+      // Use the origin from the request if available, otherwise construct from domain
+      const callbackBase = origin || `https://${domain}`;
       const strategy = new Strategy(
         {
           name: strategyName,
           config,
           scope: ["openid", "email", "profile", "offline_access"],
-          callbackURL: `https://${domain}/api/callback`,
+          callbackURL: `${callbackBase}/api/callback`,
         },
         verify,
       );
@@ -105,7 +107,8 @@ export async function setupAuth(app: Express) {
   passport.deserializeUser((user: Express.User, cb) => cb(null, user));
 
   app.get("/api/login", (req, res, next) => {
-    ensureStrategy(req.hostname);
+    const origin = `${req.protocol}://${req.get('host')}`;
+    ensureStrategy(req.hostname, origin);
     passport.authenticate(`replitauth:${req.hostname}`, {
       prompt: "login consent",
       scope: ["openid", "email", "profile", "offline_access"],
@@ -113,7 +116,8 @@ export async function setupAuth(app: Express) {
   });
 
   app.get("/api/callback", (req, res, next) => {
-    ensureStrategy(req.hostname);
+    const origin = `${req.protocol}://${req.get('host')}`;
+    ensureStrategy(req.hostname, origin);
     passport.authenticate(`replitauth:${req.hostname}`, {
       successReturnToOrRedirect: "/",
       failureRedirect: "/api/login",
