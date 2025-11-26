@@ -35,7 +35,7 @@ export default function LoginPage() {
             </li>
             <li className="flex items-start gap-2">
               <span className="text-primary shrink-0">▸</span>
-              <span>Global task queue with drag-and-drop prioritization</span>
+              <span>Ordered task list view with drag-and-drop prioritisation</span>
             </li>
             <li className="flex items-start gap-2">
               <span className="text-primary shrink-0">▸</span>
