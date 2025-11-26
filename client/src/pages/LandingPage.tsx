@@ -191,8 +191,7 @@ export default function LandingPage() {
                 <div>[F3] → BOARD VIEW</div>
                 <div>[F4] → COMPLETED ARCHIVE</div>
               </div>
-              <div className="opacity-50 mb-2">&gt; EFFICIENCY_FIRST</div>
-              <div>No mouse required. Navigate at the speed of thought.</div>
+              
             </div>
           </div>
           
