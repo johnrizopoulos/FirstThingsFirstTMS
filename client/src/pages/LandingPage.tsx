@@ -317,9 +317,7 @@ export default function LandingPage() {
       {/* Footer */}
       <footer className="relative z-10 border-t-4 border-primary p-6 text-center">
         <div className="max-w-4xl mx-auto">
-          <p className="text-xs opacity-50 mb-2">
-            TERMINAL_INTERFACE © 2025 FIRST THINGS FIRST CORP.
-          </p>
+          <p className="text-xs opacity-50 mb-2">© 2025 FIRST THINGS FIRST TMS.</p>
           <p className="text-xs opacity-50">
             DESIGNED FOR MAXIMUM PRODUCTIVITY // INSPIRED BY BLOOMBERG TERMINAL & IBM 3270
           </p>
