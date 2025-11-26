@@ -169,7 +169,7 @@ export class DatabaseStorage implements IStorage {
     return await db
       .select()
       .from(tasks)
-      .where(and(eq(tasks.userId, userId), eq(tasks.isDeleted, false)))
+      .where(eq(tasks.userId, userId))
       .orderBy(asc(tasks.globalOrder));
   }
 
