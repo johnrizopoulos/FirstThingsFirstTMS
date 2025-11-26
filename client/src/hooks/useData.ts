@@ -117,11 +117,35 @@ export function useReorderTasks() {
 
   return useMutation({
     mutationFn: api.reorderTasks,
+    onMutate: async (taskIds: string[]) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ["/api/tasks"] });
+
+      // Get previous data
+      const previousTasks = queryClient.getQueryData<Task[]>(["/api/tasks"]);
+
+      // Optimistically update cache with new order
+      if (previousTasks) {
+        const taskMap = new Map(previousTasks.map(t => [t.id, t]));
+        const reorderedTasks = taskIds.map(id => taskMap.get(id)).filter((t): t is Task => !!t);
+        
+        // Maintain any tasks that weren't in the reorder list
+        const unmovedTasks = previousTasks.filter(t => !taskIds.includes(t.id));
+        
+        queryClient.setQueryData(["/api/tasks"], [...reorderedTasks, ...unmovedTasks]);
+      }
+
+      return { previousTasks };
+    },
+    onError: (error: any, taskIds: string[], context: any) => {
+      // Revert to previous data on error
+      if (context?.previousTasks) {
+        queryClient.setQueryData(["/api/tasks"], context.previousTasks);
+      }
+      console.error("Error reordering tasks:", error);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/tasks"] });
-    },
-    onError: (error: any) => {
-      console.error("Error reordering tasks:", error);
     },
   });
 }
