@@ -11,6 +11,20 @@ export default function LoginPage() {
       {/* CRT Overlay */}
       <div className="fixed inset-0 crt-overlay pointer-events-none z-50" />
       
+      {/* Home Button in Top Left */}
+      <div className="absolute top-4 left-4 z-20">
+        <Link href="/">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-[10px] md:text-xs opacity-70 hover:opacity-100 transition-opacity p-0 h-auto"
+            data-testid="button-home"
+          >
+            [HOME]
+          </Button>
+        </Link>
+      </div>
+      
       {/* Theme Toggle in Top Right */}
       <div className="absolute top-4 right-4 z-20">
         <Button

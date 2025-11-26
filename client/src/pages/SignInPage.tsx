@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useLocation } from "wouter";
+import { Link, useLocation } from "wouter";
 import { useTheme } from "@/contexts/theme";
 import { Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -54,6 +54,20 @@ export default function SignInPage() {
     <div className="min-h-screen bg-background text-primary font-mono relative overflow-hidden flex flex-col items-center justify-center px-4">
       {/* CRT Overlay */}
       <div className="fixed inset-0 crt-overlay pointer-events-none z-50" />
+      
+      {/* Home Button in Top Left */}
+      <div className="absolute top-4 left-4 z-20">
+        <Link href="/">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-[10px] md:text-xs opacity-70 hover:opacity-100 transition-opacity p-0 h-auto"
+            data-testid="button-home"
+          >
+            [HOME]
+          </Button>
+        </Link>
+      </div>
       
       {/* Theme Toggle in Top Right */}
       <div className="absolute top-4 right-4 z-20">
