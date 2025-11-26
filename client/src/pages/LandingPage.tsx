@@ -188,7 +188,7 @@ export default function LandingPage() {
               <div className="space-y-1 mb-4">
                 <div>[F1] → FOCUS MODE</div>
                 <div>[F2] → LIST VIEW</div>
-                <div>[F3] → KANBAN BOARD</div>
+                <div>[F3] → BOARD VIEW</div>
                 <div>[F4] → COMPLETED ARCHIVE</div>
               </div>
               <div className="opacity-50 mb-2">&gt; EFFICIENCY_FIRST</div>
