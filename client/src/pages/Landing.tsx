@@ -4,7 +4,6 @@ export default function LoginPage() {
     <div className="min-h-screen bg-background text-primary font-mono relative overflow-hidden flex flex-col items-center justify-center px-4">
       {/* CRT Overlay */}
       <div className="fixed inset-0 crt-overlay pointer-events-none z-50" />
-      
       <div className="relative z-10 max-w-2xl mx-auto py-8 text-center w-full">
         <div className="mb-8 md:mb-12">
           <div className="flex items-center justify-center gap-2 mb-4 md:mb-6">
@@ -48,7 +47,7 @@ export default function LoginPage() {
             </li>
             <li className="flex items-start gap-2">
               <span className="text-primary shrink-0">▸</span>
-              <span>Keyboard-driven navigation (F1-F4)</span>
+              <span>Keyboard-driven navigation (F1-F6)</span>
             </li>
           </ul>
         </div>
