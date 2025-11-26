@@ -312,7 +312,7 @@ export default function LandingPage() {
           
           <div className="mt-8 text-sm opacity-50">
             <p>No credit card required.</p>
-            <p className="mt-1">Free to use [temporary, you'll be notified of changes].</p>
+            <p className="mt-1">Free to use [you'll be notified of changes]</p>
           </div>
         </div>
       </section>
