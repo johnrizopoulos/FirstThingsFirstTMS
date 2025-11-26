@@ -94,11 +94,16 @@ export function Layout({ children, mobileHeaderContent }: { children: React.Reac
             onClick={toggleTheme}
             variant="ghost"
             size="sm"
-            className="text-[10px] md:text-xs opacity-70 hover:opacity-100 transition-opacity p-0 h-auto"
+            className="text-[10px] md:text-xs opacity-70 hover:opacity-100 transition-opacity p-0 h-auto flex items-center gap-1"
             data-testid="button-toggle-theme"
             title={`Theme: ${theme} mode`}
           >
-            {theme === "terminal" ? "█" : theme === "dark" ? <Moon className="w-3 h-3 md:w-4 md:h-4" /> : <Sun className="w-3 h-3 md:w-4 md:h-4" />}
+            <span>
+              {theme === "terminal" ? "█" : theme === "dark" ? <Moon className="w-3 h-3 md:w-4 md:h-4 inline" /> : <Sun className="w-3 h-3 md:w-4 md:h-4 inline" />}
+            </span>
+            <span className="hidden sm:inline">
+              [{theme === "terminal" ? "TERMINAL" : theme === "dark" ? "DARK" : "LIGHT"}]
+            </span>
           </Button>
           <a 
             href="/api/logout"
