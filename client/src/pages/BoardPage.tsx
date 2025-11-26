@@ -528,7 +528,7 @@ export default function BoardPage() {
                     data-testid="button-delete-task"
                     variant="destructive" 
                     onClick={handleDeleteTask}
-                    className="bg-transparent border border-destructive text-destructive hover:bg-destructive hover:text-white font-mono rounded-none p-2 h-auto flex-1"
+                    className="bg-transparent border border-destructive text-destructive hover:bg-destructive hover:text-primary font-mono rounded-none p-2 h-auto flex-1"
                     title="Delete task"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -626,7 +626,7 @@ export default function BoardPage() {
                     data-testid="button-delete-milestone"
                     variant="destructive" 
                     onClick={handleDeleteMilestone}
-                    className="bg-transparent border border-destructive text-destructive hover:bg-destructive hover:text-white font-mono rounded-none p-2 h-auto flex-1"
+                    className="bg-transparent border border-destructive text-destructive hover:bg-destructive hover:text-primary font-mono rounded-none p-2 h-auto flex-1"
                     title="Delete milestone"
                   >
                     <Trash2 className="w-4 h-4" />
