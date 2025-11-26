@@ -127,11 +127,11 @@ export default function FocusPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 text-sm md:text-base lg:text-lg opacity-80">
             <div>
               <span className="block text-xs opacity-50 mb-1">DESCRIPTION</span>
-              <span data-testid="text-task-description">{topTask.description || "No description provided."}</span>
+              <div data-testid="text-task-description" className="whitespace-pre-wrap break-words">{topTask.description || "No description provided."}</div>
             </div>
             <div>
               <span className="block text-xs opacity-50 mb-1">DEFINITION OF DONE</span>
-              <span data-testid="text-task-dod">{topTask.definitionOfDone || "No criteria specified."}</span>
+              <div data-testid="text-task-dod" className="whitespace-pre-wrap break-words">{topTask.definitionOfDone || "No criteria specified."}</div>
             </div>
           </div>
           
