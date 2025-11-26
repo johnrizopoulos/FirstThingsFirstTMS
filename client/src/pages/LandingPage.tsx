@@ -91,10 +91,7 @@ export default function LandingPage() {
                 <div className="w-3 h-3 bg-primary animate-blink shrink-0 mt-1" />
                 <h3 className="text-xl font-bold">FOCUS_MODE</h3>
               </div>
-              <p className="text-sm mb-4 opacity-80">
-                See only your highest priority task. No distractions, no alternatives. 
-                Complete it or move it down. It's that simple.
-              </p>
+              <p className="text-sm mb-4 opacity-80">See only your highest priority task. No distractions, no alternatives. Complete it or repriotise. It's that simple.</p>
               <div className="border border-primary bg-background/50 p-4 text-xs font-mono">
                 <div className="opacity-50 mb-2">[F1] FOCUS</div>
                 <div className="border border-primary p-3 bg-primary/5">
