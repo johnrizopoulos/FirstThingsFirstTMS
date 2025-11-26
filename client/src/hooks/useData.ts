@@ -33,6 +33,9 @@ export function useCreateMilestone() {
       queryClient.invalidateQueries({ queryKey: ["/api/milestones"] });
       queryClient.invalidateQueries({ queryKey: ["/api/milestones/active"] });
     },
+    onError: (error: any) => {
+      console.error("Error creating milestone:", error);
+    },
   });
 }
 
@@ -44,6 +47,9 @@ export function useUpdateMilestone() {
       api.updateMilestone(id, updates),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/milestones"] });
+    },
+    onError: (error: any) => {
+      console.error("Error updating milestone:", error);
     },
   });
 }
@@ -57,6 +63,9 @@ export function useDeleteMilestone() {
       queryClient.invalidateQueries({ queryKey: ["/api/milestones"] });
       queryClient.invalidateQueries({ queryKey: ["/api/tasks"] });
     },
+    onError: (error: any) => {
+      console.error("Error deleting milestone:", error);
+    },
   });
 }
 
@@ -67,6 +76,9 @@ export function useCreateTask() {
     mutationFn: api.createTask,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/tasks"] });
+    },
+    onError: (error: any) => {
+      console.error("Error creating task:", error);
     },
   });
 }
@@ -80,6 +92,9 @@ export function useUpdateTask() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/tasks"] });
     },
+    onError: (error: any) => {
+      console.error("Error updating task:", error);
+    },
   });
 }
 
@@ -91,6 +106,9 @@ export function useDeleteTask() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/tasks"] });
     },
+    onError: (error: any) => {
+      console.error("Error deleting task:", error);
+    },
   });
 }
 
@@ -101,6 +119,9 @@ export function useReorderTasks() {
     mutationFn: api.reorderTasks,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/tasks"] });
+    },
+    onError: (error: any) => {
+      console.error("Error reordering tasks:", error);
     },
   });
 }
@@ -121,6 +142,9 @@ export function useCompleteMilestone() {
       queryClient.invalidateQueries({ queryKey: ["/api/milestones"] });
       queryClient.invalidateQueries({ queryKey: ["/api/milestones/completed"] });
       queryClient.invalidateQueries({ queryKey: ["/api/tasks"] });
+    },
+    onError: (error: any) => {
+      console.error("Error completing milestone:", error);
     },
   });
 }
@@ -147,6 +171,9 @@ export function useCompleteTask() {
       
       queryClient.invalidateQueries({ queryKey: ["/api/tasks"] });
       queryClient.invalidateQueries({ queryKey: ["/api/tasks/completed"] });
+    },
+    onError: (error: any) => {
+      console.error("Error completing task:", error);
     },
   });
 }

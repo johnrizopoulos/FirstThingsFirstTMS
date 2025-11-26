@@ -56,7 +56,7 @@ function SortableTaskCard({ task, onSelect }: { task: Task; onSelect: (task: Tas
         task.isCompleted && "opacity-50 line-through"
       )}
     >
-      <div className="font-bold mb-1 truncate font-mono uppercase">{task.title}</div>
+      <div className="font-bold mb-1 font-mono uppercase whitespace-normal break-words">{task.title}</div>
     </div>
   );
 }
