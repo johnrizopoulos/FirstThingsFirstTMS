@@ -10,7 +10,6 @@ export default function LoginPage() {
     <div className="min-h-screen bg-background text-primary font-mono relative overflow-hidden flex flex-col items-center justify-center px-4">
       {/* CRT Overlay */}
       <div className="fixed inset-0 crt-overlay pointer-events-none z-50" />
-      
       {/* Home Button in Top Left */}
       <div className="absolute top-4 left-4 z-20">
         <Link href="/">
@@ -24,7 +23,6 @@ export default function LoginPage() {
           </Button>
         </Link>
       </div>
-      
       {/* Theme Toggle in Top Right */}
       <div className="absolute top-4 right-4 z-20">
         <Button
@@ -43,7 +41,6 @@ export default function LoginPage() {
           </span>
         </Button>
       </div>
-
       <div className="relative z-10 max-w-2xl mx-auto py-8 text-center w-full">
         <div className="mb-8 md:mb-12">
           <div className="flex items-center justify-center gap-2 mb-4 md:mb-6">
@@ -52,7 +49,7 @@ export default function LoginPage() {
               FIRST_THINGS_FIRST
             </h1>
           </div>
-          <p className="text-sm md:text-lg opacity-70 mb-2">TASK MANAGEMENT SYSTEM // V.1.1</p>
+          <p className="text-sm md:text-lg opacity-70 mb-2">TASK MANAGEMENT SYSTEM // V.2.0</p>
         </div>
 
         <Link href="/signin" className="inline-block border-2 border-primary bg-primary text-primary-foreground px-4 py-3 md:px-8 md:py-4 font-bold text-sm md:text-lg hover:bg-primary/80 transition-colors cursor-pointer" data-testid="button-get-authenticated">
