@@ -49,9 +49,12 @@ export default function LandingPage() {
           
           <p className="text-xl md:text-2xl mb-4 opacity-90">_DO THE MOST IMPORTANT THINGS FIRST_</p>
           
-          <p className="text-sm md:text-base mb-12 opacity-70 max-w-2xl mx-auto">
+          <p className="text-sm md:text-base mb-2 opacity-70 max-w-2xl mx-auto">
             A terminal-inspired task management system that helps you focus on what truly matters.
-            No distractions. No overwhelm. Just pure productivity.
+            No distractions. No overwhelm.
+          </p>
+          <p className="text-sm md:text-base mb-12 opacity-70 max-w-2xl mx-auto font-bold">
+            Just pure productivity.
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
