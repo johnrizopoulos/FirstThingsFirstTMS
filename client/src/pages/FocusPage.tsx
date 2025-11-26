@@ -105,7 +105,7 @@ export default function FocusPage() {
       <div className="h-full flex flex-col items-center justify-center max-w-4xl mx-auto px-2">
         <div className="w-full mb-4 md:mb-8 text-center">
           <h2 className="text-primary/50 text-sm md:text-lg mb-2">
-            <span className="hidden sm:inline">:: CURRENT PRIORITY TAST ::</span>
+            <span className="hidden sm:inline">:: CURRENT PRIORITY TASK ::</span>
             <span className="sm:hidden">:: PRIORITY ::</span>
           </h2>
         </div>
