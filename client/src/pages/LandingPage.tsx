@@ -310,7 +310,10 @@ export default function LandingPage() {
             </a>
           </Link>
           
-          <p className="mt-8 text-sm opacity-50">No credit card required. Free to use [temporary, you'll be notified of changes].</p>
+          <div className="mt-8 text-sm opacity-50">
+            <p>No credit card required.</p>
+            <p className="mt-1">Free to use [temporary, you'll be notified of changes].</p>
+          </div>
         </div>
       </section>
       {/* Footer */}
