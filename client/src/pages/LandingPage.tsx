@@ -37,6 +37,11 @@ export default function LandingPage() {
               LEARN_MORE
             </a>
           </div>
+          
+          <div className="mt-12 text-2xl md:text-4xl opacity-70 italic max-w-3xl mx-auto text-justify">
+            <p>"It is not enough to do your best; you must know what to do, and then do your best"</p>
+            <p className="mt-2">- <span className="font-bold">W. Edward Deming</span></p>
+          </div>
         </div>
       </section>
       {/* Problem Statement */}
@@ -67,10 +72,6 @@ export default function LandingPage() {
                 [ENTER] START_NOW
               </a>
             </Link>
-            <div className="mt-6 text-2xl md:text-4xl opacity-70 italic max-w-3xl mx-auto text-justify">
-              <p>"It is not enough to do your best; you must know what to do, and then do your best"</p>
-              <p className="mt-2">- <span className="font-bold">W. Edward Deming</span></p>
-            </div>
           </div>
         </div>
       </section>
