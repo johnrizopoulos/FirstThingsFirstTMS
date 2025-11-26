@@ -199,7 +199,7 @@ export default function ListPage() {
       value={searchQuery}
       onChange={(e) => setSearchQuery(e.target.value)}
       data-testid="input-search-tasks"
-      className="w-full bg-black border border-primary p-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-primary placeholder:text-primary/30 font-mono"
+      className="w-full bg-input border border-primary p-1.5 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary placeholder:text-foreground/50 font-mono"
     />
   );
 
@@ -227,7 +227,7 @@ export default function ListPage() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             data-testid="input-search-tasks-desktop"
-            className="w-full bg-black border border-primary p-2 text-sm md:text-base focus:outline-none focus:ring-1 focus:ring-primary placeholder:text-primary/30 font-mono"
+            className="w-full bg-input border border-primary p-2 text-sm md:text-base text-foreground focus:outline-none focus:ring-1 focus:ring-primary placeholder:text-foreground/50 font-mono"
           />
           {searchQuery && (
             <div className="text-xs opacity-50 mt-1">
