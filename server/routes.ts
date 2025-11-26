@@ -119,6 +119,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.put("/api/milestones/:id/restore", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { id } = req.params;
+      
+      const result = await storage.restoreMilestone(id, userId);
+      if ("error" in result) {
+        return res.status(409).json({ message: result.error });
+      }
+      
+      res.json(result.milestone);
+    } catch (error) {
+      console.error("Error restoring milestone:", error);
+      res.status(500).json({ message: "Failed to restore milestone" });
+    }
+  });
+
   // Task routes
   app.get("/api/tasks", isAuthenticated, async (req: any, res) => {
     try {
@@ -212,6 +229,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting task:", error);
       res.status(500).json({ message: "Failed to delete task" });
+    }
+  });
+
+  app.put("/api/tasks/:id/restore", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { id } = req.params;
+      
+      const result = await storage.restoreTask(id, userId);
+      if ("error" in result) {
+        return res.status(409).json({ message: result.error });
+      }
+      
+      res.json(result.task);
+    } catch (error) {
+      console.error("Error restoring task:", error);
+      res.status(500).json({ message: "Failed to restore task" });
     }
   });
 

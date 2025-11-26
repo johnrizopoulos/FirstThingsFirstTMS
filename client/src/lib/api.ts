@@ -115,3 +115,17 @@ export async function cleanupTrash(): Promise<void> {
   });
   return handleResponse(response);
 }
+
+export async function restoreTask(id: string): Promise<Task> {
+  const response = await fetch(`/api/tasks/${id}/restore`, {
+    method: "PUT",
+  });
+  return handleResponse(response);
+}
+
+export async function restoreMilestone(id: string): Promise<Milestone> {
+  const response = await fetch(`/api/milestones/${id}/restore`, {
+    method: "PUT",
+  });
+  return handleResponse(response);
+}

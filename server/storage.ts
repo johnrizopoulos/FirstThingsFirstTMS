@@ -26,6 +26,7 @@ export interface IStorage {
   deleteMilestone(id: string, userId: string): Promise<void>;
   getActiveMilestones(userId: string): Promise<Milestone[]>;
   getCompletedMilestones(userId: string): Promise<Milestone[]>;
+  restoreMilestone(id: string, userId: string): Promise<{ milestone: Milestone } | { error: string }>;
   
   // Task operations
   getTasks(userId: string): Promise<Task[]>;
@@ -35,6 +36,7 @@ export interface IStorage {
   completeTask(id: string, userId: string): Promise<Task | undefined>;
   deleteTask(id: string, userId: string): Promise<void>;
   getCompletedTasks(userId: string): Promise<Task[]>;
+  restoreTask(id: string, userId: string): Promise<{ task: Task } | { error: string }>;
   
   // Batch operations
   reorderTasks(taskIds: string[], userId: string): Promise<void>;
@@ -261,6 +263,72 @@ export class DatabaseStorage implements IStorage {
           .where(eq(tasks.id, taskIds[i]));
       }
     }
+  }
+
+  async restoreTask(id: string, userId: string): Promise<{ task: Task } | { error: string }> {
+    const task = await this.getTask(id, userId);
+    if (!task) return { error: "Task not found" };
+    
+    // Count active (non-deleted, non-completed) tasks
+    const activeTasks = await db
+      .select()
+      .from(tasks)
+      .where(and(
+        eq(tasks.userId, userId),
+        eq(tasks.isDeleted, false),
+        eq(tasks.isCompleted, false)
+      ));
+    
+    if (activeTasks.length >= 50) {
+      return { 
+        error: "Cannot restore task - maximum 50 active tasks reached. Please complete or delete another task." 
+      };
+    }
+    
+    const [restored] = await db
+      .update(tasks)
+      .set({
+        isDeleted: false,
+        deletedAt: null,
+        updatedAt: new Date(),
+      })
+      .where(eq(tasks.id, id))
+      .returning();
+    
+    return { task: restored };
+  }
+
+  async restoreMilestone(id: string, userId: string): Promise<{ milestone: Milestone } | { error: string }> {
+    const milestone = await this.getMilestone(id, userId);
+    if (!milestone) return { error: "Milestone not found" };
+    
+    // Count active (non-deleted, non-completed) milestones
+    const activeMilestones = await db
+      .select()
+      .from(milestones)
+      .where(and(
+        eq(milestones.userId, userId),
+        eq(milestones.isDeleted, false),
+        eq(milestones.isCompleted, false)
+      ));
+    
+    if (activeMilestones.length >= 5) {
+      return { 
+        error: "Cannot restore milestone - maximum 5 active milestones reached. Please complete or delete another milestone." 
+      };
+    }
+    
+    const [restored] = await db
+      .update(milestones)
+      .set({
+        isDeleted: false,
+        deletedAt: null,
+        updatedAt: new Date(),
+      })
+      .where(eq(milestones.id, id))
+      .returning();
+    
+    return { milestone: restored };
   }
 
   // Cleanup operations
