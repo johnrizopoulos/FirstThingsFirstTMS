@@ -79,43 +79,51 @@ export async function setupAuth(app: Express) {
     verified: passport.AuthenticateCallback
   ) => {
     try {
-      const user = {};
+      const user = {} as any;
       updateUserSession(user, tokens);
       await upsertUser(tokens.claims());
       verified(null, user);
     } catch (error) {
       console.error("Verification error:", error);
-      verified(error);
+      verified(error as any);
     }
   };
 
-  // Use a single strategy for authentication
-  // Construct the callback URL - use REPL_ID to get the canonical domain
-  const replId = process.env.REPL_ID || "";
-  const callbackUrl = `https://${replId}.replit.dev/api/callback`;
-  
-  const strategy = new Strategy(
-    {
-      config,
-      scope: "openid email profile offline_access",
-      callbackURL: callbackUrl,
-    },
-    verify,
-  );
-  passport.use("replitauth", strategy);
+  // Map to store strategies by callback URL to avoid recreating them
+  const strategies = new Map<string, Strategy>();
+
+  const getOrCreateStrategy = (callbackUrl: string) => {
+    if (!strategies.has(callbackUrl)) {
+      const strategy = new Strategy(
+        {
+          config,
+          scope: "openid email profile offline_access",
+          callbackURL: callbackUrl,
+        },
+        verify,
+      );
+      strategies.set(callbackUrl, strategy);
+      passport.use(`replitauth:${callbackUrl}`, strategy);
+    }
+    return `replitauth:${callbackUrl}`;
+  };
 
   passport.serializeUser((user: Express.User, cb) => cb(null, user));
   passport.deserializeUser((user: Express.User, cb) => cb(null, user));
 
   app.get("/api/login", (req, res, next) => {
-    passport.authenticate("replitauth", {
+    const callbackUrl = `${req.protocol}://${req.get('host')}/api/callback`;
+    const strategyName = getOrCreateStrategy(callbackUrl);
+    passport.authenticate(strategyName, {
       prompt: "login consent",
       scope: "openid email profile offline_access",
     })(req, res, next);
   });
 
   app.get("/api/callback", (req, res, next) => {
-    passport.authenticate("replitauth", {
+    const callbackUrl = `${req.protocol}://${req.get('host')}/api/callback`;
+    const strategyName = getOrCreateStrategy(callbackUrl);
+    passport.authenticate(strategyName, {
       successReturnToOrRedirect: "/",
       failureRedirect: "/api/login",
     })(req, res, next);
@@ -126,7 +134,7 @@ export async function setupAuth(app: Express) {
       res.redirect(
         client.buildEndSessionUrl(config, {
           client_id: process.env.REPL_ID!,
-          post_logout_redirect_uri: `${req.protocol}://${req.hostname}`,
+          post_logout_redirect_uri: `${req.protocol}://${req.get('host')}`,
         }).href
       );
     });
