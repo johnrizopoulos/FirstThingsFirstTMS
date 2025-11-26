@@ -208,7 +208,7 @@ export default function ListPage() {
       <div className="max-w-4xl mx-auto">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4 md:mb-6">
           <h2 className="text-base md:text-xl font-bold border-b-2 border-primary pr-4">
-            <span className="hidden sm:inline">// GLOBAL_TASK_QUEUE</span>
+            <span className="hidden sm:inline">// LIST_VIEW</span>
             <span className="sm:hidden">// TASK_QUEUE</span>
           </h2>
           <Button 
