@@ -1,9 +1,9 @@
 import React from "react";
-import { useGetCompletedTasks, useGetCompletedMilestones, useUncompleteTask, useUncompleteMilestone } from "@/hooks/useData";
+import { useGetCompletedTasks, useGetCompletedMilestones, useUncompleteTask, useUncompleteMilestone, useDeleteTask, useDeleteMilestone } from "@/hooks/useData";
 import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { RotateCcw } from "lucide-react";
+import { RotateCcw, Trash2 } from "lucide-react";
 import type { Task, Milestone } from "@shared/schema";
 
 export default function CompletedPage() {
@@ -11,6 +11,8 @@ export default function CompletedPage() {
   const { data: completedMilestones = [], isLoading: milestonesLoading } = useGetCompletedMilestones();
   const uncompleteTask = useUncompleteTask();
   const uncompleteMilestone = useUncompleteMilestone();
+  const deleteTask = useDeleteTask();
+  const deleteMilestone = useDeleteMilestone();
   const { toast } = useToast();
 
   const isLoading = tasksLoading || milestonesLoading;
@@ -53,6 +55,67 @@ export default function CompletedPage() {
     });
   };
 
+  const handleDeleteTask = (taskId: string) => {
+    deleteTask.mutate(taskId, {
+      onSuccess: () => {
+        toast({
+          title: "SUCCESS",
+          description: "Task moved to trash",
+        });
+      },
+      onError: (error: any) => {
+        const message = error?.message || "Failed to delete task";
+        toast({
+          title: "ERROR",
+          description: message,
+          variant: "destructive",
+        });
+      },
+    });
+  };
+
+  const handleDeleteMilestone = (milestoneId: string) => {
+    deleteMilestone.mutate(milestoneId, {
+      onSuccess: () => {
+        toast({
+          title: "SUCCESS",
+          description: "Milestone moved to trash",
+        });
+      },
+      onError: (error: any) => {
+        const message = error?.message || "Failed to delete milestone";
+        toast({
+          title: "ERROR",
+          description: message,
+          variant: "destructive",
+        });
+      },
+    });
+  };
+
+  const handleClearAll = () => {
+    const deletePromises = [
+      ...completedTasks.map(task => deleteTask.mutateAsync(task.id)),
+      ...completedMilestones.map(milestone => deleteMilestone.mutateAsync(milestone.id))
+    ];
+
+    Promise.all(deletePromises)
+      .then(() => {
+        toast({
+          title: "SUCCESS",
+          description: "All completed items moved to trash",
+        });
+      })
+      .catch((error: any) => {
+        const message = error?.message || "Failed to clear all items";
+        toast({
+          title: "ERROR",
+          description: message,
+          variant: "destructive",
+        });
+      });
+  };
+
   if (isLoading) {
     return (
       <Layout>
@@ -68,9 +131,23 @@ export default function CompletedPage() {
   return (
     <Layout>
       <div className="space-y-6">
-        <div>
-          <h1 className="text-xl md:text-2xl font-bold mb-4 uppercase">COMPLETED</h1>
-          <p className="text-xs opacity-50">All completed tasks and milestones are permanently stored here</p>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div>
+            <h1 className="text-xl md:text-2xl font-bold mb-2 uppercase">COMPLETED</h1>
+            <p className="text-xs opacity-50">All completed tasks and milestones are permanently stored here</p>
+          </div>
+          {hasItems && (
+            <Button
+              size="sm"
+              variant="outline"
+              data-testid="button-clear-all"
+              className="border-destructive text-destructive hover:bg-destructive hover:text-background rounded-none font-mono text-xs shrink-0"
+              onClick={handleClearAll}
+              disabled={deleteTask.isPending || deleteMilestone.isPending}
+            >
+              <Trash2 className="w-3 h-3 mr-2" /> CLEAR ALL
+            </Button>
+          )}
         </div>
 
         {!hasItems ? (
@@ -108,16 +185,28 @@ export default function CompletedPage() {
                           </p>
                         )}
                       </div>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        data-testid={`button-uncomplete-milestone-${milestone.id}`}
-                        className="border-primary text-primary hover:bg-primary hover:text-background rounded-none font-mono text-xs w-full sm:w-auto shrink-0"
-                        onClick={() => handleUncompleteMilestone(milestone.id)}
-                        disabled={uncompleteMilestone.isPending}
-                      >
-                        <RotateCcw className="w-3 h-3 mr-2" /> {uncompleteMilestone.isPending ? "UNCOMPLETING..." : "UNCOMPLETE"}
-                      </Button>
+                      <div className="flex gap-2 w-full sm:w-auto">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          data-testid={`button-uncomplete-milestone-${milestone.id}`}
+                          className="border-primary text-primary hover:bg-primary hover:text-background rounded-none font-mono text-xs flex-1 sm:flex-none shrink-0"
+                          onClick={() => handleUncompleteMilestone(milestone.id)}
+                          disabled={uncompleteMilestone.isPending}
+                        >
+                          <RotateCcw className="w-3 h-3 mr-2" /> {uncompleteMilestone.isPending ? "UNCOMPLETING..." : "UNCOMPLETE"}
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          data-testid={`button-delete-milestone-${milestone.id}`}
+                          className="border-destructive text-destructive hover:bg-destructive hover:text-background rounded-none font-mono text-xs shrink-0"
+                          onClick={() => handleDeleteMilestone(milestone.id)}
+                          disabled={deleteMilestone.isPending}
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </Button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -152,16 +241,28 @@ export default function CompletedPage() {
                           </p>
                         )}
                       </div>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        data-testid={`button-uncomplete-task-${task.id}`}
-                        className="border-primary text-primary hover:bg-primary hover:text-background rounded-none font-mono text-xs w-full sm:w-auto shrink-0"
-                        onClick={() => handleUncompleteTask(task.id)}
-                        disabled={uncompleteTask.isPending}
-                      >
-                        <RotateCcw className="w-3 h-3 mr-2" /> {uncompleteTask.isPending ? "UNCOMPLETING..." : "UNCOMPLETE"}
-                      </Button>
+                      <div className="flex gap-2 w-full sm:w-auto">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          data-testid={`button-uncomplete-task-${task.id}`}
+                          className="border-primary text-primary hover:bg-primary hover:text-background rounded-none font-mono text-xs flex-1 sm:flex-none shrink-0"
+                          onClick={() => handleUncompleteTask(task.id)}
+                          disabled={uncompleteTask.isPending}
+                        >
+                          <RotateCcw className="w-3 h-3 mr-2" /> {uncompleteTask.isPending ? "UNCOMPLETING..." : "UNCOMPLETE"}
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          data-testid={`button-delete-task-${task.id}`}
+                          className="border-destructive text-destructive hover:bg-destructive hover:text-background rounded-none font-mono text-xs shrink-0"
+                          onClick={() => handleDeleteTask(task.id)}
+                          disabled={deleteTask.isPending}
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </Button>
+                      </div>
                     </div>
                   ))}
                 </div>

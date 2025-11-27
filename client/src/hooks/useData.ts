@@ -74,8 +74,10 @@ export function useDeleteMilestone() {
   return useMutation({
     mutationFn: api.deleteMilestone,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/milestones"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/tasks"] });
+      // Background refetch keeps data available during refresh
+      queryClient.refetchQueries({ queryKey: ["/api/milestones"] });
+      queryClient.refetchQueries({ queryKey: ["/api/milestones/completed"] });
+      queryClient.refetchQueries({ queryKey: ["/api/tasks"] });
     },
     onError: (error: any) => {
       console.error("Error deleting milestone:", error);
@@ -128,6 +130,7 @@ export function useDeleteTask() {
       queryClient.refetchQueries({ queryKey: ["/api/tasks"] });
       queryClient.refetchQueries({ queryKey: ["/api/tasks/active"] });
       queryClient.refetchQueries({ queryKey: ["/api/tasks/focus"] });
+      queryClient.refetchQueries({ queryKey: ["/api/tasks/completed"] });
     },
     onError: (error: any) => {
       console.error("Error deleting task:", error);
