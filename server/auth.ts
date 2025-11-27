@@ -24,11 +24,13 @@ export function setupSession(app: Express) {
 
   app.use(
     session({
+      name: "ftf.sid",
       secret: process.env.SESSION_SECRET || "dev-secret-change-in-production",
       store: sessionStore,
       resave: false,
       saveUninitialized: false,
       cookie: {
+        path: "/",
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: "lax",
@@ -107,7 +109,7 @@ export function handleLogout(req: Request, res: Response) {
       console.error("Logout error:", err);
       return res.status(500).json({ message: "Logout failed" });
     }
-    res.clearCookie("connect.sid");
+    res.clearCookie("ftf.sid");
     res.json({ success: true });
   });
 }
