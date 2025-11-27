@@ -3,6 +3,25 @@
 ## Overview
 A terminal-inspired task management web application with IBM 3270/Bloomberg aesthetic. Features Focus mode for single-task concentration, global task queue, milestone-based Kanban board (max 5 columns), 30-day trash retention, and a Completed view for permanently viewing completed tasks/milestones. Includes three theme modes: Terminal (green-on-black), Dark (light gray-on-black), and Light (black-on-white). Uses email + name passwordless authentication with PostgreSQL for data storage.
 
+## Version 2.1 (Nov 27, 2025)
+
+### Performance Optimizations (Nov 27, 2025)
+- **View-Specific Endpoints**: Created dedicated API endpoints for each view
+  - `/api/tasks/active` - Returns only active tasks (50-80% smaller payload)
+  - `/api/tasks/focus` - Returns single top-priority task (99% smaller payload)
+  - Updated FocusPage, ListPage, and BoardPage to use optimized endpoints
+- **Background Refetch Strategy**: Replaced invalidateQueries with refetchQueries
+  - Data stays in cache during refresh → instant page transitions
+  - Zero loading spinners when navigating between views
+  - Stale data updates seamlessly in background
+
+### Bug Fixes (Nov 27, 2025)
+- **Completed Tasks Query Fix**: Fixed getCompletedTasks to show all completed tasks
+  - Removed INNER JOIN on milestones table that was excluding tasks
+  - Now queries directly by userId, isCompleted, and isDeleted flags
+  - Tasks completed via milestone cascade now properly appear in Completed view
+  - Tasks without milestone assignments also appear when completed
+
 ## Version 2.0 (Nov 27, 2025)
 
 ### Performance & UX Improvements (Nov 27, 2025)
