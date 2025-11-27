@@ -49,7 +49,7 @@ export default function LoginPage() {
               FIRST_THINGS_FIRST
             </h1>
           </div>
-          <p className="text-sm md:text-lg opacity-70 mb-2">TASK MANAGEMENT SYSTEM // V.2.1</p>
+          <p className="text-sm md:text-lg opacity-70 mb-2">TASK MANAGEMENT SYSTEM // V.2.2</p>
         </div>
 
         <Link href="/signin" className="inline-block border-2 border-primary bg-primary text-primary-foreground px-4 py-3 md:px-8 md:py-4 font-bold text-sm md:text-lg hover:bg-primary/80 transition-colors cursor-pointer" data-testid="button-get-authenticated">
