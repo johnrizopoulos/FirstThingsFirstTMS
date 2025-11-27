@@ -129,51 +129,57 @@ export class DatabaseStorage implements IStorage {
     const milestone = await this.getMilestone(id, userId);
     if (!milestone) return undefined;
 
-    // Complete all tasks associated with this milestone
-    await db
-      .update(tasks)
-      .set({
-        isCompleted: true,
-        completedAt: now,
-        updatedAt: now,
-      })
-      .where(and(eq(tasks.milestoneId, id), eq(tasks.isCompleted, false)));
+    // Use transaction to ensure atomicity
+    return await db.transaction(async (tx) => {
+      // Complete all tasks associated with this milestone
+      await tx
+        .update(tasks)
+        .set({
+          isCompleted: true,
+          completedAt: now,
+          updatedAt: now,
+        })
+        .where(and(eq(tasks.milestoneId, id), eq(tasks.isCompleted, false)));
 
-    // Complete the milestone
-    const [completed] = await db
-      .update(milestones)
-      .set({
-        isCompleted: true,
-        completedAt: now,
-        updatedAt: now,
-      })
-      .where(and(eq(milestones.id, id), eq(milestones.userId, userId)))
-      .returning();
-    return completed;
+      // Complete the milestone
+      const [completed] = await tx
+        .update(milestones)
+        .set({
+          isCompleted: true,
+          completedAt: now,
+          updatedAt: now,
+        })
+        .where(and(eq(milestones.id, id), eq(milestones.userId, userId)))
+        .returning();
+      return completed;
+    });
   }
 
   async deleteMilestone(id: string, userId: string): Promise<void> {
     const now = new Date();
     
-    // Mark all tasks linked to this milestone as deleted
-    await db
-      .update(tasks)
-      .set({
-        isDeleted: true,
-        deletedAt: now,
-        updatedAt: now,
-      })
-      .where(eq(tasks.milestoneId, id));
-    
-    // Mark the milestone as deleted
-    await db
-      .update(milestones)
-      .set({
-        isDeleted: true,
-        deletedAt: now,
-        updatedAt: now,
-      })
-      .where(and(eq(milestones.id, id), eq(milestones.userId, userId)));
+    // Use transaction to ensure atomicity
+    await db.transaction(async (tx) => {
+      // Mark all tasks linked to this milestone as deleted
+      await tx
+        .update(tasks)
+        .set({
+          isDeleted: true,
+          deletedAt: now,
+          updatedAt: now,
+        })
+        .where(eq(tasks.milestoneId, id));
+      
+      // Mark the milestone as deleted
+      await tx
+        .update(milestones)
+        .set({
+          isDeleted: true,
+          deletedAt: now,
+          updatedAt: now,
+        })
+        .where(and(eq(milestones.id, id), eq(milestones.userId, userId)));
+    });
   }
 
   async getActiveMilestones(userId: string): Promise<Milestone[]> {
