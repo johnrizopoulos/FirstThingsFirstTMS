@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { useTasks, useMilestones, useCreateTask, useCreateMilestone, useUpdateMilestone, useDeleteMilestone, useReorderTasks, useUpdateTask, useDeleteTask, useCompleteTask, useCompleteMilestone } from "@/hooks/useData";
+import { useTasks, useMilestones, useCreateTask, useCreateMilestone, useUpdateMilestone, useDeleteMilestone, useReorderTasksInMilestone, useUpdateTask, useDeleteTask, useCompleteTask, useCompleteMilestone } from "@/hooks/useData";
 import { Layout } from "@/components/Layout";
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from "@dnd-kit/core";
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, useSortable } from "@dnd-kit/sortable";
@@ -68,7 +68,7 @@ export default function BoardPage() {
   const updateMilestone = useUpdateMilestone();
   const deleteMilestone = useDeleteMilestone();
   const createTask = useCreateTask();
-  const reorderTasks = useReorderTasks();
+  const reorderTasksInMilestone = useReorderTasksInMilestone();
   const updateTask = useUpdateTask();
   const completeTask = useCompleteTask();
   const deleteTask = useDeleteTask();
@@ -133,7 +133,7 @@ export default function BoardPage() {
        const newIndex = milestoneTasks.findIndex(t => t.id === over.id);
        
        const newOrder = arrayMove(milestoneTasks, oldIndex, newIndex);
-       reorderTasks.mutate(newOrder.map(t => t.id));
+       reorderTasksInMilestone.mutate(newOrder.map(t => t.id));
     }
   };
 

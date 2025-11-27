@@ -154,6 +154,47 @@ export function useReorderTasks() {
   });
 }
 
+export function useReorderTasksInMilestone() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: api.reorderTasksInMilestone,
+    onMutate: async (taskIds: string[]) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ["/api/tasks"] });
+
+      // Get previous data
+      const previousTasks = queryClient.getQueryData<Task[]>(["/api/tasks"]);
+
+      // Optimistically update cache with new milestoneOrder values (Board view)
+      if (previousTasks) {
+        const taskMap = new Map(previousTasks.map(t => [t.id, t]));
+        const reorderedTasks = taskIds
+          .map((id, index) => {
+            const task = taskMap.get(id);
+            return task ? { ...task, milestoneOrder: index } : null;
+          })
+          .filter((t): t is Task => !!t);
+        
+        // Maintain any tasks that weren't in the reorder list (keep their original milestoneOrder)
+        const unmovedTasks = previousTasks
+          .filter(t => !taskIds.includes(t.id));
+        
+        queryClient.setQueryData(["/api/tasks"], [...reorderedTasks, ...unmovedTasks]);
+      }
+
+      return { previousTasks };
+    },
+    onError: (error: any, taskIds: string[], context: any) => {
+      // Revert to previous data on error
+      if (context?.previousTasks) {
+        queryClient.setQueryData(["/api/tasks"], context.previousTasks);
+      }
+      console.error("Error reordering tasks in milestone:", error);
+    },
+  });
+}
+
 export function useCompleteMilestone() {
   const queryClient = useQueryClient();
 

@@ -44,6 +44,7 @@ export interface IStorage {
   
   // Batch operations
   reorderTasks(taskIds: string[], userId: string): Promise<void>;
+  reorderTasksInMilestone(taskIds: string[], userId: string): Promise<void>;
   
   // Cleanup operations
   cleanupTrash(userId: string): Promise<void>;
@@ -371,12 +372,28 @@ export class DatabaseStorage implements IStorage {
   async reorderTasks(taskIds: string[], userId: string): Promise<void> {
     const now = new Date();
     
-    // Update global order for each task in a single pass
+    // Update global order for each task in a single pass (for List view)
     // No need to check existence - WHERE clause handles non-existent tasks
     for (let i = 0; i < taskIds.length; i++) {
       await db
         .update(tasks)
         .set({ globalOrder: i, updatedAt: now })
+        .where(and(
+          eq(tasks.id, taskIds[i]),
+          eq(tasks.userId, userId)
+        ));
+    }
+  }
+
+  async reorderTasksInMilestone(taskIds: string[], userId: string): Promise<void> {
+    const now = new Date();
+    
+    // Update milestone order for each task (for Board view)
+    // No need to check existence - WHERE clause handles non-existent tasks
+    for (let i = 0; i < taskIds.length; i++) {
+      await db
+        .update(tasks)
+        .set({ milestoneOrder: i, updatedAt: now })
         .where(and(
           eq(tasks.id, taskIds[i]),
           eq(tasks.userId, userId)
