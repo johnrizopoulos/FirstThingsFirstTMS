@@ -4,7 +4,7 @@ import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { RotateCcw } from "lucide-react";
 import { formatDistance } from "date-fns";
-import { toast } from "sonner";
+import { useToast } from "@/hooks/use-toast";
 
 export default function TrashPage() {
   const { data: tasks = [] } = useTasks();
@@ -12,6 +12,7 @@ export default function TrashPage() {
   const restoreTask = useRestoreTask();
   const restoreMilestone = useRestoreMilestone();
   const cleanupTrash = useCleanupTrash();
+  const { toast } = useToast();
   const [restoreError, setRestoreError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -34,12 +35,19 @@ export default function TrashPage() {
     setRestoreError(null);
     restoreTask.mutate(taskId, {
       onSuccess: () => {
-        toast.success("Task restored");
+        toast({
+          title: "SUCCESS",
+          description: "Task restored",
+        });
       },
       onError: (error: any) => {
         const message = error?.message || "Failed to restore task";
         setRestoreError(message);
-        toast.error(message);
+        toast({
+          title: "ERROR",
+          description: message,
+          variant: "destructive",
+        });
       },
     });
   };
@@ -48,12 +56,19 @@ export default function TrashPage() {
     setRestoreError(null);
     restoreMilestone.mutate(milestoneId, {
       onSuccess: () => {
-        toast.success("Milestone restored");
+        toast({
+          title: "SUCCESS",
+          description: "Milestone restored",
+        });
       },
       onError: (error: any) => {
         const message = error?.message || "Failed to restore milestone";
         setRestoreError(message);
-        toast.error(message);
+        toast({
+          title: "ERROR",
+          description: message,
+          variant: "destructive",
+        });
       },
     });
   };
