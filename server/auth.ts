@@ -13,6 +13,13 @@ declare global {
 }
 
 export function setupSession(app: Express) {
+  // Require SESSION_SECRET in production
+  const sessionSecret = process.env.SESSION_SECRET;
+  
+  if (process.env.NODE_ENV === "production" && !sessionSecret) {
+    throw new Error("SESSION_SECRET environment variable must be set in production");
+  }
+  
   const sessionTtl = 7 * 24 * 60 * 60 * 1000; // 1 week
   const pgStore = connectPg(session);
   const sessionStore = new pgStore({
@@ -25,7 +32,7 @@ export function setupSession(app: Express) {
   app.use(
     session({
       name: "ftf.sid",
-      secret: process.env.SESSION_SECRET || "dev-secret-change-in-production",
+      secret: sessionSecret || "dev-secret-DO-NOT-USE-IN-PRODUCTION",
       store: sessionStore,
       resave: false,
       saveUninitialized: false,
