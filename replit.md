@@ -13,6 +13,18 @@ A terminal-inspired task management web application with IBM 3270/Bloomberg aest
 - Simplified session handling - removed manual session.save()/regenerate() calls
 - Added trust proxy configuration for production deployment compatibility
 
+### Database Improvements (Nov 27, 2025)
+- Added database transactions to `completeMilestone` and `deleteMilestone` for atomicity
+- Ensures all-or-nothing execution: either all operations succeed or none do
+- Prevents data inconsistency if operations fail mid-way
+
+### UNCOMPLETE Feature (Nov 27, 2025)
+- Added UNCOMPLETE buttons to Completed page for both tasks and milestones
+- Allows moving completed items back to active status
+- Respects system limits: max 50 active tasks, max 5 active milestones
+- Uncompleting a milestone does NOT uncomplete its associated tasks (tasks remain completed independently)
+- Tasks must be uncompleted individually if needed
+
 ### Three-Page Authentication Flow
 - Replaced Replit Auth with custom email + name passwordless authentication system
 - Implemented three-page user journey:
