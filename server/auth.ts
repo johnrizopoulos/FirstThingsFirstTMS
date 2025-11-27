@@ -113,6 +113,10 @@ export async function handleLogin(req: Request, res: Response) {
           cookie: req.session.cookie
         });
         
+        console.log("Response headers will include:", {
+          setCookie: res.getHeader('Set-Cookie')
+        });
+        
         res.json({ success: true, user: { id: user.id, email: user.email, name: user.name } });
       });
     });
@@ -137,6 +141,13 @@ export function handleLogout(req: Request, res: Response) {
 // Get current user endpoint
 export async function getCurrentUser(req: Request, res: Response) {
   try {
+    console.log("getCurrentUser - session check:", {
+      sessionId: req.sessionID,
+      hasSession: !!req.session,
+      cookies: req.headers.cookie,
+      userId: (req.session as any).userId
+    });
+    
     const userId = (req.session as any).userId;
     
     if (!userId) {
