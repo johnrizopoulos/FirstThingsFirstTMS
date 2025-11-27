@@ -17,8 +17,6 @@ import BoardPage from "@/pages/BoardPage";
 import CompletedPage from "@/pages/CompletedPage";
 import TrashPage from "@/pages/TrashPage";
 
-const RedirectToHome = () => <Redirect to="/" />;
-
 function AuthRouter() {
   const { isAuthenticated, isLoading } = useAuth();
 
@@ -35,26 +33,22 @@ function AuthRouter() {
 
   return (
     <Switch>
-      {!isAuthenticated ? (
-        <>
-          <Route path="/" component={LandingPage} />
-          <Route path="/login" component={LoginPage} />
-          <Route path="/signin" component={SignInPage} />
-          <Route path="*" component={RedirectToHome} />
-        </>
-      ) : (
-        <>
-          <Route path="/" component={FocusPage} />
-          <Route path="/login" component={RedirectToHome} />
-          <Route path="/signin" component={RedirectToHome} />
-          <Route path="/list" component={ListPage} />
-          <Route path="/board" component={BoardPage} />
-          <Route path="/completed" component={CompletedPage} />
-          <Route path="/trash" component={TrashPage} />
-          <Route path="/tutorial" component={OnboardingPage} />
-          <Route component={NotFound} />
-        </>
-      )}
+      {!isAuthenticated ? [
+        <Route key="landing" path="/" component={LandingPage} />,
+        <Route key="login" path="/login" component={LoginPage} />,
+        <Route key="signin" path="/signin" component={SignInPage} />,
+        <Route key="fallback" path="*"><Redirect to="/" /></Route>
+      ] : [
+        <Route key="focus" path="/" component={FocusPage} />,
+        <Route key="login-redirect" path="/login"><Redirect to="/" /></Route>,
+        <Route key="signin-redirect" path="/signin"><Redirect to="/" /></Route>,
+        <Route key="list" path="/list" component={ListPage} />,
+        <Route key="board" path="/board" component={BoardPage} />,
+        <Route key="completed" path="/completed" component={CompletedPage} />,
+        <Route key="trash" path="/trash" component={TrashPage} />,
+        <Route key="tutorial" path="/tutorial" component={OnboardingPage} />,
+        <Route key="notfound" component={NotFound} />
+      ]}
     </Switch>
   );
 }
