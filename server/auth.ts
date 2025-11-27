@@ -44,6 +44,13 @@ export function setupSession(app: Express) {
 export function isAuthenticated(req: Request, res: Response, next: NextFunction) {
   const userId = (req.session as any).userId;
   
+  console.log("Auth check:", {
+    sessionId: req.sessionID,
+    userId: userId,
+    hasSession: !!req.session,
+    cookies: req.headers.cookie
+  });
+  
   if (!userId) {
     return res.status(401).json({ message: "Unauthorized" });
   }
@@ -92,6 +99,12 @@ export async function handleLogin(req: Request, res: Response) {
           console.error("Session save error:", saveErr);
           return res.status(500).json({ message: "Login failed" });
         }
+        
+        console.log("Session saved successfully:", {
+          sessionId: req.sessionID,
+          userId: (req.session as any).userId,
+          cookie: req.session.cookie
+        });
         
         res.json({ success: true, user: { id: user.id, email: user.email, name: user.name } });
       });
