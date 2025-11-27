@@ -94,7 +94,7 @@ export default function LoginPage() {
         </div>
 
         <Link href="/signin" className="inline-block border-2 border-primary bg-primary text-primary-foreground px-4 py-3 md:px-8 md:py-4 font-bold text-sm md:text-lg hover:bg-primary/80 transition-colors cursor-pointer" data-testid="button-continue">
-          <span className="hidden sm:inline">[ENTER] CONTINUE</span>
+          <span className="hidden sm:inline">[ENTER] GET_AUTHENTICATED</span>
           <span className="sm:hidden">CONTINUE</span>
         </Link>
 
