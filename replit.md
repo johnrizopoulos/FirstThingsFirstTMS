@@ -19,6 +19,13 @@ A terminal-inspired task management web application with IBM 3270/Bloomberg aest
   - Added grab dots (GripVertical icon) for drag-and-drop
   - Task title text is clickable to open edit dialog
   - Separated drag handle from clickable text for better UX
+- **Security Hardening**: Multi-layer validation for milestone task reordering
+  - Layer 1: Verify milestone exists and belongs to authenticated user
+  - Layer 2: Load all tasks scoped to user + milestone
+  - Layer 3: Validate every taskId belongs to that specific milestone
+  - Layer 4: Proper error handling with HTTP status codes (404/403)
+  - Prevents cross-column contamination and unauthorized access
+  - Column integrity fully protected against malicious payloads
 
 ### Code Quality Improvements (Nov 27, 2025)
 - Fixed React Fragment console error by replacing Fragments with arrays in wouter Route components
