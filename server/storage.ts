@@ -369,15 +369,18 @@ export class DatabaseStorage implements IStorage {
 
   // Batch operations
   async reorderTasks(taskIds: string[], userId: string): Promise<void> {
-    // Update global order for each task
+    const now = new Date();
+    
+    // Update global order for each task in a single pass
+    // No need to check existence - WHERE clause handles non-existent tasks
     for (let i = 0; i < taskIds.length; i++) {
-      const existingTask = await this.getTask(taskIds[i], userId);
-      if (existingTask) {
-        await db
-          .update(tasks)
-          .set({ globalOrder: i, updatedAt: new Date() })
-          .where(eq(tasks.id, taskIds[i]));
-      }
+      await db
+        .update(tasks)
+        .set({ globalOrder: i, updatedAt: now })
+        .where(and(
+          eq(tasks.id, taskIds[i]),
+          eq(tasks.userId, userId)
+        ));
     }
   }
 
