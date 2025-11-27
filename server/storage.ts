@@ -24,6 +24,7 @@ export interface IStorage {
   createMilestone(milestone: InsertMilestone): Promise<Milestone>;
   updateMilestone(id: string, userId: string, updates: Partial<Milestone>): Promise<Milestone | undefined>;
   completeMilestone(id: string, userId: string): Promise<Milestone | undefined>;
+  uncompleteMilestone(id: string, userId: string): Promise<{ milestone: Milestone } | { error: string }>;
   deleteMilestone(id: string, userId: string): Promise<void>;
   getActiveMilestones(userId: string): Promise<Milestone[]>;
   getCompletedMilestones(userId: string): Promise<Milestone[]>;
@@ -36,6 +37,7 @@ export interface IStorage {
   createTask(task: InsertTask): Promise<Task>;
   updateTask(id: string, userId: string, updates: Partial<Task>): Promise<Task | undefined>;
   completeTask(id: string, userId: string): Promise<Task | undefined>;
+  uncompleteTask(id: string, userId: string): Promise<{ task: Task } | { error: string }>;
   deleteTask(id: string, userId: string): Promise<void>;
   getCompletedTasks(userId: string): Promise<Task[]>;
   restoreTask(id: string, userId: string): Promise<{ task: Task } | { error: string }>;
@@ -155,6 +157,39 @@ export class DatabaseStorage implements IStorage {
     });
   }
 
+  async uncompleteMilestone(id: string, userId: string): Promise<{ milestone: Milestone } | { error: string }> {
+    const milestone = await this.getMilestone(id, userId);
+    if (!milestone) return { error: "Milestone not found" };
+    
+    // Count active (non-deleted, non-completed) milestones
+    const activeMilestones = await db
+      .select()
+      .from(milestones)
+      .where(and(
+        eq(milestones.userId, userId),
+        eq(milestones.isDeleted, false),
+        eq(milestones.isCompleted, false)
+      ));
+    
+    if (activeMilestones.length >= 5) {
+      return { 
+        error: "Cannot uncomplete milestone - maximum 5 active milestones reached. Please complete or delete another milestone." 
+      };
+    }
+    
+    const [uncompleted] = await db
+      .update(milestones)
+      .set({
+        isCompleted: false,
+        completedAt: null,
+        updatedAt: new Date(),
+      })
+      .where(eq(milestones.id, id))
+      .returning();
+    
+    return { milestone: uncompleted };
+  }
+
   async deleteMilestone(id: string, userId: string): Promise<void> {
     const now = new Date();
     
@@ -270,6 +305,39 @@ export class DatabaseStorage implements IStorage {
       .where(eq(tasks.id, id))
       .returning();
     return completed;
+  }
+
+  async uncompleteTask(id: string, userId: string): Promise<{ task: Task } | { error: string }> {
+    const task = await this.getTask(id, userId);
+    if (!task) return { error: "Task not found" };
+    
+    // Count active (non-deleted, non-completed) tasks
+    const activeTasks = await db
+      .select()
+      .from(tasks)
+      .where(and(
+        eq(tasks.userId, userId),
+        eq(tasks.isDeleted, false),
+        eq(tasks.isCompleted, false)
+      ));
+    
+    if (activeTasks.length >= 50) {
+      return { 
+        error: "Cannot uncomplete task - maximum 50 active tasks reached. Please complete or delete another task." 
+      };
+    }
+    
+    const [uncompleted] = await db
+      .update(tasks)
+      .set({
+        isCompleted: false,
+        completedAt: null,
+        updatedAt: new Date(),
+      })
+      .where(eq(tasks.id, id))
+      .returning();
+    
+    return { task: uncompleted };
   }
 
   async deleteTask(id: string, userId: string): Promise<void> {

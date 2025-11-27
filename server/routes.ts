@@ -77,6 +77,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.put("/api/milestones/:id/uncomplete", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.userId;
+      const { id } = req.params;
+      
+      const result = await storage.uncompleteMilestone(id, userId);
+      if ('error' in result) {
+        return res.status(400).json({ message: result.error });
+      }
+      
+      res.json(result.milestone);
+    } catch (error) {
+      console.error("Error uncompleting milestone:", error);
+      res.status(500).json({ message: "Failed to uncomplete milestone" });
+    }
+  });
+
   app.get("/api/milestones/active", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.userId;
@@ -204,6 +221,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error completing task:", error);
       res.status(500).json({ message: "Failed to complete task" });
+    }
+  });
+
+  app.put("/api/tasks/:id/uncomplete", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.userId;
+      const { id } = req.params;
+      
+      const result = await storage.uncompleteTask(id, userId);
+      if ('error' in result) {
+        return res.status(400).json({ message: result.error });
+      }
+      
+      res.json(result.task);
+    } catch (error) {
+      console.error("Error uncompleting task:", error);
+      res.status(500).json({ message: "Failed to uncomplete task" });
     }
   });
 

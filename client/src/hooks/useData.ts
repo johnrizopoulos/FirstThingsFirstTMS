@@ -246,3 +246,34 @@ export function useRestoreMilestone() {
     },
   });
 }
+
+export function useUncompleteMilestone() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: api.uncompleteMilestone,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/milestones"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/milestones/completed"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/milestones/active"] });
+    },
+    onError: (error: any) => {
+      console.error("Error uncompleting milestone:", error);
+    },
+  });
+}
+
+export function useUncompleteTask() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: api.uncompleteTask,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/tasks"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/tasks/completed"] });
+    },
+    onError: (error: any) => {
+      console.error("Error uncompleting task:", error);
+    },
+  });
+}

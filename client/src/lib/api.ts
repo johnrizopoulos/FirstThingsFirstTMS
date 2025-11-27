@@ -40,6 +40,13 @@ export async function completeMilestone(id: string): Promise<Milestone> {
   return handleResponse(response);
 }
 
+export async function uncompleteMilestone(id: string): Promise<Milestone> {
+  const response = await fetch(`/api/milestones/${id}/uncomplete`, {
+    method: "PUT",
+  });
+  return handleResponse(response);
+}
+
 export async function getActiveMilestones(): Promise<Milestone[]> {
   const response = await fetch("/api/milestones/active");
   return handleResponse(response);
@@ -83,6 +90,13 @@ export async function updateTask(id: string, updates: Partial<Task>): Promise<Ta
 
 export async function completeTask(id: string): Promise<Task> {
   const response = await fetch(`/api/tasks/${id}/complete`, {
+    method: "PUT",
+  });
+  return handleResponse(response);
+}
+
+export async function uncompleteTask(id: string): Promise<Task> {
+  const response = await fetch(`/api/tasks/${id}/uncomplete`, {
     method: "PUT",
   });
   return handleResponse(response);
