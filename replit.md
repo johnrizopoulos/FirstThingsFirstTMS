@@ -15,12 +15,20 @@ A terminal-inspired task management web application with IBM 3270/Bloomberg aest
   - Zero loading spinners when navigating between views
   - Stale data updates seamlessly in background
 
+### Completed View Delete Feature (Nov 27, 2025)
+- Added individual delete buttons (trash icon) next to UNCOMPLETE button for tasks and milestones
+- Added CLEAR ALL button at top of Completed view to move all items to trash at once
+- Items move to Trash page with 30-day retention (soft delete)
+- Red/destructive styling for delete actions to indicate caution
+
 ### Bug Fixes (Nov 27, 2025)
 - **Completed Tasks Query Fix**: Fixed getCompletedTasks to show all completed tasks
   - Removed INNER JOIN on milestones table that was excluding tasks
   - Now queries directly by userId, isCompleted, and isDeleted flags
   - Tasks completed via milestone cascade now properly appear in Completed view
   - Tasks without milestone assignments also appear when completed
+- **Completed Milestones Query Fix**: Fixed getCompletedMilestones to exclude deleted milestones
+  - Added isDeleted=false filter to prevent deleted milestones from appearing in Completed view
 
 ## Version 2.0 (Nov 27, 2025)
 
