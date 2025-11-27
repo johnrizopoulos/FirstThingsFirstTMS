@@ -6,57 +6,47 @@ import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSo
 import { CSS } from "@dnd-kit/utilities";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Trash2, Check } from "lucide-react";
+import { Trash2, Check, GripVertical } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Task, Milestone } from "@shared/schema";
 
 function SortableTaskCard({ task, onSelect }: { task: Task; onSelect: (task: Task) => void }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: task.id });
-  const pointerStartRef = React.useRef<{ x: number; y: number } | null>(null);
   
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
     zIndex: isDragging ? 50 : "auto",
+    position: isDragging ? "relative" : "static",
   } as React.CSSProperties;
-
-  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
-    pointerStartRef.current = { x: e.clientX, y: e.clientY };
-  };
-
-  const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (pointerStartRef.current && !isDragging) {
-      const dx = e.clientX - pointerStartRef.current.x;
-      const dy = e.clientY - pointerStartRef.current.y;
-      const distance = Math.sqrt(dx * dx + dy * dy);
-      
-      // If movement is minimal, treat as click
-      if (distance < 8) {
-        onSelect(task);
-      }
-    }
-    pointerStartRef.current = null;
-  };
 
   return (
     <div
       ref={setNodeRef}
       style={style}
-      {...attributes}
-      {...listeners}
-      onPointerDown={(e) => {
-        handlePointerDown(e);
-        listeners?.onPointerDown?.(e as any);
-      }}
-      onPointerUp={handlePointerUp}
       data-testid={`card-task-${task.id}`}
       className={cn(
-        "bg-input border border-primary/50 p-2 mb-2 text-xs cursor-grab active:cursor-grabbing hover:border-primary hover:bg-secondary/20 transition-colors",
+        "bg-input border border-primary/50 p-2 mb-2 text-xs flex items-center gap-2 hover:border-primary hover:bg-secondary/20 transition-colors group",
         isDragging && "opacity-50 bg-secondary border-dashed",
         task.isCompleted && "opacity-50 line-through"
       )}
     >
-      <div className="font-bold mb-1 font-mono uppercase whitespace-normal break-words">{task.title}</div>
+      <div
+        {...attributes}
+        {...listeners}
+        className="cursor-grab active:cursor-grabbing flex items-center justify-center flex-shrink-0 touch-none"
+        data-testid={`button-drag-handle-${task.id}`}
+      >
+        <GripVertical className="w-4 h-4 text-primary/50 hover:text-primary" />
+      </div>
+      
+      <div 
+        onClick={() => onSelect(task)}
+        className="font-bold font-mono uppercase whitespace-normal break-words cursor-pointer flex-1 hover:text-primary/70"
+        data-testid={`button-edit-task-${task.id}`}
+      >
+        {task.title}
+      </div>
     </div>
   );
 }
