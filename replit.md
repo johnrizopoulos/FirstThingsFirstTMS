@@ -3,7 +3,7 @@
 ## Overview
 A terminal-inspired task management web application with IBM 3270/Bloomberg aesthetic. Features Focus mode for single-task concentration, global task queue, milestone-based Kanban board (max 5 columns), 30-day trash retention, and a Completed view for permanently viewing completed tasks/milestones. Includes three theme modes: Terminal (green-on-black), Dark (light gray-on-black), and Light (black-on-white). Uses email + name passwordless authentication with PostgreSQL for data storage.
 
-## Version 2.1 (Nov 27, 2025)
+## Version 2.2 (Nov 27, 2025)
 
 ### Performance Optimizations (Nov 27, 2025)
 - **View-Specific Endpoints**: Created dedicated API endpoints for each view
