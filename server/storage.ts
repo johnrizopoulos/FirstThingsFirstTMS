@@ -386,10 +386,33 @@ export class DatabaseStorage implements IStorage {
   }
 
   async reorderTasksInMilestone(taskIds: string[], milestoneId: string, userId: string): Promise<void> {
+    // Security: Verify milestone belongs to user
+    const milestone = await this.getMilestone(milestoneId, userId);
+    if (!milestone) {
+      throw new Error("Milestone not found or access denied");
+    }
+    
+    // Security: Verify all tasks belong to this user and milestone
+    const tasksToReorder = await db
+      .select()
+      .from(tasks)
+      .where(and(
+        eq(tasks.userId, userId),
+        eq(tasks.milestoneId, milestoneId)
+      ));
+    
+    const validTaskIds = new Set(tasksToReorder.map(t => t.id));
+    
+    // Security: Ensure all provided taskIds are valid for this milestone
+    for (const taskId of taskIds) {
+      if (!validTaskIds.has(taskId)) {
+        throw new Error(`Task ${taskId} does not belong to milestone ${milestoneId}`);
+      }
+    }
+    
     const now = new Date();
     
-    // Update milestone order for each task (for Board view)
-    // WHERE clause ensures: correct user, correct milestone, task exists
+    // Update milestone order for verified tasks only
     for (let i = 0; i < taskIds.length; i++) {
       await db
         .update(tasks)

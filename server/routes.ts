@@ -317,6 +317,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(204).send();
     } catch (error) {
       console.error("Error reordering tasks in milestone:", error);
+      
+      // Return appropriate error status based on error type
+      if (error instanceof Error) {
+        if (error.message.includes("not found") || error.message.includes("access denied")) {
+          return res.status(404).json({ message: error.message });
+        }
+        if (error.message.includes("does not belong")) {
+          return res.status(403).json({ message: error.message });
+        }
+      }
+      
       res.status(500).json({ message: "Failed to reorder tasks in milestone" });
     }
   });
