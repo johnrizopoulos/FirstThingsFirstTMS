@@ -123,11 +123,11 @@ export async function reorderTasks(taskIds: string[]): Promise<void> {
   return handleResponse(response);
 }
 
-export async function reorderTasksInMilestone(taskIds: string[]): Promise<void> {
+export async function reorderTasksInMilestone(taskIds: string[], milestoneId: string): Promise<void> {
   const response = await fetch("/api/tasks/reorder-in-milestone", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ taskIds }),
+    body: JSON.stringify({ taskIds, milestoneId }),
   });
   return handleResponse(response);
 }

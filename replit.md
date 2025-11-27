@@ -5,6 +5,21 @@ A terminal-inspired task management web application with IBM 3270/Bloomberg aest
 
 ## Version 2.0 (Nov 27, 2025)
 
+### Performance & UX Improvements (Nov 27, 2025)
+- **Query Optimization**: Removed N+1 pattern from reorderTasks, reducing queries by 50%
+  - Eliminated unnecessary getTask() calls for each task
+  - Single timestamp reused across all updates for consistency
+  - Added userId security check in WHERE clause
+- **Independent Ordering Systems**: List view and Board view now maintain separate task orders
+  - List view uses `globalOrder` field (updated via `/api/tasks/reorder`)
+  - Board view uses `milestoneOrder` field (updated via `/api/tasks/reorder-in-milestone`)
+  - Reordering in one view no longer affects the other view's order
+  - Backend storage methods: `reorderTasks()` and `reorderTasksInMilestone()`
+- **UI Consistency**: Board view task cards now match List view interaction pattern
+  - Added grab dots (GripVertical icon) for drag-and-drop
+  - Task title text is clickable to open edit dialog
+  - Separated drag handle from clickable text for better UX
+
 ### Code Quality Improvements (Nov 27, 2025)
 - Fixed React Fragment console error by replacing Fragments with arrays in wouter Route components
 - Wouter's Switch component doesn't support Fragments - now using `[<Route key="..." />]` pattern

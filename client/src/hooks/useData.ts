@@ -158,8 +158,9 @@ export function useReorderTasksInMilestone() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: api.reorderTasksInMilestone,
-    onMutate: async (taskIds: string[]) => {
+    mutationFn: ({ taskIds, milestoneId }: { taskIds: string[]; milestoneId: string }) => 
+      api.reorderTasksInMilestone(taskIds, milestoneId),
+    onMutate: async ({ taskIds, milestoneId }: { taskIds: string[]; milestoneId: string }) => {
       // Cancel any outgoing refetches
       await queryClient.cancelQueries({ queryKey: ["/api/tasks"] });
 
@@ -185,7 +186,7 @@ export function useReorderTasksInMilestone() {
 
       return { previousTasks };
     },
-    onError: (error: any, taskIds: string[], context: any) => {
+    onError: (error: any, { taskIds, milestoneId }: { taskIds: string[]; milestoneId: string }, context: any) => {
       // Revert to previous data on error
       if (context?.previousTasks) {
         queryClient.setQueryData(["/api/tasks"], context.previousTasks);

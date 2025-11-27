@@ -123,7 +123,10 @@ export default function BoardPage() {
        const newIndex = milestoneTasks.findIndex(t => t.id === over.id);
        
        const newOrder = arrayMove(milestoneTasks, oldIndex, newIndex);
-       reorderTasksInMilestone.mutate(newOrder.map(t => t.id));
+       reorderTasksInMilestone.mutate({ 
+         taskIds: newOrder.map(t => t.id),
+         milestoneId: milestoneId
+       });
     }
   };
 

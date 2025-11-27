@@ -44,7 +44,7 @@ export interface IStorage {
   
   // Batch operations
   reorderTasks(taskIds: string[], userId: string): Promise<void>;
-  reorderTasksInMilestone(taskIds: string[], userId: string): Promise<void>;
+  reorderTasksInMilestone(taskIds: string[], milestoneId: string, userId: string): Promise<void>;
   
   // Cleanup operations
   cleanupTrash(userId: string): Promise<void>;
@@ -385,17 +385,18 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async reorderTasksInMilestone(taskIds: string[], userId: string): Promise<void> {
+  async reorderTasksInMilestone(taskIds: string[], milestoneId: string, userId: string): Promise<void> {
     const now = new Date();
     
     // Update milestone order for each task (for Board view)
-    // No need to check existence - WHERE clause handles non-existent tasks
+    // WHERE clause ensures: correct user, correct milestone, task exists
     for (let i = 0; i < taskIds.length; i++) {
       await db
         .update(tasks)
         .set({ milestoneOrder: i, updatedAt: now })
         .where(and(
           eq(tasks.id, taskIds[i]),
+          eq(tasks.milestoneId, milestoneId),
           eq(tasks.userId, userId)
         ));
     }

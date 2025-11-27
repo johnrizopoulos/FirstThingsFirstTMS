@@ -303,13 +303,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/tasks/reorder-in-milestone", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.userId;
-      const { taskIds } = req.body;
+      const { taskIds, milestoneId } = req.body;
       
       if (!Array.isArray(taskIds)) {
         return res.status(400).json({ message: "taskIds must be an array" });
       }
       
-      await storage.reorderTasksInMilestone(taskIds, userId);
+      if (!milestoneId || typeof milestoneId !== 'string') {
+        return res.status(400).json({ message: "milestoneId is required" });
+      }
+      
+      await storage.reorderTasksInMilestone(taskIds, milestoneId, userId);
       res.status(204).send();
     } catch (error) {
       console.error("Error reordering tasks in milestone:", error);
