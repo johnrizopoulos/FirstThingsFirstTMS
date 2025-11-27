@@ -177,17 +177,33 @@ export class DatabaseStorage implements IStorage {
       };
     }
     
-    const [uncompleted] = await db
-      .update(milestones)
-      .set({
-        isCompleted: false,
-        completedAt: null,
-        updatedAt: new Date(),
-      })
-      .where(eq(milestones.id, id))
-      .returning();
-    
-    return { milestone: uncompleted };
+    // Use transaction to uncomplete both milestone and its tasks
+    return await db.transaction(async (tx) => {
+      const now = new Date();
+      
+      // Uncomplete all tasks associated with this milestone
+      await tx
+        .update(tasks)
+        .set({
+          isCompleted: false,
+          completedAt: null,
+          updatedAt: now,
+        })
+        .where(and(eq(tasks.milestoneId, id), eq(tasks.isCompleted, true)));
+      
+      // Uncomplete the milestone
+      const [uncompleted] = await tx
+        .update(milestones)
+        .set({
+          isCompleted: false,
+          completedAt: null,
+          updatedAt: now,
+        })
+        .where(eq(milestones.id, id))
+        .returning();
+      
+      return { milestone: uncompleted };
+    });
   }
 
   async deleteMilestone(id: string, userId: string): Promise<void> {
