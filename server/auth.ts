@@ -90,28 +90,19 @@ export async function handleLogin(req: Request, res: Response) {
       consentSource: "web_login",
     });
 
-    // Store user ID in session (don't regenerate - just modify existing)
+    // Store user ID in session
     (req.session as any).userId = user.id;
     
-    // Force session to be saved
-    req.session.save((saveErr) => {
-      if (saveErr) {
-        console.error("Session save error:", saveErr);
-        return res.status(500).json({ message: "Login failed" });
-      }
-      
-      console.log("Session saved successfully:", {
-        sessionId: req.sessionID,
-        userId: (req.session as any).userId,
-        cookie: req.session.cookie
-      });
-      
-      console.log("Response headers will include:", {
-        setCookie: res.getHeader('Set-Cookie')
-      });
-      
-      return res.json({ success: true, user: { id: user.id, email: user.email, name: user.name } });
+    // Touch the session to mark it as modified
+    req.session.touch();
+    
+    console.log("Login successful - session will be saved:", {
+      sessionId: req.sessionID,
+      userId: (req.session as any).userId
     });
+    
+    // Let express-session handle the Set-Cookie automatically
+    res.json({ success: true, user: { id: user.id, email: user.email, name: user.name } });
   } catch (error) {
     console.error("Login error:", error);
     res.status(500).json({ message: "Login failed" });
