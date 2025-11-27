@@ -65,11 +65,6 @@ export async function handleLogin(req: Request, res: Response) {
       return res.status(400).json({ message: "Invalid email format" });
     }
 
-    // Basic name validation (min 2 characters)
-    if (name.trim().length < 2) {
-      return res.status(400).json({ message: "Name must be at least 2 characters" });
-    }
-
     // Upsert user (create or update by email)
     const user = await storage.upsertUserByEmail({
       email: email.toLowerCase().trim(),
@@ -89,7 +84,15 @@ export async function handleLogin(req: Request, res: Response) {
       // Store user ID in session
       (req.session as any).userId = user.id;
 
-      res.json({ success: true, user: { id: user.id, email: user.email, name: user.name } });
+      // Save session to database before responding
+      req.session.save((saveErr) => {
+        if (saveErr) {
+          console.error("Session save error:", saveErr);
+          return res.status(500).json({ message: "Login failed" });
+        }
+        
+        res.json({ success: true, user: { id: user.id, email: user.email, name: user.name } });
+      });
     });
   } catch (error) {
     console.error("Login error:", error);

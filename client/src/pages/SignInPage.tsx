@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
+import { useQueryClient } from "@tanstack/react-query";
 import { useTheme } from "@/contexts/theme";
 import { Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -7,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 
 export default function SignInPage() {
   const [, setLocation] = useLocation();
+  const queryClient = useQueryClient();
   const { theme, toggleTheme } = useTheme();
   const { toast } = useToast();
   const [email, setEmail] = useState("");
@@ -38,6 +40,9 @@ export default function SignInPage() {
         throw new Error("Login failed");
       }
 
+      // Invalidate auth query to pick up new session
+      await queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      
       // Redirect to app
       setLocation("/");
     } catch (error) {
