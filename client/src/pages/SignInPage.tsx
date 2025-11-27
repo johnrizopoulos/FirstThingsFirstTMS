@@ -40,11 +40,15 @@ export default function SignInPage() {
         throw new Error("Login failed");
       }
 
-      // Invalidate auth query to pick up new session
-      await queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      // Wait a bit for cookie to be set
+      await new Promise(resolve => setTimeout(resolve, 100));
       
-      // Redirect to app
-      setLocation("/");
+      // Invalidate auth query and refetch to verify session
+      await queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      await queryClient.refetchQueries({ queryKey: ["/api/auth/user"] });
+      
+      // Use window.location for full page reload with new session
+      window.location.href = "/";
     } catch (error) {
       toast({
         title: "ERROR",
