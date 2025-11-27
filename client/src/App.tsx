@@ -17,6 +17,8 @@ import BoardPage from "@/pages/BoardPage";
 import CompletedPage from "@/pages/CompletedPage";
 import TrashPage from "@/pages/TrashPage";
 
+const RedirectToHome = () => <Redirect to="/" />;
+
 function AuthRouter() {
   const { isAuthenticated, isLoading } = useAuth();
 
@@ -38,13 +40,13 @@ function AuthRouter() {
           <Route path="/" component={LandingPage} />
           <Route path="/login" component={LoginPage} />
           <Route path="/signin" component={SignInPage} />
-          <Route path="*"><Redirect to="/" /></Route>
+          <Route path="*" component={RedirectToHome} />
         </>
       ) : (
         <>
           <Route path="/" component={FocusPage} />
-          <Route path="/login"><Redirect to="/" /></Route>
-          <Route path="/signin"><Redirect to="/" /></Route>
+          <Route path="/login" component={RedirectToHome} />
+          <Route path="/signin" component={RedirectToHome} />
           <Route path="/list" component={ListPage} />
           <Route path="/board" component={BoardPage} />
           <Route path="/completed" component={CompletedPage} />
