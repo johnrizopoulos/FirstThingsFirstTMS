@@ -236,7 +236,7 @@ export class DatabaseStorage implements IStorage {
     return await db
       .select()
       .from(milestones)
-      .where(and(eq(milestones.userId, userId), eq(milestones.isCompleted, true)))
+      .where(and(eq(milestones.userId, userId), eq(milestones.isCompleted, true), eq(milestones.isDeleted, false)))
       .orderBy(desc(milestones.completedAt));
   }
 
