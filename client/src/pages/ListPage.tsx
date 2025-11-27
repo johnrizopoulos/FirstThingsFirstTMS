@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { useTasks, useActiveMilestones, useCreateTask, useUpdateTask, useDeleteTask, useReorderTasks, useCompleteTask } from "@/hooks/useData";
+import { useActiveTasks, useActiveMilestones, useCreateTask, useUpdateTask, useDeleteTask, useReorderTasks, useCompleteTask } from "@/hooks/useData";
 import { Layout } from "@/components/Layout";
 import { SortableTaskRow } from "@/components/SortableTaskRow";
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from "@dnd-kit/core";
@@ -10,7 +10,7 @@ import { Trash2, Check } from "lucide-react";
 import type { Task } from "@shared/schema";
 
 export default function ListPage() {
-  const { data: tasks = [], isLoading } = useTasks();
+  const { data: activeTasks = [], isLoading } = useActiveTasks();
   const { data: activeMilestones = [] } = useActiveMilestones();
   const createTask = useCreateTask();
   const updateTask = useUpdateTask();
@@ -40,8 +40,6 @@ export default function ListPage() {
       });
     }
   }, [selectedTask]);
-
-  const activeTasks = tasks.filter(t => !t.isDeleted && !t.isCompleted).sort((a, b) => a.globalOrder - b.globalOrder);
   
   const filteredTasks = activeTasks.filter(task => {
     if (!searchQuery.trim()) return true;
@@ -81,7 +79,7 @@ export default function ListPage() {
       description: "",
       definitionOfDone: "",
       milestoneOrder: 0,
-      globalOrder: tasks.length,
+      globalOrder: activeTasks.length,
       isCompleted: false,
       isDeleted: false,
       userId: "",
@@ -110,7 +108,7 @@ export default function ListPage() {
             description: editForm.description,
             definitionOfDone: editForm.definitionOfDone,
             milestoneOrder: 0,
-            globalOrder: tasks.length,
+            globalOrder: activeTasks.length,
             isCompleted: false,
             isDeleted: false,
           },

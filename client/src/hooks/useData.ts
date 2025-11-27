@@ -24,6 +24,20 @@ export function useTasks() {
   });
 }
 
+export function useActiveTasks() {
+  return useQuery({
+    queryKey: ["/api/tasks/active"],
+    queryFn: api.getActiveTasks,
+  });
+}
+
+export function useFocusTask() {
+  return useQuery({
+    queryKey: ["/api/tasks/focus"],
+    queryFn: api.getFocusTask,
+  });
+}
+
 export function useCreateMilestone() {
   const queryClient = useQueryClient();
 
@@ -76,6 +90,8 @@ export function useCreateTask() {
     mutationFn: api.createTask,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/tasks"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/tasks/active"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/tasks/focus"] });
     },
     onError: (error: any) => {
       console.error("Error creating task:", error);
@@ -91,6 +107,8 @@ export function useUpdateTask() {
       api.updateTask(id, updates),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/tasks"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/tasks/active"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/tasks/focus"] });
     },
     onError: (error: any) => {
       console.error("Error updating task:", error);
@@ -105,6 +123,8 @@ export function useDeleteTask() {
     mutationFn: api.deleteTask,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/tasks"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/tasks/active"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/tasks/focus"] });
     },
     onError: (error: any) => {
       console.error("Error deleting task:", error);
@@ -212,6 +232,8 @@ export function useCompleteMilestone() {
       queryClient.invalidateQueries({ queryKey: ["/api/milestones"] });
       queryClient.invalidateQueries({ queryKey: ["/api/milestones/completed"] });
       queryClient.invalidateQueries({ queryKey: ["/api/tasks"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/tasks/active"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/tasks/focus"] });
     },
     onError: (error: any) => {
       console.error("Error completing milestone:", error);
@@ -240,6 +262,8 @@ export function useCompleteTask() {
       });
       
       queryClient.invalidateQueries({ queryKey: ["/api/tasks"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/tasks/active"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/tasks/focus"] });
       queryClient.invalidateQueries({ queryKey: ["/api/tasks/completed"] });
     },
     onError: (error: any) => {
@@ -274,6 +298,8 @@ export function useRestoreTask() {
     mutationFn: api.restoreTask,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/tasks"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/tasks/active"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/tasks/focus"] });
     },
   });
 }
@@ -312,6 +338,8 @@ export function useUncompleteTask() {
     mutationFn: api.uncompleteTask,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/tasks"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/tasks/active"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/tasks/focus"] });
       queryClient.invalidateQueries({ queryKey: ["/api/tasks/completed"] });
     },
     onError: (error: any) => {

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { useTasks, useUpdateTask, useDeleteTask, useCompleteTask } from "@/hooks/useData";
+import { useFocusTask, useUpdateTask, useDeleteTask, useCompleteTask } from "@/hooks/useData";
 import { Layout } from "@/components/Layout";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -7,7 +7,7 @@ import { Check, Trash2 } from "lucide-react";
 import type { Task } from "@shared/schema";
 
 export default function FocusPage() {
-  const { data: tasks = [], isLoading } = useTasks();
+  const { data: topTask, isLoading } = useFocusTask();
   const updateTask = useUpdateTask();
   const completeTask = useCompleteTask();
   const deleteTask = useDeleteTask();
@@ -37,9 +37,6 @@ export default function FocusPage() {
       }, 0);
     }
   }, [selectedTask]);
-
-  const activeTasks = tasks.filter(t => !t.isCompleted && !t.isDeleted);
-  const topTask = activeTasks.sort((a, b) => a.globalOrder - b.globalOrder)[0];
 
   const handleSaveChanges = () => {
     if (selectedTask) {

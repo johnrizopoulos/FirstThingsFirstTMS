@@ -70,6 +70,16 @@ export async function getTasks(): Promise<Task[]> {
   return handleResponse(response);
 }
 
+export async function getActiveTasks(): Promise<Task[]> {
+  const response = await fetch("/api/tasks/active");
+  return handleResponse(response);
+}
+
+export async function getFocusTask(): Promise<Task | null> {
+  const response = await fetch("/api/tasks/focus");
+  return handleResponse(response);
+}
+
 export async function createTask(task: Partial<InsertTask>): Promise<Task> {
   const response = await fetch("/api/tasks", {
     method: "POST",

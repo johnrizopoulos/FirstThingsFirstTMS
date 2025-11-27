@@ -32,6 +32,8 @@ export interface IStorage {
   
   // Task operations
   getTasks(userId: string): Promise<Task[]>;
+  getActiveTasks(userId: string): Promise<Task[]>;
+  getFocusTask(userId: string): Promise<Task | undefined>;
   getTask(id: string, userId: string): Promise<Task | undefined>;
   getTaskCountForMilestone(milestoneId: string): Promise<number>;
   createTask(task: InsertTask): Promise<Task>;
@@ -245,6 +247,32 @@ export class DatabaseStorage implements IStorage {
       .from(tasks)
       .where(eq(tasks.userId, userId))
       .orderBy(asc(tasks.globalOrder));
+  }
+
+  async getActiveTasks(userId: string): Promise<Task[]> {
+    return await db
+      .select()
+      .from(tasks)
+      .where(and(
+        eq(tasks.userId, userId),
+        eq(tasks.isDeleted, false),
+        eq(tasks.isCompleted, false)
+      ))
+      .orderBy(asc(tasks.globalOrder));
+  }
+
+  async getFocusTask(userId: string): Promise<Task | undefined> {
+    const [task] = await db
+      .select()
+      .from(tasks)
+      .where(and(
+        eq(tasks.userId, userId),
+        eq(tasks.isDeleted, false),
+        eq(tasks.isCompleted, false)
+      ))
+      .orderBy(asc(tasks.globalOrder))
+      .limit(1);
+    return task;
   }
 
   async getTask(id: string, userId: string): Promise<Task | undefined> {

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { useTasks, useMilestones, useCreateTask, useCreateMilestone, useUpdateMilestone, useDeleteMilestone, useReorderTasksInMilestone, useUpdateTask, useDeleteTask, useCompleteTask, useCompleteMilestone } from "@/hooks/useData";
+import { useActiveTasks, useMilestones, useCreateTask, useCreateMilestone, useUpdateMilestone, useDeleteMilestone, useReorderTasksInMilestone, useUpdateTask, useDeleteTask, useCompleteTask, useCompleteMilestone } from "@/hooks/useData";
 import { Layout } from "@/components/Layout";
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from "@dnd-kit/core";
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, useSortable } from "@dnd-kit/sortable";
@@ -53,7 +53,7 @@ function SortableTaskCard({ task, onSelect }: { task: Task; onSelect: (task: Tas
 
 export default function BoardPage() {
   const { data: milestones = [], isLoading: milestonesLoading } = useMilestones();
-  const { data: tasks = [], isLoading: tasksLoading } = useTasks();
+  const { data: tasks = [], isLoading: tasksLoading } = useActiveTasks();
   const createMilestone = useCreateMilestone();
   const updateMilestone = useUpdateMilestone();
   const deleteMilestone = useDeleteMilestone();

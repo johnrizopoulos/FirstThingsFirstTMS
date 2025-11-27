@@ -158,6 +158,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/tasks/active", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.userId;
+      const tasks = await storage.getActiveTasks(userId);
+      res.json(tasks);
+    } catch (error) {
+      console.error("Error fetching active tasks:", error);
+      res.status(500).json({ message: "Failed to fetch active tasks" });
+    }
+  });
+
+  app.get("/api/tasks/focus", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.userId;
+      const task = await storage.getFocusTask(userId);
+      res.json(task || null);
+    } catch (error) {
+      console.error("Error fetching focus task:", error);
+      res.status(500).json({ message: "Failed to fetch focus task" });
+    }
+  });
+
   app.post("/api/tasks", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.userId;
