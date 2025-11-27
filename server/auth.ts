@@ -34,8 +34,8 @@ export function setupSession(app: Express) {
       name: "ftf.sid",
       secret: sessionSecret || "dev-secret-DO-NOT-USE-IN-PRODUCTION",
       store: sessionStore,
-      resave: false,
-      saveUninitialized: false,
+      resave: true,  // Force session save even if not modified
+      saveUninitialized: true,  // Save new sessions
       cookie: {
         path: "/",
         httpOnly: true,
@@ -90,35 +90,27 @@ export async function handleLogin(req: Request, res: Response) {
       consentSource: "web_login",
     });
 
-    // Regenerate session for security
-    req.session.regenerate((err) => {
-      if (err) {
-        console.error("Session regeneration error:", err);
+    // Store user ID in session (don't regenerate - just modify existing)
+    (req.session as any).userId = user.id;
+    
+    // Force session to be saved
+    req.session.save((saveErr) => {
+      if (saveErr) {
+        console.error("Session save error:", saveErr);
         return res.status(500).json({ message: "Login failed" });
       }
-
-      // Store user ID in session
-      (req.session as any).userId = user.id;
-
-      // Save session to database before responding
-      req.session.save((saveErr) => {
-        if (saveErr) {
-          console.error("Session save error:", saveErr);
-          return res.status(500).json({ message: "Login failed" });
-        }
-        
-        console.log("Session saved successfully:", {
-          sessionId: req.sessionID,
-          userId: (req.session as any).userId,
-          cookie: req.session.cookie
-        });
-        
-        console.log("Response headers will include:", {
-          setCookie: res.getHeader('Set-Cookie')
-        });
-        
-        res.json({ success: true, user: { id: user.id, email: user.email, name: user.name } });
+      
+      console.log("Session saved successfully:", {
+        sessionId: req.sessionID,
+        userId: (req.session as any).userId,
+        cookie: req.session.cookie
       });
+      
+      console.log("Response headers will include:", {
+        setCookie: res.getHeader('Set-Cookie')
+      });
+      
+      return res.json({ success: true, user: { id: user.id, email: user.email, name: user.name } });
     });
   } catch (error) {
     console.error("Login error:", error);
