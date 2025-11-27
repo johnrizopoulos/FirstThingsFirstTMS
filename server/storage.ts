@@ -384,16 +384,11 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getCompletedTasks(userId: string): Promise<Task[]> {
-    const result = await db
-      .select({
-        task: tasks,
-      })
+    return await db
+      .select()
       .from(tasks)
-      .innerJoin(milestones, eq(tasks.milestoneId, milestones.id))
-      .where(and(eq(milestones.userId, userId), eq(tasks.isCompleted, true)))
+      .where(and(eq(tasks.userId, userId), eq(tasks.isCompleted, true), eq(tasks.isDeleted, false)))
       .orderBy(desc(tasks.completedAt));
-
-    return result.map((r) => r.task);
   }
 
   // Batch operations
