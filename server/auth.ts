@@ -128,8 +128,14 @@ export async function getCurrentUser(req: Request, res: Response) {
       sessionId: req.sessionID,
       hasSession: !!req.session,
       cookies: req.headers.cookie,
-      userId: (req.session as any).userId
+      userId: (req.session as any).userId,
+      skipAuth: process.env.SKIP_AUTH
     });
+    
+    // In development, bypass authentication if SKIP_AUTH is set
+    if (process.env.NODE_ENV === "development" && process.env.SKIP_AUTH === "true") {
+      return res.json({ id: "dev-user-bypass", email: "dev@example.com", name: "Dev User" });
+    }
     
     const userId = (req.session as any).userId;
     
