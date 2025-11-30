@@ -3,6 +3,16 @@
 ## Overview
 A terminal-inspired task management web application with IBM 3270/Bloomberg aesthetic. Features Focus mode for single-task concentration, global task queue, milestone-based Kanban board (max 5 columns), 30-day trash retention, and a Completed view for permanently viewing completed tasks/milestones. Includes three theme modes: Terminal (green-on-black), Dark (light gray-on-black), and Light (black-on-white). Uses email + name passwordless authentication with PostgreSQL for data storage.
 
+## Version 2.3 (Nov 30, 2025)
+
+### Trash Page - Remove All Feature
+- Added **REMOVE ALL** button to Trash page header
+- Permanently deletes all trashed tasks and milestones in one action
+- Button only appears when trash contains items
+- Red/destructive styling with trash icon to indicate caution
+- Backend: `emptyTrash()` storage method and `/api/empty-trash` endpoint
+- Frontend: `useEmptyTrash()` hook with cache invalidation
+
 ## Version 2.2 (Nov 27, 2025)
 
 ### Performance Optimizations (Nov 27, 2025)
