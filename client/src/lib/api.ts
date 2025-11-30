@@ -149,6 +149,13 @@ export async function cleanupTrash(): Promise<void> {
   return handleResponse(response);
 }
 
+export async function emptyTrash(): Promise<void> {
+  const response = await fetch("/api/empty-trash", {
+    method: "POST",
+  });
+  return handleResponse(response);
+}
+
 export async function restoreTask(id: string): Promise<Task> {
   const response = await fetch(`/api/tasks/${id}/restore`, {
     method: "PUT",

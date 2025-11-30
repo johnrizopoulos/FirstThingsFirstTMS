@@ -50,6 +50,7 @@ export interface IStorage {
   
   // Cleanup operations
   cleanupTrash(userId: string): Promise<void>;
+  emptyTrash(userId: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -545,6 +546,28 @@ export class DatabaseStorage implements IStorage {
           )
         );
     }
+  }
+
+  async emptyTrash(userId: string): Promise<void> {
+    // Permanently delete all trashed tasks for this user
+    await db
+      .delete(tasks)
+      .where(
+        and(
+          eq(tasks.userId, userId),
+          eq(tasks.isDeleted, true)
+        )
+      );
+
+    // Permanently delete all trashed milestones for this user
+    await db
+      .delete(milestones)
+      .where(
+        and(
+          eq(milestones.userId, userId),
+          eq(milestones.isDeleted, true)
+        )
+      );
   }
 }
 

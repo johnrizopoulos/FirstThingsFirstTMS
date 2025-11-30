@@ -351,6 +351,18 @@ export function useCleanupTrash() {
   });
 }
 
+export function useEmptyTrash() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: api.emptyTrash,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/milestones"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/tasks"] });
+    },
+  });
+}
+
 export function useRestoreTask() {
   const queryClient = useQueryClient();
 

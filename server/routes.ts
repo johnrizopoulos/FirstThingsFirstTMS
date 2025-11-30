@@ -366,6 +366,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Empty trash (permanently delete all trashed items)
+  app.post("/api/empty-trash", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.userId;
+      await storage.emptyTrash(userId);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error emptying trash:", error);
+      res.status(500).json({ message: "Failed to empty trash" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

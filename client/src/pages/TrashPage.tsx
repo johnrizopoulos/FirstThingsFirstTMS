@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { useTasks, useMilestones, useRestoreTask, useRestoreMilestone, useCleanupTrash } from "@/hooks/useData";
+import { useTasks, useMilestones, useRestoreTask, useRestoreMilestone, useCleanupTrash, useEmptyTrash } from "@/hooks/useData";
 import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
-import { RotateCcw } from "lucide-react";
+import { RotateCcw, Trash2 } from "lucide-react";
 import { formatDistance } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 
@@ -12,6 +12,7 @@ export default function TrashPage() {
   const restoreTask = useRestoreTask();
   const restoreMilestone = useRestoreMilestone();
   const cleanupTrash = useCleanupTrash();
+  const emptyTrash = useEmptyTrash();
   const { toast } = useToast();
   const [restoreError, setRestoreError] = useState<string | null>(null);
 
@@ -73,17 +74,52 @@ export default function TrashPage() {
     });
   };
 
+  const handleEmptyTrash = () => {
+    emptyTrash.mutate(undefined, {
+      onSuccess: () => {
+        toast({
+          title: "SUCCESS",
+          description: "All items permanently deleted",
+        });
+      },
+      onError: (error: any) => {
+        const message = error?.message || "Failed to empty trash";
+        toast({
+          title: "ERROR",
+          description: message,
+          variant: "destructive",
+        });
+      },
+    });
+  };
+
+  const hasItems = deletedTasks.length > 0 || deletedMilestones.length > 0;
+
   return (
     <Layout>
       <div className="max-w-4xl mx-auto">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-4 md:mb-6 border-b-2 border-destructive pb-2">
-          <h2 className="text-base md:text-xl font-bold text-destructive">
-            <span className="hidden sm:inline">// TRASH_BIN</span>
-            <span className="sm:hidden">// RECYCLE_BIN</span>
-          </h2>
-          <div className="text-[10px] md:text-xs text-destructive/70">
-            AUTO-PURGED AFTER 30 DAYS
+          <div>
+            <h2 className="text-base md:text-xl font-bold text-destructive">
+              <span className="hidden sm:inline">// TRASH_BIN</span>
+              <span className="sm:hidden">// RECYCLE_BIN</span>
+            </h2>
+            <div className="text-[10px] md:text-xs text-destructive/70">
+              AUTO-PURGED AFTER 30 DAYS
+            </div>
           </div>
+          {hasItems && (
+            <Button
+              size="sm"
+              variant="outline"
+              data-testid="button-remove-all"
+              className="border-destructive text-destructive hover:bg-destructive hover:text-background rounded-none font-mono text-xs shrink-0"
+              onClick={handleEmptyTrash}
+              disabled={emptyTrash.isPending}
+            >
+              <Trash2 className="w-3 h-3 mr-2" /> {emptyTrash.isPending ? "REMOVING..." : "REMOVE ALL"}
+            </Button>
+          )}
         </div>
 
         {restoreError && (
