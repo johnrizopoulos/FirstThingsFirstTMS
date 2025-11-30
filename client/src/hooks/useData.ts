@@ -144,13 +144,34 @@ export function useReorderTasks() {
   return useMutation({
     mutationFn: api.reorderTasks,
     onMutate: async (taskIds: string[]) => {
-      // Cancel any outgoing refetches
+      // Cancel any outgoing refetches for all task caches
       await queryClient.cancelQueries({ queryKey: ["/api/tasks"] });
+      await queryClient.cancelQueries({ queryKey: ["/api/tasks/active"] });
+      await queryClient.cancelQueries({ queryKey: ["/api/tasks/focus"] });
 
-      // Get previous data
+      // Get previous data from active tasks (used by ListPage)
+      const previousActiveTasks = queryClient.getQueryData<Task[]>(["/api/tasks/active"]);
       const previousTasks = queryClient.getQueryData<Task[]>(["/api/tasks"]);
 
-      // Optimistically update cache with new order and globalOrder values
+      // Optimistically update /api/tasks/active cache (used by ListPage)
+      if (previousActiveTasks) {
+        const taskMap = new Map(previousActiveTasks.map(t => [t.id, t]));
+        const reorderedTasks = taskIds
+          .map((id, index) => {
+            const task = taskMap.get(id);
+            return task ? { ...task, globalOrder: index } : null;
+          })
+          .filter((t): t is Task => !!t);
+        
+        // Maintain any tasks that weren't in the reorder list (append at end)
+        const unmovedTasks = previousActiveTasks
+          .filter(t => !taskIds.includes(t.id))
+          .map((t, index) => ({ ...t, globalOrder: taskIds.length + index }));
+        
+        queryClient.setQueryData(["/api/tasks/active"], [...reorderedTasks, ...unmovedTasks]);
+      }
+
+      // Also update /api/tasks cache for consistency
       if (previousTasks) {
         const taskMap = new Map(previousTasks.map(t => [t.id, t]));
         const reorderedTasks = taskIds
@@ -160,7 +181,6 @@ export function useReorderTasks() {
           })
           .filter((t): t is Task => !!t);
         
-        // Maintain any tasks that weren't in the reorder list (append at end)
         const unmovedTasks = previousTasks
           .filter(t => !taskIds.includes(t.id))
           .map((t, index) => ({ ...t, globalOrder: taskIds.length + index }));
@@ -168,10 +188,21 @@ export function useReorderTasks() {
         queryClient.setQueryData(["/api/tasks"], [...reorderedTasks, ...unmovedTasks]);
       }
 
-      return { previousTasks };
+      // Update focus task if needed (first task in new order)
+      if (taskIds.length > 0 && previousActiveTasks) {
+        const firstTask = previousActiveTasks.find(t => t.id === taskIds[0]);
+        if (firstTask) {
+          queryClient.setQueryData(["/api/tasks/focus"], { ...firstTask, globalOrder: 0 });
+        }
+      }
+
+      return { previousActiveTasks, previousTasks };
     },
     onError: (error: any, taskIds: string[], context: any) => {
       // Revert to previous data on error
+      if (context?.previousActiveTasks) {
+        queryClient.setQueryData(["/api/tasks/active"], context.previousActiveTasks);
+      }
       if (context?.previousTasks) {
         queryClient.setQueryData(["/api/tasks"], context.previousTasks);
       }
@@ -187,13 +218,32 @@ export function useReorderTasksInMilestone() {
     mutationFn: ({ taskIds, milestoneId }: { taskIds: string[]; milestoneId: string }) => 
       api.reorderTasksInMilestone(taskIds, milestoneId),
     onMutate: async ({ taskIds, milestoneId }: { taskIds: string[]; milestoneId: string }) => {
-      // Cancel any outgoing refetches
+      // Cancel any outgoing refetches for all task caches
       await queryClient.cancelQueries({ queryKey: ["/api/tasks"] });
+      await queryClient.cancelQueries({ queryKey: ["/api/tasks/active"] });
 
       // Get previous data
+      const previousActiveTasks = queryClient.getQueryData<Task[]>(["/api/tasks/active"]);
       const previousTasks = queryClient.getQueryData<Task[]>(["/api/tasks"]);
 
-      // Optimistically update cache with new milestoneOrder values (Board view)
+      // Optimistically update /api/tasks/active cache with new milestoneOrder values (Board view)
+      if (previousActiveTasks) {
+        const taskMap = new Map(previousActiveTasks.map(t => [t.id, t]));
+        const reorderedTasks = taskIds
+          .map((id, index) => {
+            const task = taskMap.get(id);
+            return task ? { ...task, milestoneOrder: index } : null;
+          })
+          .filter((t): t is Task => !!t);
+        
+        // Maintain any tasks that weren't in the reorder list (keep their original milestoneOrder)
+        const unmovedTasks = previousActiveTasks
+          .filter(t => !taskIds.includes(t.id));
+        
+        queryClient.setQueryData(["/api/tasks/active"], [...reorderedTasks, ...unmovedTasks]);
+      }
+
+      // Also update /api/tasks cache for consistency
       if (previousTasks) {
         const taskMap = new Map(previousTasks.map(t => [t.id, t]));
         const reorderedTasks = taskIds
@@ -203,17 +253,19 @@ export function useReorderTasksInMilestone() {
           })
           .filter((t): t is Task => !!t);
         
-        // Maintain any tasks that weren't in the reorder list (keep their original milestoneOrder)
         const unmovedTasks = previousTasks
           .filter(t => !taskIds.includes(t.id));
         
         queryClient.setQueryData(["/api/tasks"], [...reorderedTasks, ...unmovedTasks]);
       }
 
-      return { previousTasks };
+      return { previousActiveTasks, previousTasks };
     },
     onError: (error: any, { taskIds, milestoneId }: { taskIds: string[]; milestoneId: string }, context: any) => {
       // Revert to previous data on error
+      if (context?.previousActiveTasks) {
+        queryClient.setQueryData(["/api/tasks/active"], context.previousActiveTasks);
+      }
       if (context?.previousTasks) {
         queryClient.setQueryData(["/api/tasks"], context.previousTasks);
       }
