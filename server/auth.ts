@@ -51,7 +51,8 @@ export function setupSession(app: Express) {
 export function isAuthenticated(req: Request, res: Response, next: NextFunction) {
   // In development, bypass authentication if SKIP_AUTH is set
   if (process.env.NODE_ENV === "development" && process.env.SKIP_AUTH === "true") {
-    req.userId = "dev-user-bypass";
+    // Use first real user from database for dev bypass
+    req.userId = "d64480e3-748c-4aee-ab61-d8326c5eb638";
     return next();
   }
   
