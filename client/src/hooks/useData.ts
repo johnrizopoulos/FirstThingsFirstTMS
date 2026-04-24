@@ -1,0 +1,423 @@
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import * as api from "@/lib/api";
+import type { Milestone, Task } from "@shared/schema";
+import confetti from "canvas-confetti";
+
+export function useMilestones() {
+  return useQuery({
+    queryKey: ["/api/milestones"],
+    queryFn: api.getMilestones,
+  });
+}
+
+export function useActiveMilestones() {
+  return useQuery({
+    queryKey: ["/api/milestones/active"],
+    queryFn: api.getActiveMilestones,
+  });
+}
+
+export function useTasks() {
+  return useQuery({
+    queryKey: ["/api/tasks"],
+    queryFn: api.getTasks,
+  });
+}
+
+export function useActiveTasks() {
+  return useQuery({
+    queryKey: ["/api/tasks/active"],
+    queryFn: api.getActiveTasks,
+  });
+}
+
+export function useFocusTask() {
+  return useQuery({
+    queryKey: ["/api/tasks/focus"],
+    queryFn: api.getFocusTask,
+  });
+}
+
+export function useCreateMilestone() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: api.createMilestone,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/milestones"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/milestones/active"] });
+    },
+    onError: (error: any) => {
+      console.error("Error creating milestone:", error);
+    },
+  });
+}
+
+export function useUpdateMilestone() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, updates }: { id: string; updates: Partial<Milestone> }) =>
+      api.updateMilestone(id, updates),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/milestones"] });
+    },
+    onError: (error: any) => {
+      console.error("Error updating milestone:", error);
+    },
+  });
+}
+
+export function useDeleteMilestone() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: api.deleteMilestone,
+    onSuccess: () => {
+      // Background refetch keeps data available during refresh
+      queryClient.refetchQueries({ queryKey: ["/api/milestones"] });
+      queryClient.refetchQueries({ queryKey: ["/api/milestones/completed"] });
+      queryClient.refetchQueries({ queryKey: ["/api/tasks"] });
+    },
+    onError: (error: any) => {
+      console.error("Error deleting milestone:", error);
+    },
+  });
+}
+
+export function useCreateTask() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: api.createTask,
+    onSuccess: () => {
+      // Background refetch keeps data available during refresh
+      queryClient.refetchQueries({ queryKey: ["/api/tasks"] });
+      queryClient.refetchQueries({ queryKey: ["/api/tasks/active"] });
+      queryClient.refetchQueries({ queryKey: ["/api/tasks/focus"] });
+    },
+    onError: (error: any) => {
+      console.error("Error creating task:", error);
+    },
+  });
+}
+
+export function useUpdateTask() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, updates }: { id: string; updates: Partial<Task> }) =>
+      api.updateTask(id, updates),
+    onSuccess: () => {
+      // Background refetch keeps data available during refresh
+      queryClient.refetchQueries({ queryKey: ["/api/tasks"] });
+      queryClient.refetchQueries({ queryKey: ["/api/tasks/active"] });
+      queryClient.refetchQueries({ queryKey: ["/api/tasks/focus"] });
+    },
+    onError: (error: any) => {
+      console.error("Error updating task:", error);
+    },
+  });
+}
+
+export function useDeleteTask() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: api.deleteTask,
+    onSuccess: () => {
+      // Background refetch keeps data available during refresh
+      queryClient.refetchQueries({ queryKey: ["/api/tasks"] });
+      queryClient.refetchQueries({ queryKey: ["/api/tasks/active"] });
+      queryClient.refetchQueries({ queryKey: ["/api/tasks/focus"] });
+      queryClient.refetchQueries({ queryKey: ["/api/tasks/completed"] });
+    },
+    onError: (error: any) => {
+      console.error("Error deleting task:", error);
+    },
+  });
+}
+
+export function useReorderTasks() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: api.reorderTasks,
+    onMutate: async (taskIds: string[]) => {
+      // Cancel any outgoing refetches for all task caches
+      await queryClient.cancelQueries({ queryKey: ["/api/tasks"] });
+      await queryClient.cancelQueries({ queryKey: ["/api/tasks/active"] });
+      await queryClient.cancelQueries({ queryKey: ["/api/tasks/focus"] });
+
+      // Get previous data from active tasks (used by ListPage)
+      const previousActiveTasks = queryClient.getQueryData<Task[]>(["/api/tasks/active"]);
+      const previousTasks = queryClient.getQueryData<Task[]>(["/api/tasks"]);
+
+      // Optimistically update /api/tasks/active cache (used by ListPage)
+      if (previousActiveTasks) {
+        const taskMap = new Map(previousActiveTasks.map(t => [t.id, t]));
+        const reorderedTasks = taskIds
+          .map((id, index) => {
+            const task = taskMap.get(id);
+            return task ? { ...task, globalOrder: index } : null;
+          })
+          .filter((t): t is Task => !!t);
+        
+        // Maintain any tasks that weren't in the reorder list (append at end)
+        const unmovedTasks = previousActiveTasks
+          .filter(t => !taskIds.includes(t.id))
+          .map((t, index) => ({ ...t, globalOrder: taskIds.length + index }));
+        
+        queryClient.setQueryData(["/api/tasks/active"], [...reorderedTasks, ...unmovedTasks]);
+      }
+
+      // Also update /api/tasks cache for consistency
+      if (previousTasks) {
+        const taskMap = new Map(previousTasks.map(t => [t.id, t]));
+        const reorderedTasks = taskIds
+          .map((id, index) => {
+            const task = taskMap.get(id);
+            return task ? { ...task, globalOrder: index } : null;
+          })
+          .filter((t): t is Task => !!t);
+        
+        const unmovedTasks = previousTasks
+          .filter(t => !taskIds.includes(t.id))
+          .map((t, index) => ({ ...t, globalOrder: taskIds.length + index }));
+        
+        queryClient.setQueryData(["/api/tasks"], [...reorderedTasks, ...unmovedTasks]);
+      }
+
+      // Update focus task if needed (first task in new order)
+      if (taskIds.length > 0 && previousActiveTasks) {
+        const firstTask = previousActiveTasks.find(t => t.id === taskIds[0]);
+        if (firstTask) {
+          queryClient.setQueryData(["/api/tasks/focus"], { ...firstTask, globalOrder: 0 });
+        }
+      }
+
+      return { previousActiveTasks, previousTasks };
+    },
+    onError: (error: any, taskIds: string[], context: any) => {
+      // Revert to previous data on error
+      if (context?.previousActiveTasks) {
+        queryClient.setQueryData(["/api/tasks/active"], context.previousActiveTasks);
+      }
+      if (context?.previousTasks) {
+        queryClient.setQueryData(["/api/tasks"], context.previousTasks);
+      }
+      console.error("Error reordering tasks:", error);
+    },
+  });
+}
+
+export function useReorderTasksInMilestone() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ taskIds, milestoneId }: { taskIds: string[]; milestoneId: string }) => 
+      api.reorderTasksInMilestone(taskIds, milestoneId),
+    onMutate: async ({ taskIds, milestoneId }: { taskIds: string[]; milestoneId: string }) => {
+      // Cancel any outgoing refetches for all task caches
+      await queryClient.cancelQueries({ queryKey: ["/api/tasks"] });
+      await queryClient.cancelQueries({ queryKey: ["/api/tasks/active"] });
+
+      // Get previous data
+      const previousActiveTasks = queryClient.getQueryData<Task[]>(["/api/tasks/active"]);
+      const previousTasks = queryClient.getQueryData<Task[]>(["/api/tasks"]);
+
+      // Optimistically update /api/tasks/active cache with new milestoneOrder values (Board view)
+      if (previousActiveTasks) {
+        const taskMap = new Map(previousActiveTasks.map(t => [t.id, t]));
+        const reorderedTasks = taskIds
+          .map((id, index) => {
+            const task = taskMap.get(id);
+            return task ? { ...task, milestoneOrder: index } : null;
+          })
+          .filter((t): t is Task => !!t);
+        
+        // Maintain any tasks that weren't in the reorder list (keep their original milestoneOrder)
+        const unmovedTasks = previousActiveTasks
+          .filter(t => !taskIds.includes(t.id));
+        
+        queryClient.setQueryData(["/api/tasks/active"], [...reorderedTasks, ...unmovedTasks]);
+      }
+
+      // Also update /api/tasks cache for consistency
+      if (previousTasks) {
+        const taskMap = new Map(previousTasks.map(t => [t.id, t]));
+        const reorderedTasks = taskIds
+          .map((id, index) => {
+            const task = taskMap.get(id);
+            return task ? { ...task, milestoneOrder: index } : null;
+          })
+          .filter((t): t is Task => !!t);
+        
+        const unmovedTasks = previousTasks
+          .filter(t => !taskIds.includes(t.id));
+        
+        queryClient.setQueryData(["/api/tasks"], [...reorderedTasks, ...unmovedTasks]);
+      }
+
+      return { previousActiveTasks, previousTasks };
+    },
+    onError: (error: any, { taskIds, milestoneId }: { taskIds: string[]; milestoneId: string }, context: any) => {
+      // Revert to previous data on error
+      if (context?.previousActiveTasks) {
+        queryClient.setQueryData(["/api/tasks/active"], context.previousActiveTasks);
+      }
+      if (context?.previousTasks) {
+        queryClient.setQueryData(["/api/tasks"], context.previousTasks);
+      }
+      console.error("Error reordering tasks in milestone:", error);
+    },
+  });
+}
+
+export function useCompleteMilestone() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: api.completeMilestone,
+    onSuccess: () => {
+      // Trigger confetti animation (with more intensity for milestone completion)
+      confetti({
+        particleCount: 200,
+        spread: 100,
+        origin: { y: 0.5 },
+      });
+      
+      // Background refetch keeps data available during refresh
+      queryClient.refetchQueries({ queryKey: ["/api/milestones"] });
+      queryClient.refetchQueries({ queryKey: ["/api/milestones/completed"] });
+      queryClient.refetchQueries({ queryKey: ["/api/tasks"] });
+      queryClient.refetchQueries({ queryKey: ["/api/tasks/active"] });
+      queryClient.refetchQueries({ queryKey: ["/api/tasks/focus"] });
+    },
+    onError: (error: any) => {
+      console.error("Error completing milestone:", error);
+    },
+  });
+}
+
+export function useGetCompletedMilestones() {
+  return useQuery({
+    queryKey: ["/api/milestones/completed"],
+    queryFn: api.getCompletedMilestones,
+  });
+}
+
+export function useCompleteTask() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: api.completeTask,
+    onSuccess: () => {
+      // Trigger confetti animation
+      confetti({
+        particleCount: 100,
+        spread: 70,
+        origin: { y: 0.6 },
+      });
+      
+      // Background refetch keeps data available during refresh
+      queryClient.refetchQueries({ queryKey: ["/api/tasks"] });
+      queryClient.refetchQueries({ queryKey: ["/api/tasks/active"] });
+      queryClient.refetchQueries({ queryKey: ["/api/tasks/focus"] });
+      queryClient.refetchQueries({ queryKey: ["/api/tasks/completed"] });
+    },
+    onError: (error: any) => {
+      console.error("Error completing task:", error);
+    },
+  });
+}
+
+export function useGetCompletedTasks() {
+  return useQuery({
+    queryKey: ["/api/tasks/completed"],
+    queryFn: api.getCompletedTasks,
+  });
+}
+
+export function useCleanupTrash() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: api.cleanupTrash,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/milestones"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/tasks"] });
+    },
+  });
+}
+
+export function useEmptyTrash() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: api.emptyTrash,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/milestones"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/tasks"] });
+    },
+  });
+}
+
+export function useRestoreTask() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: api.restoreTask,
+    onSuccess: () => {
+      // Background refetch keeps data available during refresh
+      queryClient.refetchQueries({ queryKey: ["/api/tasks"] });
+      queryClient.refetchQueries({ queryKey: ["/api/tasks/active"] });
+      queryClient.refetchQueries({ queryKey: ["/api/tasks/focus"] });
+    },
+  });
+}
+
+export function useRestoreMilestone() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: api.restoreMilestone,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/milestones"] });
+    },
+  });
+}
+
+export function useUncompleteMilestone() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: api.uncompleteMilestone,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/milestones"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/milestones/completed"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/milestones/active"] });
+    },
+    onError: (error: any) => {
+      console.error("Error uncompleting milestone:", error);
+    },
+  });
+}
+
+export function useUncompleteTask() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: api.uncompleteTask,
+    onSuccess: () => {
+      // Background refetch keeps data available during refresh
+      queryClient.refetchQueries({ queryKey: ["/api/tasks"] });
+      queryClient.refetchQueries({ queryKey: ["/api/tasks/active"] });
+      queryClient.refetchQueries({ queryKey: ["/api/tasks/focus"] });
+      queryClient.refetchQueries({ queryKey: ["/api/tasks/completed"] });
+    },
+    onError: (error: any) => {
+      console.error("Error uncompleting task:", error);
+    },
+  });
+}

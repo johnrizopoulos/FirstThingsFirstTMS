@@ -1,0 +1,54 @@
+import fs from "node:fs";
+import { type Server } from "node:http";
+import path from "node:path";
+
+import express, { type Express, type Request } from "express";
+
+import runApp from "./app";
+
+export async function serveStatic(app: Express, server: Server) {
+  const distPath = path.resolve(import.meta.dirname, "public");
+
+  if (!fs.existsSync(distPath)) {
+    throw new Error(
+      `Could not find the build directory: ${distPath}, make sure to build the client first`,
+    );
+  }
+
+  app.use(express.static(distPath));
+
+  // fall through to index.html if the file doesn't exist
+  app.use("*", (_req, res) => {
+    res.sendFile(path.resolve(distPath, "index.html"));
+  });
+}
+
+(async () => {
+  try {
+    console.log("Starting production server...");
+    console.log("NODE_ENV:", process.env.NODE_ENV);
+    console.log("PORT:", process.env.PORT || "5000 (default)");
+    
+    // Check critical environment variables
+    if (!process.env.DATABASE_URL) {
+      console.error("ERROR: DATABASE_URL environment variable is not set");
+      process.exit(1);
+    }
+
+    if (!process.env.CLERK_SECRET_KEY) {
+      console.error("ERROR: CLERK_SECRET_KEY environment variable is not set");
+      process.exit(1);
+    }
+
+    console.log("Environment variables validated");
+    console.log("Database URL configured:", process.env.DATABASE_URL ? "✓" : "✗");
+    console.log("Clerk secret key configured:", process.env.CLERK_SECRET_KEY ? "✓" : "✗");
+    
+    await runApp(serveStatic);
+    console.log("Production server started successfully");
+  } catch (error) {
+    console.error("FATAL ERROR during server startup:");
+    console.error(error);
+    process.exit(1);
+  }
+})();
