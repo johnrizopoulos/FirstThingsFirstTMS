@@ -7,3 +7,32 @@ channel = "stable-25_05"
 
 [userenv.shared]
 VITE_CLERK_PUBLISHABLE_KEY = "pk_live_Y2xlcmsuZmlyc3R0aGluZ3NmaXJzdHRtcy5jb20k"
+CLERK_PUBLISHABLE_KEY = "pk_live_Y2xlcmsuZmlyc3R0aGluZ3NmaXJzdHRtcy5jb20k"
+
+[workflows]
+runButton = "Project"
+
+[[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Start application"
+
+[[workflows.workflow]]
+name = "Start application"
+author = "agent"
+
+[workflows.workflow.metadata]
+outputType = "webview"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npx tsx server/index-dev.ts"
+waitForPort = 5000
+
+[[ports]]
+localPort = 5000
+externalPort = 80
