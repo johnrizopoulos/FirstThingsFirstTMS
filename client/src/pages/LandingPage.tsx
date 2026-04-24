@@ -1,4 +1,4 @@
-import { SignInButton } from "@clerk/react";
+import { SignInButton, SignUpButton } from "@clerk/react";
 import { useTheme } from "@/contexts/theme";
 
 export default function LandingPage() {
@@ -13,8 +13,8 @@ export default function LandingPage() {
   
   return (
     <div className="min-h-screen bg-background text-primary font-mono relative overflow-hidden">
-      {/* Sign In Button - Top Left */}
-      <div className="fixed top-4 left-4 z-40">
+      {/* Auth Buttons - Top Left */}
+      <div className="fixed top-4 left-4 z-40 flex gap-2">
         <SignInButton mode="modal">
           <button
             className="border-2 border-primary bg-background text-primary px-4 py-2 font-bold text-xs md:text-sm hover:bg-primary hover:text-primary-foreground transition-colors"
@@ -23,6 +23,14 @@ export default function LandingPage() {
             [SIGN IN]
           </button>
         </SignInButton>
+        <SignUpButton mode="modal">
+          <button
+            className="border-2 border-primary bg-primary text-primary-foreground px-4 py-2 font-bold text-xs md:text-sm hover:bg-primary/80 transition-colors"
+            data-testid="button-signup"
+          >
+            [SIGN UP]
+          </button>
+        </SignUpButton>
       </div>
       {/* Theme Button - Top Right */}
       <div className="fixed top-4 right-4 z-40">

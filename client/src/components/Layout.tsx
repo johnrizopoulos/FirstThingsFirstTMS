@@ -3,7 +3,7 @@ import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useTheme } from "@/contexts/theme";
-import { useClerk } from "@clerk/react";
+import { UserButton } from "@clerk/react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,7 +18,6 @@ export function Layout({ children, mobileHeaderContent }: { children: React.Reac
   const [location, setLocation] = useLocation();
   const isMobile = useIsMobile();
   const { theme, toggleTheme } = useTheme();
-  const { signOut } = useClerk();
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -107,13 +106,7 @@ export function Layout({ children, mobileHeaderContent }: { children: React.Reac
               [{theme === "terminal" ? "TERMINAL" : theme === "dark" ? "DARK" : "LIGHT"}]
             </span>
           </Button>
-          <button 
-            onClick={() => signOut({ redirectUrl: "/" })}
-            className="text-[10px] md:text-xs opacity-70 hover:opacity-100 transition-opacity underline whitespace-nowrap"
-            data-testid="button-logout"
-          >
-            [LOGOUT]
-          </button>
+          <UserButton afterSignOutUrl="/" />
         </div>
       </header>
 
