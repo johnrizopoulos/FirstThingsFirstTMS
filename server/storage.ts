@@ -101,6 +101,23 @@ export class DatabaseStorage implements IStorage {
   }
 
   async upsertUserByClerkId(clerkId: string, email: string, name: string): Promise<User> {
+    // Check for existing user by email (e.g. from old auth system) with no clerkId yet
+    const [existingByEmail] = await db
+      .select()
+      .from(users)
+      .where(eq(users.email, email));
+
+    if (existingByEmail && !existingByEmail.clerkId) {
+      // Link existing account to Clerk by setting clerkId
+      const [linked] = await db
+        .update(users)
+        .set({ clerkId, name, updatedAt: new Date() })
+        .where(eq(users.id, existingByEmail.id))
+        .returning();
+      return linked;
+    }
+
+    // Insert new user or update profile on repeat sign-in via clerkId conflict
     const [user] = await db
       .insert(users)
       .values({

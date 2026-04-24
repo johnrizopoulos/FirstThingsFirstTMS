@@ -37,8 +37,8 @@ export async function isAuthenticated(req: Request, res: Response, next: NextFun
 
     req.userId = user.id;
     next();
-  } catch (error) {
-    console.error("Auth error:", error);
+  } catch (err: unknown) {
+    console.error("Auth error:", err instanceof Error ? err.message : err);
     res.status(401).json({ message: "Unauthorized" });
   }
 }

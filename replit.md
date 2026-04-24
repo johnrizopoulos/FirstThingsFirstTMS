@@ -134,11 +134,11 @@ Preferred communication style: Simple, everyday language.
 │       ├── contexts/        — ThemeContext, OnboardingContext
 │       ├── hooks/           — useData.ts (all API mutations/queries), useAuth.ts
 │       ├── lib/             — api.ts (fetch wrappers)
-│       ├── pages/           — FocusPage, ListPage, BoardPage, CompletedPage, TrashPage, TutorialPage, LandingPage, LoginPage, SignInPage
-│       ├── App.tsx          — AuthRouter, routing
-│       └── main.tsx         — App entry point
+│       ├── pages/           — FocusPage, ListPage, BoardPage, CompletedPage, TrashPage, TutorialPage, LandingPage
+│       ├── App.tsx          — Clerk Show when="signed-in/out" routing
+│       └── main.tsx         — App entry point (ClerkProvider wraps app)
 ├── server/
-│   ├── auth.ts              — setupSession, handleLogin, handleLogout, isAuthenticated middleware
+│   ├── auth.ts              — clerkMiddleware, isAuthenticated (syncs Clerk user to DB)
 │   ├── routes.ts            — All API endpoints
 │   ├── storage.ts           — Drizzle ORM database operations
 │   └── index.ts             — Express server entry point
@@ -167,11 +167,15 @@ Preferred communication style: Simple, everyday language.
 - Tables: `tasks`, `milestones`, `users`, `sessions`
 - Migrations: `npm run db:push`
 
-### Authentication (Current — Pre-Clerk)
-- Custom email + name passwordless login
-- `express-session` + `connect-pg-simple` for session persistence
-- `isAuthenticated` middleware protects all `/api/` routes
-- `useAuth` hook fetches `/api/auth/user` to determine login state
+### Authentication (Clerk — Google/Apple social login)
+- `ClerkProvider` wraps app in `main.tsx` with `VITE_CLERK_PUBLISHABLE_KEY`
+- `Show when="signed-in/out"` in `App.tsx` controls route access
+- `useAuth` hook uses Clerk's `useUser()` — returns `{ user, isLoaded }`
+- `LandingPage` uses `<SignInButton mode="modal">` for sign-in/sign-up
+- `Layout` uses Clerk's `signOut({ redirectUrl: "/" })` for logout
+- Backend: `clerkMiddleware` from `@clerk/express` validates tokens on each request
+- `isAuthenticated` middleware syncs Clerk user to local DB (by email, then by clerkId)
+- `users.clerk_id` column links Clerk identity to local user row
 
 ### Key Design Conventions
 - `data-testid` attributes on all interactive and display elements

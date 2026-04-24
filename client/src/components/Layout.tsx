@@ -3,6 +3,7 @@ import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useTheme } from "@/contexts/theme";
+import { useClerk } from "@clerk/react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,6 +18,7 @@ export function Layout({ children, mobileHeaderContent }: { children: React.Reac
   const [location, setLocation] = useLocation();
   const isMobile = useIsMobile();
   const { theme, toggleTheme } = useTheme();
+  const { signOut } = useClerk();
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -106,10 +108,7 @@ export function Layout({ children, mobileHeaderContent }: { children: React.Reac
             </span>
           </Button>
           <button 
-            onClick={async () => {
-              await fetch("/api/logout", { method: "POST" });
-              window.location.href = "/";
-            }}
+            onClick={() => signOut({ redirectUrl: "/" })}
             className="text-[10px] md:text-xs opacity-70 hover:opacity-100 transition-opacity underline whitespace-nowrap"
             data-testid="button-logout"
           >
