@@ -1,15 +1,19 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useUser } from "@clerk/react";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 import { queryClient } from "@/lib/queryClient";
 import { clearNetworkError } from "@/lib/onlineStatus";
 import {
   drainQueue,
+  getQueueSize,
+  getQueueSnapshot,
   registerHandlers,
   startQueueBridge,
   subscribeQueue,
   syncQueueOwner,
+  type OfflineOpName,
   type QueueEvent,
+  type QueuedOp,
 } from "@/lib/offlineQueue";
 import { toast } from "@/hooks/use-toast";
 import { rawMutations } from "@/lib/api";
@@ -51,6 +55,92 @@ function friendlyOpName(op: string): string {
   }
 }
 
+const TASK_OPS = new Set<OfflineOpName>([
+  "createTask",
+  "updateTask",
+  "completeTask",
+  "uncompleteTask",
+  "deleteTask",
+  "restoreTask",
+]);
+
+const MILESTONE_OPS = new Set<OfflineOpName>([
+  "createMilestone",
+  "updateMilestone",
+  "completeMilestone",
+  "uncompleteMilestone",
+  "deleteMilestone",
+  "restoreMilestone",
+]);
+
+function lookupTitleById(kind: "task" | "milestone", id: string): string | null {
+  const keys =
+    kind === "task"
+      ? ["/api/tasks", "/api/tasks/active", "/api/tasks/focus", "/api/tasks/completed"]
+      : ["/api/milestones", "/api/milestones/active", "/api/milestones/completed"];
+  for (const key of keys) {
+    const data = queryClient.getQueryData<unknown>([key]);
+    if (!Array.isArray(data)) continue;
+    const match = (data as Array<{ id?: unknown; title?: unknown }>).find(
+      (item) => item && typeof item === "object" && item.id === id,
+    );
+    if (match && typeof match.title === "string" && match.title.length > 0) {
+      return match.title;
+    }
+  }
+  return null;
+}
+
+function describeQueuedOp(entry: QueuedOp): string {
+  const label = friendlyOpName(entry.op);
+  const args = entry.args as unknown[];
+  const first = args[0];
+
+  if (
+    (entry.op === "createTask" || entry.op === "createMilestone") &&
+    first &&
+    typeof first === "object" &&
+    typeof (first as { title?: unknown }).title === "string"
+  ) {
+    return `${label}: ${(first as { title: string }).title}`;
+  }
+
+  if (entry.op === "updateTask" || entry.op === "updateMilestone") {
+    const updates = args[1];
+    if (
+      updates &&
+      typeof updates === "object" &&
+      typeof (updates as { title?: unknown }).title === "string"
+    ) {
+      return `${label}: ${(updates as { title: string }).title}`;
+    }
+    if (typeof first === "string") {
+      const kind = entry.op === "updateTask" ? "task" : "milestone";
+      const title = lookupTitleById(kind, first);
+      if (title) return `${label}: ${title}`;
+    }
+  }
+
+  if (typeof first === "string") {
+    if (TASK_OPS.has(entry.op)) {
+      const title = lookupTitleById("task", first);
+      if (title) return `${label}: ${title}`;
+    } else if (MILESTONE_OPS.has(entry.op)) {
+      const title = lookupTitleById("milestone", first);
+      if (title) return `${label}: ${title}`;
+    }
+  }
+
+  if (entry.op === "reorderTasks" || entry.op === "reorderTasksInMilestone") {
+    const ids = first;
+    if (Array.isArray(ids)) {
+      return `${label} (${ids.length})`;
+    }
+  }
+
+  return label;
+}
+
 let handlersRegistered = false;
 function ensureHandlersRegistered() {
   if (handlersRegistered) return;
@@ -66,6 +156,21 @@ export function OfflineBanner() {
   const { user, isLoaded: userLoaded } = useUser();
   const [showReconnected, setShowReconnected] = useState(false);
   const [wasOffline, setWasOffline] = useState(false);
+  const [queueSize, setQueueSize] = useState<number>(() => {
+    try {
+      return getQueueSize();
+    } catch {
+      return 0;
+    }
+  });
+  const [queueSnapshot, setQueueSnapshot] = useState<QueuedOp[]>(() => {
+    try {
+      return getQueueSnapshot();
+    } catch {
+      return [];
+    }
+  });
+  const [detailsOpen, setDetailsOpen] = useState(false);
 
   // Gate the queue bridge on auth readiness. The persisted queue is owner-
   // scoped: on every sign-in/sign-out/account-switch we reconcile the stored
@@ -79,7 +184,14 @@ export function OfflineBanner() {
     syncQueueOwner(currentUserId);
     ensureHandlersRegistered();
     const release = startQueueBridge();
+    // Re-read the snapshot after owner reconciliation in case clearQueue ran.
+    setQueueSize(getQueueSize());
+    setQueueSnapshot(getQueueSnapshot());
     const unsubscribe = subscribeQueue((event: QueueEvent) => {
+      // Keep the count + list in sync on every queue change so the badge
+      // accurately reflects what's still pending.
+      setQueueSize(getQueueSize());
+      setQueueSnapshot(getQueueSnapshot());
       if (event.type === "conflict") {
         toast({
           variant: "destructive",
@@ -133,9 +245,21 @@ export function OfflineBanner() {
     }
   }, [online, wasOffline, userLoaded]);
 
+  // Collapse the details panel automatically once the queue is empty so we
+  // don't strand an open-but-empty popover after a successful drain.
+  useEffect(() => {
+    if (queueSize === 0 && detailsOpen) {
+      setDetailsOpen(false);
+    }
+  }, [queueSize, detailsOpen]);
+
+  const visibleEntries = useMemo(() => queueSnapshot.slice(0, 8), [queueSnapshot]);
+  const overflowCount = Math.max(0, queueSnapshot.length - visibleEntries.length);
+
   if (online && !showReconnected) return null;
 
   const offline = !online;
+  const showPendingBadge = queueSize > 0;
 
   return (
     <div
@@ -167,7 +291,58 @@ export function OfflineBanner() {
             LINK_OK &mdash; RECONNECTED, SYNCING&hellip;
           </span>
         )}
+        {showPendingBadge ? (
+          <button
+            type="button"
+            onClick={() => setDetailsOpen((open) => !open)}
+            aria-expanded={detailsOpen}
+            aria-controls="offline-queue-details"
+            data-testid="button-pending-changes"
+            className={
+              "ml-1 inline-flex items-center gap-1 border px-1.5 py-0.5 tracking-wider uppercase " +
+              "hover:bg-foreground/5 focus:outline-none focus-visible:ring-1 " +
+              (offline
+                ? "border-destructive text-destructive"
+                : "border-primary text-primary")
+            }
+          >
+            <span data-testid="text-pending-count">
+              {queueSize} PENDING
+            </span>
+            <span aria-hidden="true">{detailsOpen ? "\u25B2" : "\u25BC"}</span>
+          </button>
+        ) : null}
       </div>
+      {showPendingBadge && detailsOpen ? (
+        <div
+          id="offline-queue-details"
+          data-testid="panel-pending-changes"
+          className={
+            "border-t px-3 py-2 normal-case tracking-normal text-left " +
+            (offline ? "border-destructive/40" : "border-primary/40")
+          }
+        >
+          <ul className="space-y-1">
+            {visibleEntries.map((entry) => (
+              <li
+                key={entry.id}
+                data-testid={`item-pending-${entry.id}`}
+                className="truncate"
+              >
+                {describeQueuedOp(entry)}
+              </li>
+            ))}
+            {overflowCount > 0 ? (
+              <li
+                data-testid="text-pending-overflow"
+                className="opacity-75"
+              >
+                +{overflowCount} more
+              </li>
+            ) : null}
+          </ul>
+        </div>
+      ) : null}
     </div>
   );
 }
