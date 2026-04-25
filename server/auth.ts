@@ -38,6 +38,8 @@ async function fetchJwks(): Promise<JwkKey[]> {
 interface ClerkPayload {
   sub: string;
   exp: number;
+  nbf?: number;
+  iss?: string;
   [key: string]: unknown;
 }
 
@@ -54,8 +56,16 @@ async function verifyClerkJwt(token: string): Promise<ClerkPayload> {
     Buffer.from(payloadB64, "base64url").toString()
   ) as ClerkPayload;
 
-  if (!payload.exp || Math.floor(Date.now() / 1000) > payload.exp) {
-    throw new Error("Token expired");
+  const now = Math.floor(Date.now() / 1000);
+
+  // Validate required claims
+  if (!payload.sub) throw new Error("Missing sub claim");
+  if (!payload.exp || now > payload.exp) throw new Error("Token expired");
+  if (payload.nbf && now < payload.nbf) throw new Error("Token not yet valid");
+
+  // Validate issuer — must be a Clerk FAPI URL (https://...)
+  if (!payload.iss || !payload.iss.startsWith("https://")) {
+    throw new Error("Invalid issuer");
   }
 
   const keys = await fetchJwks();
