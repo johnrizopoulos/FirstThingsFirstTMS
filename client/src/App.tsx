@@ -16,6 +16,8 @@ import ListPage from "@/pages/ListPage";
 import BoardPage from "@/pages/BoardPage";
 import CompletedPage from "@/pages/CompletedPage";
 import TrashPage from "@/pages/TrashPage";
+import SignInPage from "@/pages/SignInPage";
+import SignUpPage from "@/pages/SignUpPage";
 
 const publishableKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY as string;
 
@@ -58,22 +60,28 @@ function AuthRouter() {
   }
 
   return (
-    <>
-      <Show when="signed-out">
-        <LandingPage />
-      </Show>
-      <Show when="signed-in">
-        <Switch>
-          <Route path="/" component={FocusPage} />
-          <Route path="/list" component={ListPage} />
-          <Route path="/board" component={BoardPage} />
-          <Route path="/completed" component={CompletedPage} />
-          <Route path="/trash" component={TrashPage} />
-          <Route path="/tutorial" component={OnboardingPage} />
-          <Route component={NotFound} />
-        </Switch>
-      </Show>
-    </>
+    <Switch>
+      <Route path="/sign-in" nest component={SignInPage} />
+      <Route path="/sign-up" nest component={SignUpPage} />
+      <Route>
+        <>
+          <Show when="signed-out">
+            <LandingPage />
+          </Show>
+          <Show when="signed-in">
+            <Switch>
+              <Route path="/" component={FocusPage} />
+              <Route path="/list" component={ListPage} />
+              <Route path="/board" component={BoardPage} />
+              <Route path="/completed" component={CompletedPage} />
+              <Route path="/trash" component={TrashPage} />
+              <Route path="/tutorial" component={OnboardingPage} />
+              <Route component={NotFound} />
+            </Switch>
+          </Show>
+        </>
+      </Route>
+    </Switch>
   );
 }
 
