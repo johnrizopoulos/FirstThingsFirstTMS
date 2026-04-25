@@ -114,7 +114,7 @@ function formatCountdown(secondsRemaining: number): string {
 export default function ResetPasswordPage() {
   const { isLoaded: userLoaded, isSignedIn } = useUser();
   const { signIn, fetchStatus } = useSignIn();
-  const { theme } = useTheme();
+  const { theme, toggleTheme } = useTheme();
   const [, setLocation] = useLocation();
 
   const [step, setStep] = useState<Step>("request");
@@ -322,8 +322,28 @@ export default function ResetPasswordPage() {
           backgroundRepeat: "no-repeat",
         }}
       />
+      <div className="fixed top-4 left-4 z-40">
+        <Link
+          href="/"
+          className="flex items-center gap-2 border-2 border-primary bg-background text-primary px-4 py-2 font-bold text-xs md:text-sm hover:bg-primary hover:text-primary-foreground transition-colors tracking-widest"
+          data-testid="link-home-wordmark"
+        >
+          <span className="w-2 h-2 bg-primary animate-blink" />
+          FIRST_THINGS_FIRST
+        </Link>
+      </div>
+      <div className="fixed top-4 right-4 z-40">
+        <button
+          onClick={toggleTheme}
+          className="border-2 border-primary bg-background text-primary px-4 py-2 font-bold text-xs md:text-sm hover:bg-primary hover:text-primary-foreground transition-colors"
+          title="Change theme"
+          data-testid="button-theme-toggle"
+        >
+          [{theme.toUpperCase()}]
+        </button>
+      </div>
       <div className="fixed inset-0 crt-overlay pointer-events-none z-50" />
-      <main className="relative z-10 min-h-screen flex items-center justify-center px-4 py-16">
+      <main className="relative z-10 min-h-screen flex flex-col items-center justify-center px-4 py-24 gap-4">
         <div className="w-full max-w-md border-2 border-primary bg-background/95 p-6 md:p-8 shadow-none">
           <header className="mb-6">
             <h1
@@ -508,6 +528,13 @@ export default function ResetPasswordPage() {
             </Link>
           </div>
         </div>
+        <Link
+          href="/"
+          className="text-xs uppercase tracking-widest text-primary underline hover:text-primary/80 font-mono"
+          data-testid="link-back-home"
+        >
+          ← Back to home
+        </Link>
       </main>
     </div>
   );
