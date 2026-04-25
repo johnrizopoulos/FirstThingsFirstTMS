@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>FTF — OFFLINE</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" media="(prefers-color-scheme: dark)" />
+    <link rel="icon" type="image/svg+xml" href="/favicon-light.svg" media="(prefers-color-scheme: light)" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <meta name="theme-color" content="#000000" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="FTF" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      :root {
+        --background: #0b0e0b;
+        --foreground: #00ff00;
+        --muted: rgba(0, 255, 0, 0.4);
+        --border: rgba(0, 255, 0, 0.35);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        background: var(--background);
+        color: var(--foreground);
+        font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo,
+          Monaco, Consolas, monospace;
+        font-weight: 400;
+        -webkit-font-smoothing: antialiased;
+        -webkit-text-size-adjust: 100%;
+        overflow: hidden;
+      }
+
+      body {
+        background-image:
+          linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%),
+          linear-gradient(
+            90deg,
+            rgba(255, 0, 0, 0.06),
+            rgba(0, 255, 0, 0.02),
+            rgba(0, 0, 255, 0.06)
+          );
+        background-size: 100% 2px, 6px 100%;
+      }
+
+      .crt-overlay {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        background: linear-gradient(
+            rgba(18, 16, 16, 0) 50%,
+            rgba(0, 0, 0, 0.25) 50%
+          ),
+          linear-gradient(
+            90deg,
+            rgba(255, 0, 0, 0.06),
+            rgba(0, 255, 0, 0.02),
+            rgba(0, 0, 255, 0.06)
+          );
+        background-size: 100% 3px, 3px 100%;
+        z-index: 50;
+      }
+
+      main {
+        position: relative;
+        z-index: 1;
+        min-height: 100%;
+        padding: max(env(safe-area-inset-top), 16px)
+          max(env(safe-area-inset-right), 16px)
+          max(env(safe-area-inset-bottom), 16px)
+          max(env(safe-area-inset-left), 16px);
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        justify-content: center;
+      }
+
+      .panel {
+        max-width: 560px;
+        width: 100%;
+        margin: 0 auto;
+        border: 1px solid var(--border);
+        padding: 20px;
+      }
+
+      .titlebar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 11px;
+        letter-spacing: 0.12em;
+        color: var(--muted);
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 8px;
+        margin-bottom: 16px;
+        text-transform: uppercase;
+      }
+
+      .status-dot {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        background: #ff3b3b;
+        margin-right: 6px;
+        vertical-align: middle;
+        animation: blink 1s step-end infinite;
+      }
+
+      h1 {
+        font-size: 20px;
+        line-height: 1.3;
+        margin: 0 0 12px 0;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+      }
+
+      .code {
+        color: var(--foreground);
+      }
+
+      p {
+        margin: 0 0 10px 0;
+        font-size: 13px;
+        line-height: 1.6;
+        color: var(--foreground);
+      }
+
+      .hint {
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      ul {
+        margin: 0 0 16px 0;
+        padding-left: 18px;
+        font-size: 13px;
+        line-height: 1.7;
+      }
+
+      .actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 16px;
+        flex-wrap: wrap;
+      }
+
+      button {
+        font-family: inherit;
+        font-size: 13px;
+        font-weight: 500;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        background: transparent;
+        color: var(--foreground);
+        border: 1px solid var(--foreground);
+        padding: 10px 16px;
+        cursor: pointer;
+      }
+
+      button:hover,
+      button:focus-visible {
+        background: var(--foreground);
+        color: #000;
+        outline: none;
+      }
+
+      button:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+      }
+
+      .net-status {
+        margin-top: 14px;
+        font-size: 11px;
+        letter-spacing: 0.1em;
+        color: var(--muted);
+        text-transform: uppercase;
+      }
+
+      .cursor {
+        display: inline-block;
+        width: 0.55em;
+        height: 1em;
+        background: var(--foreground);
+        vertical-align: -0.15em;
+        margin-left: 2px;
+        animation: blink 1s step-end infinite;
+      }
+
+      @keyframes blink {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .status-dot,
+        .cursor {
+          animation: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="crt-overlay" aria-hidden="true"></div>
+    <main>
+      <section class="panel" role="alert" aria-live="polite" data-testid="panel-offline">
+        <div class="titlebar">
+          <span><span class="status-dot" aria-hidden="true"></span>FTF // OFFLINE</span>
+          <span data-testid="text-net-indicator" id="net-indicator">NO_LINK</span>
+        </div>
+
+        <h1>
+          <span class="code">NO_NETWORK</span> &mdash; RECONNECT TO LOAD TASKS<span
+            class="cursor"
+            aria-hidden="true"
+          ></span>
+        </h1>
+
+        <p>
+          You're offline and the terminal couldn't reach the server. Your saved
+          tasks are safe &mdash; they'll come back as soon as the link is
+          restored.
+        </p>
+
+        <ul>
+          <li>Check Wi-Fi or mobile data</li>
+          <li>Disable airplane mode if it's on</li>
+          <li>Move somewhere with a better signal</li>
+        </ul>
+
+        <p class="hint">
+          This screen will reload automatically once a connection is detected.
+        </p>
+
+        <div class="actions">
+          <button type="button" id="retry-btn" data-testid="button-retry">
+            RETRY CONNECTION
+          </button>
+        </div>
+
+        <div class="net-status" data-testid="text-net-status" id="net-status">
+          STATUS: OFFLINE
+        </div>
+      </section>
+    </main>
+
+    <script>
+      (function () {
+        var retryBtn = document.getElementById("retry-btn");
+        var netStatus = document.getElementById("net-status");
+        var netIndicator = document.getElementById("net-indicator");
+
+        function setOnlineUi(online) {
+          if (online) {
+            netStatus.textContent = "STATUS: ONLINE — RECONNECTING";
+            netIndicator.textContent = "LINK_OK";
+          } else {
+            netStatus.textContent = "STATUS: OFFLINE";
+            netIndicator.textContent = "NO_LINK";
+          }
+        }
+
+        function attemptReload() {
+          retryBtn.disabled = true;
+          retryBtn.textContent = "RETRYING…";
+          try {
+            window.location.reload();
+          } catch (e) {
+            retryBtn.disabled = false;
+            retryBtn.textContent = "RETRY CONNECTION";
+          }
+        }
+
+        retryBtn.addEventListener("click", attemptReload);
+
+        window.addEventListener("online", function () {
+          setOnlineUi(true);
+          setTimeout(attemptReload, 400);
+        });
+
+        window.addEventListener("offline", function () {
+          setOnlineUi(false);
+        });
+
+        setOnlineUi(navigator.onLine);
+        if (navigator.onLine) {
+          setTimeout(attemptReload, 1500);
+        }
+      })();
+    </script>
+  </body>
+</html>

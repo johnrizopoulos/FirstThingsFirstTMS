@@ -1,4 +1,5 @@
-const CACHE_VERSION = "ftf-shell-v1";
+const CACHE_VERSION = "ftf-shell-v2";
+const OFFLINE_URL = "/offline.html";
 const APP_SHELL = [
   "/",
   "/favicon.svg",
@@ -6,14 +7,22 @@ const APP_SHELL = [
   "/icon-192.png",
   "/icon-512.png",
   "/site.webmanifest",
+  OFFLINE_URL,
 ];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches
       .open(CACHE_VERSION)
-      .then((cache) => cache.addAll(APP_SHELL))
-      .catch(() => undefined)
+      .then((cache) =>
+        Promise.all(
+          APP_SHELL.map((url) =>
+            cache
+              .add(new Request(url, { cache: "reload" }))
+              .catch(() => undefined)
+          )
+        )
+      )
       .then(() => self.skipWaiting())
   );
 });
@@ -39,6 +48,30 @@ self.addEventListener("fetch", (event) => {
 
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
+
+  if (request.mode === "navigate") {
+    event.respondWith(
+      (async () => {
+        try {
+          const response = await fetch(request);
+          return response;
+        } catch (err) {
+          const cache = await caches.open(CACHE_VERSION);
+          const offline = await cache.match(OFFLINE_URL);
+          if (offline) return offline;
+          return new Response(
+            "NO_NETWORK — RECONNECT TO LOAD TASKS",
+            {
+              status: 503,
+              statusText: "Service Unavailable",
+              headers: { "Content-Type": "text/plain; charset=utf-8" },
+            }
+          );
+        }
+      })()
+    );
+    return;
+  }
 
   if (!APP_SHELL.includes(url.pathname)) return;
 
