@@ -50,6 +50,14 @@ Preferred communication style: Simple, everyday language.
 
 ## Version 2.4 (April 25, 2026)
 
+### Offline mutation queue
+- New `client/src/lib/offlineQueue.ts` — queues write operations attempted while `isOnline()` is false and replays them once connectivity returns. Backed by `localStorage` (key `fft.offlineMutationQueue.v1`) so queued changes survive a page reload, with safe fallbacks when storage is unavailable.
+- `client/src/lib/api.ts` mutation helpers (create/update/complete/uncomplete/delete/reorder/restore for tasks and milestones, plus cleanup/empty trash) now go through `executeOrQueue`. Offline → enqueue and return a typed stub so the UI doesn't see an error toast. Online → call the real endpoint; if `fetch` itself throws a network-like error, the call is queued and the stub is returned.
+- `client/src/components/OfflineBanner.tsx` registers handlers, calls `startQueueBridge()` (which auto-drains on reconnect), drains explicitly when the banner flips back to "online", and surfaces friendly toasts for `404/409/410` conflicts (the queued change is dropped instead of looping forever).
+- **Owner-scoped queue** (cross-account safety): the queue is tagged with the Clerk user id under `fft.offlineMutationQueueOwner.v1`. `syncQueueOwner(userId)` is called from `OfflineBanner` *before* registering handlers or starting the bridge, and the bridge effect itself is gated on `useUser().isLoaded`. On a sign-in / sign-out / account-switch the persisted queue is dropped, so a backlog queued under user A can never replay against user B's session on the same browser.
+- Drain handlers use `rawMutations` from `client/src/lib/api.ts` — fetch-only helpers that don't re-queue on transient network errors. This preserves strict FIFO order: a network drop during drain leaves the failed entry at the head of the queue instead of appending it to the tail.
+- Tests: `client/src/lib/__tests__/offlineQueue.test.ts` (25 tests — persistence, ordered drain, FIFO regression on transient drain failure, conflict + network-error handling, concurrent drain protection, online-bridge auto-replay, `clearQueue`, and `syncQueueOwner` cross-account replay protection) and offline-queueing cases added to `client/src/lib/__tests__/api.test.ts` (104 passing tests total).
+
 ### Clerk Auth Branding & Theming
 - **Themed modal**: `client/src/lib/clerkAppearance.ts` factory builds a Clerk `appearance` object driven by `hsl(var(--*))` CSS variables so the sign-in/sign-up modal tracks the active theme (terminal/dark/light) live. `ClerkWithTheme` wrapper inside `ThemeProvider` re-binds the appearance and the backdrop URL on theme change.
 - **Hand-built SVG logo**: replaced AI-generated PNG logos at the top of the auth modal with `client/public/clerk/logo-terminal.svg` and `logo-light.svg` — pixel-perfect 5×7 grid wordmark with a SMIL-animated blinking cursor block. PNG fallbacks removed.

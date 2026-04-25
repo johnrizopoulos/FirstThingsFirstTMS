@@ -25,6 +25,7 @@ import {
   restoreMilestone,
 } from "../api";
 import { __resetOnlineStatusForTests, isOnline, reportNetworkError } from "../onlineStatus";
+import { __resetOfflineQueueForTests, getQueueSnapshot } from "../offlineQueue";
 
 function jsonResponse(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), {
@@ -43,6 +44,7 @@ describe("api helpers", () => {
 
   beforeEach(() => {
     __resetOnlineStatusForTests();
+    __resetOfflineQueueForTests();
     Object.defineProperty(globalThis, "navigator", {
       value: { onLine: true },
       configurable: true,
@@ -148,5 +150,88 @@ describe("api helpers", () => {
       await fn();
       expect(fetchMock).toHaveBeenCalledTimes(1);
     }
+  });
+
+  describe("offline queueing", () => {
+    function setOffline() {
+      Object.defineProperty(globalThis, "navigator", {
+        value: { onLine: false },
+        configurable: true,
+      });
+    }
+
+    it("does not call fetch when offline and instead enqueues the mutation", async () => {
+      setOffline();
+      await createTask({ title: "queued" });
+      expect(fetchMock).not.toHaveBeenCalled();
+      const queue = getQueueSnapshot();
+      expect(queue).toHaveLength(1);
+      expect(queue[0].op).toBe("createTask");
+      expect(queue[0].args).toEqual([{ title: "queued" }]);
+    });
+
+    it("returns a stub object so callers don't crash on the missing response", async () => {
+      setOffline();
+      const result = await createTask({ title: "queued" });
+      expect(result).toBeTruthy();
+      expect(result.title).toBe("queued");
+      expect(typeof result.id).toBe("string");
+    });
+
+    it("queues every supported mutation when offline", async () => {
+      setOffline();
+      await createMilestone({ title: "m" });
+      await updateMilestone("m1", { title: "x" });
+      await completeMilestone("m1");
+      await uncompleteMilestone("m1");
+      await deleteMilestone("m1");
+      await createTask({ title: "t" });
+      await updateTask("t1", { title: "x" });
+      await completeTask("t1");
+      await uncompleteTask("t1");
+      await deleteTask("t1");
+      await reorderTasks(["a", "b"]);
+      await reorderTasksInMilestone(["a"], "m1");
+      await cleanupTrash();
+      await emptyTrash();
+      await restoreTask("t1");
+      await restoreMilestone("m1");
+
+      expect(fetchMock).not.toHaveBeenCalled();
+      const queue = getQueueSnapshot();
+      expect(queue.map((q) => q.op)).toEqual([
+        "createMilestone",
+        "updateMilestone",
+        "completeMilestone",
+        "uncompleteMilestone",
+        "deleteMilestone",
+        "createTask",
+        "updateTask",
+        "completeTask",
+        "uncompleteTask",
+        "deleteTask",
+        "reorderTasks",
+        "reorderTasksInMilestone",
+        "cleanupTrash",
+        "emptyTrash",
+        "restoreTask",
+        "restoreMilestone",
+      ]);
+    });
+
+    it("queues the mutation when fetch fails with a network error mid-flight", async () => {
+      // Online at decision time, but fetch throws — should still recover by queueing.
+      fetchMock.mockRejectedValueOnce(new TypeError("Failed to fetch"));
+      const result = await createTask({ title: "midflight" });
+      expect(result.title).toBe("midflight");
+      expect(getQueueSnapshot()).toHaveLength(1);
+      expect(isOnline()).toBe(false);
+    });
+
+    it("propagates non-network errors (does not queue) when online", async () => {
+      fetchMock.mockResolvedValueOnce(new Response("nope", { status: 500 }));
+      await expect(createTask({ title: "x" })).rejects.toThrow("500: nope");
+      expect(getQueueSnapshot()).toHaveLength(0);
+    });
   });
 });
