@@ -346,6 +346,190 @@ describe("offlineQueue", () => {
     });
   });
 
+  describe("temp ID rewriting after a queued create resolves", () => {
+    it("rewrites a follow-up completeTask op to use the server-assigned ID", async () => {
+      // Scenario: user creates a task offline, completes it offline, then
+      // reconnects. Both ops are queued in order. The create returns a real
+      // server ID; the follow-up completeTask must target that real ID, not
+      // the temp ID the server never knew about.
+      const completed: string[] = [];
+      registerHandlers({
+        createTask: vi.fn().mockImplementation(async (input: { id: string }) => ({
+          id: "task-real-1",
+          title: "x",
+          tempId: input.id,
+        })),
+        completeTask: vi.fn().mockImplementation(async (id: string) => {
+          completed.push(id);
+          return { id };
+        }),
+      });
+
+      enqueue("createTask", [{ id: "task-offline-abc", title: "x" }]);
+      enqueue("completeTask", ["task-offline-abc"]);
+
+      const result = await drainQueue();
+
+      expect(result).toEqual({ processed: 2, remaining: 0 });
+      expect(completed).toEqual(["task-real-1"]);
+    });
+
+    it("rewrites updateTask, deleteTask, and reorder ops that reference the temp ID", async () => {
+      const calls: Array<[string, unknown[]]> = [];
+      registerHandlers({
+        createTask: vi
+          .fn()
+          .mockResolvedValueOnce({ id: "task-real-1" })
+          .mockResolvedValueOnce({ id: "task-real-2" }),
+        updateTask: vi.fn().mockImplementation(async (id: string, updates: unknown) => {
+          calls.push(["updateTask", [id, updates]]);
+          return { id };
+        }),
+        deleteTask: vi.fn().mockImplementation(async (id: string) => {
+          calls.push(["deleteTask", [id]]);
+          return null;
+        }),
+        reorderTasks: vi.fn().mockImplementation(async (ids: string[]) => {
+          calls.push(["reorderTasks", [ids]]);
+          return null;
+        }),
+      });
+
+      enqueue("createTask", [{ id: "task-offline-1", title: "first" }]);
+      enqueue("createTask", [{ id: "task-offline-2", title: "second" }]);
+      enqueue("updateTask", ["task-offline-1", { title: "edited" }]);
+      enqueue("reorderTasks", [["task-offline-2", "task-offline-1", "untouched"]]);
+      enqueue("deleteTask", ["task-offline-2"]);
+
+      await drainQueue();
+
+      expect(calls).toEqual([
+        ["updateTask", ["task-real-1", { title: "edited" }]],
+        ["reorderTasks", [["task-real-2", "task-real-1", "untouched"]]],
+        ["deleteTask", ["task-real-2"]],
+      ]);
+    });
+
+    it("rewrites a temp milestoneId on a follow-up createTask after the milestone create resolves", async () => {
+      const created: unknown[] = [];
+      registerHandlers({
+        createMilestone: vi.fn().mockResolvedValue({ id: "milestone-real-1" }),
+        createTask: vi.fn().mockImplementation(async (input: unknown) => {
+          created.push(input);
+          return { id: "task-real-1" };
+        }),
+      });
+
+      enqueue("createMilestone", [{ id: "milestone-offline-1", title: "ms" }]);
+      enqueue("createTask", [
+        { id: "task-offline-1", title: "t", milestoneId: "milestone-offline-1" },
+      ]);
+
+      await drainQueue();
+
+      expect(created).toEqual([
+        { id: "task-offline-1", title: "t", milestoneId: "milestone-real-1" },
+      ]);
+    });
+
+    it("rewrites both the id and a milestoneId in updateTask updates", async () => {
+      const updates: Array<[string, unknown]> = [];
+      registerHandlers({
+        createTask: vi.fn().mockResolvedValue({ id: "task-real-1" }),
+        createMilestone: vi.fn().mockResolvedValue({ id: "milestone-real-1" }),
+        updateTask: vi.fn().mockImplementation(async (id: string, patch: unknown) => {
+          updates.push([id, patch]);
+          return { id };
+        }),
+      });
+
+      enqueue("createTask", [{ id: "task-offline-1", title: "t" }]);
+      enqueue("createMilestone", [{ id: "milestone-offline-1", title: "ms" }]);
+      enqueue("updateTask", [
+        "task-offline-1",
+        { milestoneId: "milestone-offline-1", title: "moved" },
+      ]);
+
+      await drainQueue();
+
+      expect(updates).toEqual([
+        [
+          "task-real-1",
+          { milestoneId: "milestone-real-1", title: "moved" },
+        ],
+      ]);
+    });
+
+    it("rewrites reorderTasksInMilestone task IDs and milestoneId", async () => {
+      const reorders: Array<[unknown, unknown]> = [];
+      registerHandlers({
+        createMilestone: vi.fn().mockResolvedValue({ id: "milestone-real-1" }),
+        createTask: vi
+          .fn()
+          .mockResolvedValueOnce({ id: "task-real-1" })
+          .mockResolvedValueOnce({ id: "task-real-2" }),
+        reorderTasksInMilestone: vi
+          .fn()
+          .mockImplementation(async (taskIds: string[], milestoneId: string) => {
+            reorders.push([taskIds, milestoneId]);
+            return null;
+          }),
+      });
+
+      enqueue("createMilestone", [{ id: "milestone-offline-1", title: "ms" }]);
+      enqueue("createTask", [
+        { id: "task-offline-1", title: "a", milestoneId: "milestone-offline-1" },
+      ]);
+      enqueue("createTask", [
+        { id: "task-offline-2", title: "b", milestoneId: "milestone-offline-1" },
+      ]);
+      enqueue("reorderTasksInMilestone", [
+        ["task-offline-2", "task-offline-1"],
+        "milestone-offline-1",
+      ]);
+
+      await drainQueue();
+
+      expect(reorders).toEqual([
+        [["task-real-2", "task-real-1"], "milestone-real-1"],
+      ]);
+    });
+
+    it("persists the rewritten args so a mid-drain crash doesn't lose the mapping", async () => {
+      // Drain only the create, then simulate a crash by flipping offline before
+      // the follow-up runs. The persisted queue should already carry the real
+      // id so a fresh load -> drain still completes correctly.
+      let createResolved = false;
+      registerHandlers({
+        createTask: vi.fn().mockImplementation(async () => {
+          createResolved = true;
+          return { id: "task-real-1" };
+        }),
+        completeTask: vi.fn().mockImplementation(async () => {
+          if (!createResolved) throw new Error("ordering violated");
+          // Simulate a network drop between ops on the first drain attempt.
+          throw new TypeError("Failed to fetch");
+        }),
+      });
+
+      enqueue("createTask", [{ id: "task-offline-xyz", title: "x" }]);
+      enqueue("completeTask", ["task-offline-xyz"]);
+
+      // First drain: create succeeds, completeTask fails network-like, queue
+      // halts with the rewritten id at the head.
+      const first = await drainQueue();
+      expect(first.processed).toBe(1);
+      expect(first.remaining).toBe(1);
+
+      const persisted = JSON.parse(
+        storage.getItem("fft.offlineMutationQueue.v1")!,
+      );
+      expect(persisted).toHaveLength(1);
+      expect(persisted[0].op).toBe("completeTask");
+      expect(persisted[0].args).toEqual(["task-real-1"]);
+    });
+  });
+
   describe("clearQueue", () => {
     it("drops every entry and clears the persisted backlog", () => {
       enqueue("createTask", [{ title: "a" }]);

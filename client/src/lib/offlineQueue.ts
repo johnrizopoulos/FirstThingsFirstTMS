@@ -213,6 +213,162 @@ function isConflictError(err: unknown): boolean {
   return /^(404|409|410):/.test(message);
 }
 
+/**
+ * Rewrite a single queued op's args, swapping any IDs that appear in `idMap`
+ * with their real, server-assigned counterparts. Returns a new args array
+ * (never mutates the input). For ops that don't reference IDs, returns the
+ * original args reference unchanged so callers can cheaply detect no-op.
+ */
+function rewriteArgsWithIdMap(
+  op: OfflineOpName,
+  args: unknown[],
+  idMap: Map<string, string>,
+): unknown[] {
+  if (idMap.size === 0) return args;
+  const swap = (id: string): string => idMap.get(id) ?? id;
+
+  switch (op) {
+    case "createMilestone":
+    case "createTask": {
+      // The create op may reference a temp `milestoneId` we just learned the
+      // real ID for (offline: create milestone, then create task inside it).
+      // We deliberately do NOT rewrite `id` here — a create's own id is the
+      // temp id we want the server to know it by so we can map the response.
+      const input = args[0];
+      if (!input || typeof input !== "object") return args;
+      const next = { ...(input as Record<string, unknown>) };
+      let changed = false;
+      if (typeof next.milestoneId === "string") {
+        const swapped = swap(next.milestoneId);
+        if (swapped !== next.milestoneId) {
+          next.milestoneId = swapped;
+          changed = true;
+        }
+      }
+      return changed ? [next, ...args.slice(1)] : args;
+    }
+    case "updateMilestone":
+    case "updateTask": {
+      const id = args[0];
+      const updates = args[1];
+      let changed = false;
+      const newId = typeof id === "string" ? swap(id) : id;
+      if (newId !== id) changed = true;
+      let newUpdates = updates;
+      if (updates && typeof updates === "object") {
+        const candidate = { ...(updates as Record<string, unknown>) };
+        if (typeof candidate.milestoneId === "string") {
+          const swapped = swap(candidate.milestoneId);
+          if (swapped !== candidate.milestoneId) {
+            candidate.milestoneId = swapped;
+            newUpdates = candidate;
+            changed = true;
+          }
+        }
+      }
+      return changed ? [newId, newUpdates, ...args.slice(2)] : args;
+    }
+    case "completeMilestone":
+    case "uncompleteMilestone":
+    case "deleteMilestone":
+    case "completeTask":
+    case "uncompleteTask":
+    case "deleteTask":
+    case "restoreTask":
+    case "restoreMilestone": {
+      const id = args[0];
+      if (typeof id !== "string") return args;
+      const newId = swap(id);
+      return newId === id ? args : [newId, ...args.slice(1)];
+    }
+    case "reorderTasks": {
+      const ids = args[0];
+      if (!Array.isArray(ids)) return args;
+      let changed = false;
+      const next = ids.map((entry) => {
+        if (typeof entry !== "string") return entry;
+        const swapped = swap(entry);
+        if (swapped !== entry) changed = true;
+        return swapped;
+      });
+      return changed ? [next, ...args.slice(1)] : args;
+    }
+    case "reorderTasksInMilestone": {
+      const ids = args[0];
+      const mid = args[1];
+      let changed = false;
+      let nextIds: unknown = ids;
+      if (Array.isArray(ids)) {
+        const mapped = ids.map((entry) => {
+          if (typeof entry !== "string") return entry;
+          const swapped = swap(entry);
+          if (swapped !== entry) changed = true;
+          return swapped;
+        });
+        if (changed) nextIds = mapped;
+      }
+      let nextMid: unknown = mid;
+      if (typeof mid === "string") {
+        const swapped = swap(mid);
+        if (swapped !== mid) {
+          nextMid = swapped;
+          changed = true;
+        }
+      }
+      return changed ? [nextIds, nextMid, ...args.slice(2)] : args;
+    }
+    case "cleanupTrash":
+    case "emptyTrash":
+    default:
+      return args;
+  }
+}
+
+/**
+ * After a queued create resolves, walk every still-queued op and rewrite any
+ * argument that references the temp ID so it points at the real ID the server
+ * just assigned. Mutates `queue` in place and re-persists if anything changed.
+ *
+ * The mapping is folded directly into the persisted queue (rather than kept
+ * in a side-channel map) so it survives a mid-drain crash or reload — the
+ * next drain doesn't need to remember anything to keep working.
+ */
+function applyIdMappingToQueue(idMap: Map<string, string>): void {
+  if (idMap.size === 0 || queue.length === 0) return;
+  let changed = false;
+  for (let i = 0; i < queue.length; i++) {
+    const entry = queue[i];
+    const nextArgs = rewriteArgsWithIdMap(entry.op, entry.args, idMap);
+    if (nextArgs !== entry.args) {
+      queue[i] = { ...entry, args: nextArgs };
+      changed = true;
+    }
+  }
+  if (changed) persist();
+}
+
+/**
+ * If a queued create succeeded, extract the temp ID it carried (args[0].id)
+ * and the real server-assigned ID (result.id). Returns null if either is
+ * missing or they're already equal.
+ */
+function tempIdMappingFromCreate(
+  op: OfflineOpName,
+  args: unknown[],
+  result: unknown,
+): { tempId: string; realId: string } | null {
+  if (op !== "createTask" && op !== "createMilestone") return null;
+  const input = args[0];
+  if (!input || typeof input !== "object") return null;
+  const tempId = (input as { id?: unknown }).id;
+  if (typeof tempId !== "string") return null;
+  if (!result || typeof result !== "object") return null;
+  const realId = (result as { id?: unknown }).id;
+  if (typeof realId !== "string") return null;
+  if (tempId === realId) return null;
+  return { tempId, realId };
+}
+
 export async function drainQueue(): Promise<{
   processed: number;
   remaining: number;
@@ -238,8 +394,15 @@ export async function drainQueue(): Promise<{
         continue;
       }
       try {
-        await handler(...entry.args);
+        const result = await handler(...entry.args);
         queue.shift();
+        // If this op was a create that produced a new server entity, fold the
+        // temp -> real id mapping into every still-queued op so subsequent
+        // mutations don't 404 against a temp id the server never saw.
+        const mapping = tempIdMappingFromCreate(entry.op, entry.args, result);
+        if (mapping) {
+          applyIdMappingToQueue(new Map([[mapping.tempId, mapping.realId]]));
+        }
         persist();
         processed += 1;
       } catch (err) {
