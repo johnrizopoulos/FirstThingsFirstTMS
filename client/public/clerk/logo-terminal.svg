@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 70" width="240" height="70" shape-rendering="crispEdges" role="img" aria-label="FTF">
+  <title>FTF</title>
+  <g fill="#00FF41">
+    <!-- F (x offset 0): vertical stem + top bar + mid bar -->
+    <rect x="0" y="0" width="10" height="70"/>
+    <rect x="0" y="0" width="50" height="10"/>
+    <rect x="0" y="30" width="40" height="10"/>
+
+    <!-- T (x offset 60): top bar + vertical stem -->
+    <rect x="60" y="0" width="50" height="10"/>
+    <rect x="80" y="0" width="10" height="70"/>
+
+    <!-- F (x offset 120): vertical stem + top bar + mid bar -->
+    <rect x="120" y="0" width="10" height="70"/>
+    <rect x="120" y="0" width="50" height="10"/>
+    <rect x="120" y="30" width="40" height="10"/>
+
+    <!-- Block cursor (x offset 190): solid 5x7 cell, blinking like a terminal caret -->
+    <rect x="190" y="0" width="50" height="70">
+      <animate attributeName="opacity" values="1;1;0;0" keyTimes="0;0.5;0.5;1" dur="1s" repeatCount="indefinite"/>
+    </rect>
+  </g>
+</svg>

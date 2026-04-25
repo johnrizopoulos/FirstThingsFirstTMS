@@ -1,5 +1,4 @@
 uploads = []
-outputs = []
 
 [[generated]]
 id = "4Ahi2HJs3sQRV8_1294Ua"
@@ -24,3 +23,15 @@ id = "8mCbyziFOFqZpWD6o2B5M"
 uri = "file://attached_assets/generated_images/ftf-backdrop-light.png"
 type = "image"
 title = "FTF light backdrop"
+
+[[outputs]]
+id = "g2bArAuRAs-PWDcuZ_8J5"
+uri = "file://client/public/clerk/logo-terminal.svg"
+type = "image"
+title = "FTF logo — terminal / dark theme (neon green)"
+
+[[outputs]]
+id = "MjuoEmhHzwCihMZaoLnrQ"
+uri = "file://client/public/clerk/logo-light.svg"
+type = "image"
+title = "FTF logo — light theme (dark forest green)"

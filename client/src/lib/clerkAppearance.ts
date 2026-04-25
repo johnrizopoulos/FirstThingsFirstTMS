@@ -6,9 +6,9 @@ type Theme = "terminal" | "dark" | "light";
 // "light" gets its own dark-green / cream variants. If dark ever needs its own
 // distinct grayscale brand mark, add new files and split the maps below.
 const logoForTheme: Record<Theme, string> = {
-  terminal: "/clerk/logo-terminal.png",
-  dark: "/clerk/logo-terminal.png",
-  light: "/clerk/logo-light.png",
+  terminal: "/clerk/logo-terminal.svg",
+  dark: "/clerk/logo-terminal.svg",
+  light: "/clerk/logo-light.svg",
 };
 
 const backdropForTheme: Record<Theme, string> = {
