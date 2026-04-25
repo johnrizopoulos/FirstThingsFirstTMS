@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useUser } from "@clerk/react";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 import { queryClient } from "@/lib/queryClient";
@@ -7,7 +7,10 @@ import {
   drainQueue,
   getQueueSize,
   getQueueSnapshot,
+  insertQueueEntry,
   registerHandlers,
+  removeQueueEntry,
+  retryQueueEntry,
   startQueueBridge,
   subscribeQueue,
   syncQueueOwner,
@@ -16,6 +19,7 @@ import {
   type QueuedOp,
 } from "@/lib/offlineQueue";
 import { toast } from "@/hooks/use-toast";
+import { ToastAction } from "@/components/ui/toast";
 import { rawMutations } from "@/lib/api";
 
 function friendlyOpName(op: string): string {
@@ -171,6 +175,85 @@ export function OfflineBanner() {
     }
   });
   const [detailsOpen, setDetailsOpen] = useState(false);
+  const [retryingIds, setRetryingIds] = useState<Set<string>>(() => new Set());
+
+  const markRetrying = useCallback((id: string, on: boolean) => {
+    setRetryingIds((prev) => {
+      const next = new Set(prev);
+      if (on) next.add(id);
+      else next.delete(id);
+      return next;
+    });
+  }, []);
+
+  const handleDiscard = useCallback((entry: QueuedOp) => {
+    const removed = removeQueueEntry(entry.id);
+    if (!removed) return;
+    const label = describeQueuedOp(removed.entry);
+    toast({
+      title: "Discarded queued change",
+      description: label,
+      action: (
+        <ToastAction
+          altText="Undo discard"
+          data-testid={`button-undo-discard-${entry.id}`}
+          onClick={() => insertQueueEntry(removed.entry, removed.index)}
+        >
+          Undo
+        </ToastAction>
+      ),
+    });
+  }, []);
+
+  const handleRetry = useCallback(
+    async (entry: QueuedOp) => {
+      markRetrying(entry.id, true);
+      try {
+        const result = await retryQueueEntry(entry.id);
+        const label = describeQueuedOp(entry);
+        switch (result.status) {
+          case "success":
+            toast({
+              title: "Synced queued change",
+              description: label,
+            });
+            void queryClient.invalidateQueries();
+            break;
+          case "offline":
+            toast({
+              variant: "destructive",
+              title: "Still offline",
+              description: "Reconnect to retry queued changes.",
+            });
+            break;
+          case "busy":
+            toast({
+              title: "Sync already in progress",
+              description: "Try again in a moment.",
+            });
+            break;
+          case "network":
+            toast({
+              variant: "destructive",
+              title: "Couldn't reach the server",
+              description: `Will retry automatically: ${label}`,
+            });
+            break;
+          case "not-found":
+            // Snapshot is stale — nothing to do; the listener will refresh.
+            break;
+          case "no-handler":
+          case "conflict":
+          case "error":
+            // The shared queue listener already toasts conflict/error events.
+            break;
+        }
+      } finally {
+        markRetrying(entry.id, false);
+      }
+    },
+    [markRetrying],
+  );
 
   // Gate the queue bridge on auth readiness. The persisted queue is owner-
   // scoped: on every sign-in/sign-out/account-switch we reconcile the stored
@@ -323,15 +406,61 @@ export function OfflineBanner() {
           }
         >
           <ul className="space-y-1">
-            {visibleEntries.map((entry) => (
-              <li
-                key={entry.id}
-                data-testid={`item-pending-${entry.id}`}
-                className="truncate"
-              >
-                {describeQueuedOp(entry)}
-              </li>
-            ))}
+            {visibleEntries.map((entry) => {
+              const isRetrying = retryingIds.has(entry.id);
+              const retryDisabled = !online || isRetrying;
+              return (
+                <li
+                  key={entry.id}
+                  data-testid={`item-pending-${entry.id}`}
+                  className="flex items-center gap-2"
+                >
+                  <span className="flex-1 truncate">
+                    {describeQueuedOp(entry)}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => void handleRetry(entry)}
+                    disabled={retryDisabled}
+                    aria-label={`Retry ${describeQueuedOp(entry)} now`}
+                    title={
+                      online
+                        ? "Retry this change now"
+                        : "Reconnect to retry"
+                    }
+                    data-testid={`button-retry-pending-${entry.id}`}
+                    className={
+                      "shrink-0 border px-1.5 py-0.5 text-[0.7rem] uppercase tracking-wider " +
+                      "hover:bg-foreground/5 focus:outline-none focus-visible:ring-1 " +
+                      "disabled:opacity-50 disabled:cursor-not-allowed " +
+                      (offline
+                        ? "border-destructive/60 text-destructive"
+                        : "border-primary/60 text-primary")
+                    }
+                  >
+                    {isRetrying ? "\u2026" : "Retry"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDiscard(entry)}
+                    disabled={isRetrying}
+                    aria-label={`Discard ${describeQueuedOp(entry)}`}
+                    title="Discard this queued change (with undo)"
+                    data-testid={`button-discard-pending-${entry.id}`}
+                    className={
+                      "shrink-0 border px-1.5 py-0.5 text-[0.7rem] uppercase tracking-wider " +
+                      "hover:bg-foreground/5 focus:outline-none focus-visible:ring-1 " +
+                      "disabled:opacity-50 disabled:cursor-not-allowed " +
+                      (offline
+                        ? "border-destructive/60 text-destructive"
+                        : "border-primary/60 text-primary")
+                    }
+                  >
+                    Discard
+                  </button>
+                </li>
+              );
+            })}
             {overflowCount > 0 ? (
               <li
                 data-testid="text-pending-overflow"

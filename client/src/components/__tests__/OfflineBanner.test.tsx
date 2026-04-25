@@ -39,6 +39,12 @@ function emitQueueEvent(event: unknown) {
   queueState.listeners.forEach((l) => l(event));
 }
 
+const queueMutations = vi.hoisted(() => ({
+  removeQueueEntry: vi.fn(),
+  retryQueueEntry: vi.fn(),
+  insertQueueEntry: vi.fn(),
+}));
+
 vi.mock("@/lib/offlineQueue", () => ({
   drainQueue: vi.fn(async () => {}),
   registerHandlers: vi.fn(),
@@ -52,6 +58,9 @@ vi.mock("@/lib/offlineQueue", () => ({
   syncQueueOwner: vi.fn(),
   getQueueSize: vi.fn(() => queueState.snapshot.length),
   getQueueSnapshot: vi.fn(() => queueState.snapshot.slice()),
+  removeQueueEntry: queueMutations.removeQueueEntry,
+  retryQueueEntry: queueMutations.retryQueueEntry,
+  insertQueueEntry: queueMutations.insertQueueEntry,
 }));
 
 vi.mock("@/lib/queryClient", () => ({
@@ -87,6 +96,9 @@ describe("OfflineBanner", () => {
     setMockQueue([]);
     queueState.listeners.clear();
     vi.mocked(toast).mockClear();
+    queueMutations.removeQueueEntry.mockReset();
+    queueMutations.retryQueueEntry.mockReset();
+    queueMutations.insertQueueEntry.mockReset();
     vi.useRealTimers();
   });
 
@@ -298,6 +310,174 @@ describe("OfflineBanner", () => {
       | { description?: string }
       | undefined;
     expect(call?.description).toContain("after reconnecting");
+  });
+
+  it("renders per-row discard and retry controls in the pending changes panel", () => {
+    setNavigatorOnline(false);
+    setMockQueue([
+      { id: "a", op: "createTask", args: [{ title: "Buy milk" }] },
+      { id: "b", op: "completeTask", args: ["task-1"] },
+    ]);
+    render(<OfflineBanner />);
+
+    act(() => {
+      screen.getByTestId("button-pending-changes").click();
+    });
+
+    expect(screen.getByTestId("button-discard-pending-a")).toBeTruthy();
+    expect(screen.getByTestId("button-retry-pending-a")).toBeTruthy();
+    expect(screen.getByTestId("button-discard-pending-b")).toBeTruthy();
+    expect(screen.getByTestId("button-retry-pending-b")).toBeTruthy();
+  });
+
+  it("disables retry buttons while the browser is offline", () => {
+    setNavigatorOnline(false);
+    setMockQueue([
+      { id: "a", op: "createTask", args: [{ title: "Buy milk" }] },
+    ]);
+    render(<OfflineBanner />);
+
+    act(() => {
+      screen.getByTestId("button-pending-changes").click();
+    });
+
+    const retry = screen.getByTestId(
+      "button-retry-pending-a",
+    ) as HTMLButtonElement;
+    expect(retry.disabled).toBe(true);
+  });
+
+  it("calls removeQueueEntry on discard and offers an undo toast that re-inserts at the original index", () => {
+    setNavigatorOnline(false);
+    setMockQueue([
+      { id: "a", op: "createTask", args: [{ title: "Buy milk" }] },
+      { id: "b", op: "createTask", args: [{ title: "Eggs" }] },
+    ]);
+    const removedEntry = {
+      id: "b",
+      op: "createTask" as const,
+      args: [{ title: "Eggs" }],
+      enqueuedAt: 0,
+    };
+    queueMutations.removeQueueEntry.mockReturnValue({
+      entry: removedEntry,
+      index: 1,
+    });
+    render(<OfflineBanner />);
+
+    act(() => {
+      screen.getByTestId("button-pending-changes").click();
+    });
+
+    act(() => {
+      screen.getByTestId("button-discard-pending-b").click();
+    });
+
+    expect(queueMutations.removeQueueEntry).toHaveBeenCalledWith("b");
+    expect(toast).toHaveBeenCalledWith(
+      expect.objectContaining({
+        title: "Discarded queued change",
+        description: expect.stringContaining("Eggs"),
+        action: expect.anything(),
+      }),
+    );
+
+    // Trigger the undo action passed to the toast.
+    const toastCall = vi.mocked(toast).mock.calls.at(-1)?.[0] as {
+      action?: { props?: { onClick?: () => void } };
+    };
+    act(() => {
+      toastCall.action?.props?.onClick?.();
+    });
+
+    expect(queueMutations.insertQueueEntry).toHaveBeenCalledWith(
+      removedEntry,
+      1,
+    );
+  });
+
+  it("does nothing when the snapshot is stale and removeQueueEntry returns null", () => {
+    setNavigatorOnline(false);
+    setMockQueue([
+      { id: "a", op: "createTask", args: [{ title: "Buy milk" }] },
+    ]);
+    queueMutations.removeQueueEntry.mockReturnValue(null);
+    render(<OfflineBanner />);
+
+    act(() => {
+      screen.getByTestId("button-pending-changes").click();
+    });
+    act(() => {
+      screen.getByTestId("button-discard-pending-a").click();
+    });
+
+    expect(queueMutations.removeQueueEntry).toHaveBeenCalledWith("a");
+    expect(toast).not.toHaveBeenCalled();
+  });
+
+  it("calls retryQueueEntry on retry and toasts success when it resolves", async () => {
+    setNavigatorOnline(true);
+    setMockQueue([
+      { id: "a", op: "createTask", args: [{ title: "Buy milk" }] },
+    ]);
+    // Force the banner to render by being mid-reconnect.
+    queueMutations.retryQueueEntry.mockResolvedValue({ status: "success" });
+    render(<OfflineBanner />);
+
+    act(() => {
+      reportNetworkError();
+    });
+    act(() => {
+      clearNetworkError();
+    });
+    act(() => {
+      screen.getByTestId("button-pending-changes").click();
+    });
+
+    await act(async () => {
+      screen.getByTestId("button-retry-pending-a").click();
+    });
+
+    expect(queueMutations.retryQueueEntry).toHaveBeenCalledWith("a");
+    expect(toast).toHaveBeenCalledWith(
+      expect.objectContaining({
+        title: "Synced queued change",
+        description: expect.stringContaining("Buy milk"),
+      }),
+    );
+  });
+
+  it("toasts a destructive message when retry reports a network failure", async () => {
+    setNavigatorOnline(true);
+    setMockQueue([
+      { id: "a", op: "createTask", args: [{ title: "Buy milk" }] },
+    ]);
+    queueMutations.retryQueueEntry.mockResolvedValue({
+      status: "network",
+      error: new TypeError("Failed to fetch"),
+    });
+    render(<OfflineBanner />);
+
+    act(() => {
+      reportNetworkError();
+    });
+    act(() => {
+      clearNetworkError();
+    });
+    act(() => {
+      screen.getByTestId("button-pending-changes").click();
+    });
+
+    await act(async () => {
+      screen.getByTestId("button-retry-pending-a").click();
+    });
+
+    expect(toast).toHaveBeenCalledWith(
+      expect.objectContaining({
+        variant: "destructive",
+        title: "Couldn't reach the server",
+      }),
+    );
   });
 
   it("hides the offline banner immediately when clearNetworkError is called", () => {

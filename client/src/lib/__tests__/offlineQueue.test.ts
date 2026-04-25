@@ -6,7 +6,10 @@ import {
   enqueue,
   getQueueSize,
   getQueueSnapshot,
+  insertQueueEntry,
   registerHandlers,
+  removeQueueEntry,
+  retryQueueEntry,
   startQueueBridge,
   subscribeQueue,
   syncQueueOwner,
@@ -527,6 +530,233 @@ describe("offlineQueue", () => {
       expect(persisted).toHaveLength(1);
       expect(persisted[0].op).toBe("completeTask");
       expect(persisted[0].args).toEqual(["task-real-1"]);
+    });
+  });
+
+  describe("removeQueueEntry", () => {
+    it("removes a single entry by id without touching the others", () => {
+      const events: QueueEvent[] = [];
+      const a = enqueue("createTask", [{ title: "a" }]);
+      const b = enqueue("createTask", [{ title: "b" }]);
+      const c = enqueue("createTask", [{ title: "c" }]);
+      subscribeQueue((e) => events.push(e));
+
+      const removed = removeQueueEntry(b.id);
+
+      expect(removed).not.toBeNull();
+      expect(removed!.entry.id).toBe(b.id);
+      expect(removed!.index).toBe(1);
+      expect(getQueueSnapshot().map((e) => e.id)).toEqual([a.id, c.id]);
+      expect(events).toEqual([
+        { type: "removed", id: b.id, size: 2 },
+      ]);
+    });
+
+    it("returns null when no entry matches the given id", () => {
+      enqueue("createTask", [{ title: "a" }]);
+      const removed = removeQueueEntry("does-not-exist");
+      expect(removed).toBeNull();
+      expect(getQueueSize()).toBe(1);
+    });
+
+    it("re-persists the queue so a discard survives reload", () => {
+      const a = enqueue("createTask", [{ title: "a" }]);
+      enqueue("createTask", [{ title: "b" }]);
+      removeQueueEntry(a.id);
+      const raw = storage.getItem("fft.offlineMutationQueue.v1");
+      expect(raw).not.toBeNull();
+      const parsed = JSON.parse(raw!);
+      expect(parsed).toHaveLength(1);
+      expect(parsed[0].args).toEqual([{ title: "b" }]);
+    });
+
+    it("removes the storage key when the last entry is discarded", () => {
+      const a = enqueue("createTask", [{ title: "lonely" }]);
+      expect(storage.getItem("fft.offlineMutationQueue.v1")).not.toBeNull();
+      removeQueueEntry(a.id);
+      expect(storage.getItem("fft.offlineMutationQueue.v1")).toBeNull();
+    });
+  });
+
+  describe("insertQueueEntry (undo discard)", () => {
+    it("restores a previously removed entry at the original index", () => {
+      const a = enqueue("createTask", [{ title: "a" }]);
+      const b = enqueue("createTask", [{ title: "b" }]);
+      const c = enqueue("createTask", [{ title: "c" }]);
+
+      const removed = removeQueueEntry(b.id)!;
+      expect(getQueueSnapshot().map((e) => e.id)).toEqual([a.id, c.id]);
+
+      insertQueueEntry(removed.entry, removed.index);
+
+      expect(getQueueSnapshot().map((e) => e.id)).toEqual([a.id, b.id, c.id]);
+    });
+
+    it("clamps an out-of-range index instead of throwing", () => {
+      const a = enqueue("createTask", [{ title: "a" }]);
+      const removed = removeQueueEntry(a.id)!;
+      insertQueueEntry(removed.entry, 999);
+      expect(getQueueSnapshot()).toHaveLength(1);
+    });
+
+    it("emits a 'queued' event so subscribers refresh", () => {
+      const a = enqueue("createTask", [{ title: "a" }]);
+      const removed = removeQueueEntry(a.id)!;
+      const events: QueueEvent[] = [];
+      subscribeQueue((e) => events.push(e));
+      insertQueueEntry(removed.entry, removed.index);
+      expect(events).toEqual([
+        { type: "queued", op: "createTask", size: 1 },
+      ]);
+    });
+  });
+
+  describe("retryQueueEntry", () => {
+    it("runs the handler for that entry, removes it, and emits drained", async () => {
+      const events: QueueEvent[] = [];
+      subscribeQueue((e) => events.push(e));
+      const handler = vi.fn().mockResolvedValue({ id: "ok" });
+      registerHandlers({ createTask: handler });
+
+      const a = enqueue("createTask", [{ title: "a" }]);
+      const b = enqueue("createTask", [{ title: "b" }]);
+
+      const result = await retryQueueEntry(b.id);
+
+      expect(result).toEqual({ status: "success" });
+      expect(handler).toHaveBeenCalledWith({ title: "b" });
+      expect(handler).toHaveBeenCalledTimes(1);
+      expect(getQueueSnapshot().map((e) => e.id)).toEqual([a.id]);
+      expect(events.some((e) => e.type === "drained")).toBe(true);
+    });
+
+    it("returns 'not-found' for an unknown id and does not call any handler", async () => {
+      const handler = vi.fn().mockResolvedValue({ id: "ok" });
+      registerHandlers({ createTask: handler });
+      enqueue("createTask", [{ title: "a" }]);
+
+      const result = await retryQueueEntry("nope");
+      expect(result).toEqual({ status: "not-found" });
+      expect(handler).not.toHaveBeenCalled();
+      expect(getQueueSize()).toBe(1);
+    });
+
+    it("returns 'offline' and leaves the entry in place when offline", async () => {
+      const handler = vi.fn().mockResolvedValue({ id: "ok" });
+      registerHandlers({ createTask: handler });
+      const a = enqueue("createTask", [{ title: "a" }]);
+
+      reportNetworkError();
+      const result = await retryQueueEntry(a.id);
+
+      expect(result).toEqual({ status: "offline" });
+      expect(handler).not.toHaveBeenCalled();
+      expect(getQueueSize()).toBe(1);
+    });
+
+    it("returns 'network' and keeps the entry when the handler reports a network-like error", async () => {
+      const handler = vi
+        .fn()
+        .mockRejectedValue(new TypeError("Failed to fetch"));
+      registerHandlers({ createTask: handler });
+      const a = enqueue("createTask", [{ title: "a" }]);
+
+      const result = await retryQueueEntry(a.id);
+
+      expect(result.status).toBe("network");
+      expect(getQueueSize()).toBe(1);
+      expect(getQueueSnapshot()[0].id).toBe(a.id);
+    });
+
+    it("emits 'conflict' and drops the entry on a 404/409/410", async () => {
+      const events: QueueEvent[] = [];
+      subscribeQueue((e) => events.push(e));
+      registerHandlers({
+        deleteTask: vi.fn().mockRejectedValue(new Error("404: gone")),
+      });
+      const a = enqueue("deleteTask", ["missing"]);
+
+      const result = await retryQueueEntry(a.id);
+
+      expect(result.status).toBe("conflict");
+      expect(getQueueSize()).toBe(0);
+      expect(events.some((e) => e.type === "conflict")).toBe(true);
+    });
+
+    it("emits 'error' and drops the entry on an unexpected server error", async () => {
+      const events: QueueEvent[] = [];
+      subscribeQueue((e) => events.push(e));
+      registerHandlers({
+        createTask: vi.fn().mockRejectedValue(new Error("500: boom")),
+      });
+      const a = enqueue("createTask", [{ title: "a" }]);
+
+      const result = await retryQueueEntry(a.id);
+
+      expect(result.status).toBe("error");
+      expect(getQueueSize()).toBe(0);
+      expect(events.some((e) => e.type === "error")).toBe(true);
+    });
+
+    it("drops the entry and emits 'error' when no handler is registered", async () => {
+      const events: QueueEvent[] = [];
+      subscribeQueue((e) => events.push(e));
+      const a = enqueue("createTask", [{ title: "a" }]);
+
+      const result = await retryQueueEntry(a.id);
+
+      expect(result.status).toBe("no-handler");
+      expect(getQueueSize()).toBe(0);
+      expect(events.some((e) => e.type === "error")).toBe(true);
+    });
+
+    it("folds a successful create's temp -> real id mapping into the rest of the queue", async () => {
+      const completed: string[] = [];
+      registerHandlers({
+        createTask: vi.fn().mockResolvedValue({ id: "task-real-1" }),
+        completeTask: vi.fn().mockImplementation(async (id: string) => {
+          completed.push(id);
+          return { id };
+        }),
+      });
+      const create = enqueue("createTask", [
+        { id: "task-offline-abc", title: "x" },
+      ]);
+      enqueue("completeTask", ["task-offline-abc"]);
+
+      const result = await retryQueueEntry(create.id);
+      expect(result.status).toBe("success");
+
+      const snap = getQueueSnapshot();
+      expect(snap).toHaveLength(1);
+      expect(snap[0].args).toEqual(["task-real-1"]);
+
+      // Now drain the rest — the follow-up should target the real id.
+      await drainQueue();
+      expect(completed).toEqual(["task-real-1"]);
+    });
+
+    it("returns 'busy' if a drain is already in flight (no double-processing)", async () => {
+      let resolveDrain: (() => void) | null = null;
+      const blocking = new Promise<void>((r) => {
+        resolveDrain = r;
+      });
+      const slowHandler = vi.fn().mockImplementation(async () => {
+        await blocking;
+        return { id: "ok" };
+      });
+      registerHandlers({ createTask: slowHandler });
+      const a = enqueue("createTask", [{ title: "a" }]);
+      enqueue("createTask", [{ title: "b" }]);
+
+      const drainPromise = drainQueue();
+      // While the drain is parked on the first handler, attempt a retry.
+      const retryResult = await retryQueueEntry(a.id);
+      expect(retryResult).toEqual({ status: "busy" });
+      expect(slowHandler).toHaveBeenCalledTimes(1);
+
+      resolveDrain!();
+      await drainPromise;
     });
   });
 

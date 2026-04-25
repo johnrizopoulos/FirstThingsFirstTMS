@@ -36,7 +36,28 @@ export type QueueEvent =
   | { type: "queued"; op: OfflineOpName; size: number }
   | { type: "drained"; processed: number; remaining: number }
   | { type: "conflict"; op: OfflineOpName; error: unknown }
-  | { type: "error"; op: OfflineOpName; error: unknown };
+  | { type: "error"; op: OfflineOpName; error: unknown }
+  | { type: "removed"; id: string; size: number };
+
+export type RetryQueueEntryStatus =
+  | "success"
+  | "not-found"
+  | "offline"
+  | "busy"
+  | "no-handler"
+  | "network"
+  | "conflict"
+  | "error";
+
+export interface RetryQueueEntryResult {
+  status: RetryQueueEntryStatus;
+  error?: unknown;
+}
+
+export interface RemovedQueueEntry {
+  entry: QueuedOp;
+  index: number;
+}
 
 type Handler = (...args: unknown[]) => Promise<unknown>;
 
@@ -198,6 +219,109 @@ export function enqueue(op: OfflineOpName, args: unknown[]): QueuedOp {
   persist();
   emit({ type: "queued", op, size: queue.length });
   return entry;
+}
+
+/**
+ * Remove a single queued entry by id without touching the rest of the queue.
+ *
+ * Returns the removed entry and the index it occupied so the caller can offer
+ * an "undo" affordance and restore it via `insertQueueEntry` at the original
+ * position. Returns null if no entry with that id exists.
+ */
+export function removeQueueEntry(id: string): RemovedQueueEntry | null {
+  loadFromStorage();
+  const index = queue.findIndex((e) => e.id === id);
+  if (index === -1) return null;
+  const [entry] = queue.splice(index, 1);
+  persist();
+  emit({ type: "removed", id: entry.id, size: queue.length });
+  return { entry, index };
+}
+
+/**
+ * Insert a previously removed entry back into the queue at the given index
+ * (clamped to a valid position). Used to implement the "undo" of a discard
+ * action. Re-emits a `queued` event so subscribers refresh.
+ */
+export function insertQueueEntry(entry: QueuedOp, index?: number): void {
+  loadFromStorage();
+  const target =
+    index === undefined
+      ? queue.length
+      : Math.max(0, Math.min(index, queue.length));
+  queue.splice(target, 0, entry);
+  persist();
+  emit({ type: "queued", op: entry.op, size: queue.length });
+}
+
+/**
+ * Re-attempt a single queued entry immediately, independent of the FIFO drain.
+ *
+ * Behaviour mirrors `drainQueue` for that one entry:
+ *  - On success: the entry is removed, any temp -> real id mapping a successful
+ *    create produced is folded into the rest of the queue, and `drained` is
+ *    emitted with `processed: 1`.
+ *  - On a network-like failure: the entry is left in place at its current
+ *    position so the regular drain (or another retry) can pick it up later.
+ *  - On a conflict (404/409/410) or unexpected server error: the entry is
+ *    dropped and a `conflict` / `error` event is emitted, matching the way the
+ *    drain loop handles the same failure modes.
+ *
+ * The function reuses the same `draining` mutex as `drainQueue` so it cannot
+ * race with an in-flight drain (which would otherwise process the same entry
+ * twice). If a drain is already running, returns `{ status: "busy" }`.
+ */
+export async function retryQueueEntry(
+  id: string,
+): Promise<RetryQueueEntryResult> {
+  loadFromStorage();
+  const index = queue.findIndex((e) => e.id === id);
+  if (index === -1) return { status: "not-found" };
+  if (!isOnline()) return { status: "offline" };
+  if (draining) return { status: "busy" };
+
+  const entry = queue[index];
+  const handler = handlers[entry.op];
+  if (!handler) {
+    // Drop now so the entry can't sit in the queue with no way to advance.
+    const idx = queue.findIndex((e) => e.id === id);
+    if (idx !== -1) queue.splice(idx, 1);
+    persist();
+    const err = new Error(`No handler registered for "${entry.op}"`);
+    emit({ type: "error", op: entry.op, error: err });
+    return { status: "no-handler", error: err };
+  }
+
+  draining = true;
+  try {
+    const result = await handler(...entry.args);
+    // Re-locate the entry by id in case the queue mutated during the await.
+    const idx = queue.findIndex((e) => e.id === id);
+    if (idx !== -1) queue.splice(idx, 1);
+    const mapping = tempIdMappingFromCreate(entry.op, entry.args, result);
+    if (mapping) {
+      applyIdMappingToQueue(new Map([[mapping.tempId, mapping.realId]]));
+    }
+    persist();
+    emit({ type: "drained", processed: 1, remaining: queue.length });
+    return { status: "success" };
+  } catch (err) {
+    if (isNetworkLikeError(err)) {
+      // Leave the entry in place so the regular drain can pick it up later.
+      return { status: "network", error: err };
+    }
+    const idx = queue.findIndex((e) => e.id === id);
+    if (idx !== -1) queue.splice(idx, 1);
+    persist();
+    if (isConflictError(err)) {
+      emit({ type: "conflict", op: entry.op, error: err });
+      return { status: "conflict", error: err };
+    }
+    emit({ type: "error", op: entry.op, error: err });
+    return { status: "error", error: err };
+  } finally {
+    draining = false;
+  }
 }
 
 export function registerHandlers(
