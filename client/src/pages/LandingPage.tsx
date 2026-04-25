@@ -6,7 +6,7 @@ export default function LandingPage() {
   
   const handleThemeChange = () => {
     const themes = ["terminal", "dark", "light"] as const;
-    const currentIndex = themes.indexOf(theme as any);
+    const currentIndex = (themes as readonly string[]).indexOf(theme);
     const nextIndex = (currentIndex + 1) % themes.length;
     setTheme(themes[nextIndex]);
   };
