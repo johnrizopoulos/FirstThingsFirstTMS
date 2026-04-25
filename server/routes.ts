@@ -9,6 +9,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Setup Clerk authentication middleware
   setupClerkMiddleware(app);
 
+  // Sync Clerk user to local DB on first sign-in
+  app.post("/api/user/sync", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      res.json({ userId: req.userId });
+    } catch (error) {
+      console.error("Error syncing user:", error);
+      res.status(500).json({ message: "Failed to sync user" });
+    }
+  });
+
   // Milestone routes
   app.get("/api/milestones", isAuthenticated, async (req: Request, res: Response) => {
     try {

@@ -2,7 +2,6 @@ import { sql } from 'drizzle-orm';
 import {
   index,
   integer,
-  jsonb,
   pgTable,
   timestamp,
   varchar,
@@ -12,17 +11,6 @@ import {
 import { relations } from "drizzle-orm";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
-
-// Session storage table (required for Replit Auth)
-export const sessions = pgTable(
-  "sessions",
-  {
-    sid: varchar("sid").primaryKey(),
-    sess: jsonb("sess").notNull(),
-    expire: timestamp("expire").notNull(),
-  },
-  (table) => [index("IDX_session_expire").on(table.expire)],
-);
 
 // User storage table
 export const users = pgTable("users", {
