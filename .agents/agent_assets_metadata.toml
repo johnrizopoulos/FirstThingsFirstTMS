@@ -35,3 +35,9 @@ id = "MjuoEmhHzwCihMZaoLnrQ"
 uri = "file://client/public/clerk/logo-light.svg"
 type = "image"
 title = "FTF logo — light theme (dark forest green)"
+
+[[outputs]]
+id = "f2PSwuazPguU_cAKeiUZi"
+uri = "file://exports/ftf-pngs.zip"
+type = "unspecified"
+title = "All PNGs from your app"
