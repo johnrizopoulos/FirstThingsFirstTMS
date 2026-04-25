@@ -64,7 +64,7 @@ function AuthRouter() {
 
   return (
     <Switch>
-      <Route path="/sign-in" nest component={SignInPage} />
+      <Route path="/sign-in" component={SignInPage} />
       <Route path="/sign-up" nest component={SignUpPage} />
       <Route path="/reset-password" component={ResetPasswordPage} />
       <Route>
