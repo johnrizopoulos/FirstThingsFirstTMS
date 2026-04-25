@@ -8,6 +8,10 @@ A terminal-inspired task management web application with IBM 3270/Bloomberg aest
 
 Preferred communication style: Simple, everyday language.
 
+## Maintenance docs
+
+- [Upgrading Clerk safely (`@clerk/ui` + `@clerk/react`)](docs/clerk-upgrade.md) — checklist to follow before bumping either Clerk dependency, so the terminal-themed sign-in/sign-up modal doesn't silently regress.
+
 ---
 
 <!--
