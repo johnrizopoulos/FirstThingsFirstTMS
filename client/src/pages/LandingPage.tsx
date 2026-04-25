@@ -1,48 +1,34 @@
 import { SignInButton, SignUpButton } from "@clerk/react";
 import { useTheme } from "@/contexts/theme";
+import AppHeader from "@/components/AppHeader";
 
 export default function LandingPage() {
   const { theme, setTheme } = useTheme();
-  
-  const handleThemeChange = () => {
-    const themes = ["terminal", "dark", "light"] as const;
-    const currentIndex = (themes as readonly string[]).indexOf(theme);
-    const nextIndex = (currentIndex + 1) % themes.length;
-    setTheme(themes[nextIndex]);
-  };
-  
+
   return (
     <div className="min-h-screen bg-background text-primary font-mono relative overflow-hidden">
-      {/* Auth Buttons - Top Left */}
-      <div className="fixed top-4 left-4 z-40 flex gap-2">
-        <SignInButton mode="modal">
-          <button
-            className="border-2 border-primary bg-background text-primary px-4 py-2 font-bold text-xs md:text-sm hover:bg-primary hover:text-primary-foreground transition-colors"
-            data-testid="button-signin"
-          >
-            [SIGN IN]
-          </button>
-        </SignInButton>
-        <SignUpButton mode="modal">
-          <button
-            className="border-2 border-primary bg-primary text-primary-foreground px-4 py-2 font-bold text-xs md:text-sm hover:bg-primary/80 transition-colors"
-            data-testid="button-signup"
-          >
-            [SIGN UP]
-          </button>
-        </SignUpButton>
-      </div>
-      {/* Theme Button - Top Right */}
-      <div className="fixed top-4 right-4 z-40">
-        <button
-          onClick={handleThemeChange}
-          className="border-2 border-primary bg-background text-primary px-4 py-2 font-bold text-xs md:text-sm hover:bg-primary hover:text-primary-foreground transition-colors"
-          title="Change theme"
-          data-testid="button-theme-toggle"
-        >
-          [{theme.toUpperCase()}]
-        </button>
-      </div>
+      <AppHeader
+        leftSlot={
+          <>
+            <SignInButton mode="modal">
+              <button
+                className="border-2 border-primary bg-background text-primary px-4 py-2 font-bold text-xs md:text-sm hover:bg-primary hover:text-primary-foreground transition-colors"
+                data-testid="button-signin"
+              >
+                [SIGN IN]
+              </button>
+            </SignInButton>
+            <SignUpButton mode="modal">
+              <button
+                className="border-2 border-primary bg-primary text-primary-foreground px-4 py-2 font-bold text-xs md:text-sm hover:bg-primary/80 transition-colors"
+                data-testid="button-signup"
+              >
+                [SIGN UP]
+              </button>
+            </SignUpButton>
+          </>
+        }
+      />
       {/* CRT Overlay */}
       <div className="fixed inset-0 crt-overlay pointer-events-none z-50" />
       {/* Hero Section */}
