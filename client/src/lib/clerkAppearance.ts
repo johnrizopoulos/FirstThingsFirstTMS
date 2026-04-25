@@ -1,53 +1,10 @@
 type Theme = "terminal" | "dark" | "light";
 
-interface ThemeColors {
-  primary: string;
-  primaryFg: string;
-  background: string;
-  text: string;
-  textSecondary: string;
-  inputBg: string;
-  inputText: string;
-  danger: string;
-  border: string;
-}
-
-const themeColors: Record<Theme, ThemeColors> = {
-  terminal: {
-    primary: "hsl(120, 100%, 50%)",
-    primaryFg: "hsl(0, 0%, 0%)",
-    background: "hsl(120, 10%, 5%)",
-    text: "hsl(120, 100%, 50%)",
-    textSecondary: "hsl(120, 60%, 60%)",
-    inputBg: "hsl(120, 50%, 12%)",
-    inputText: "hsl(120, 100%, 60%)",
-    danger: "hsl(0, 100%, 55%)",
-    border: "hsl(120, 60%, 35%)",
-  },
-  dark: {
-    primary: "hsl(0, 0%, 90%)",
-    primaryFg: "hsl(0, 0%, 10%)",
-    background: "hsl(0, 0%, 10%)",
-    text: "hsl(0, 0%, 90%)",
-    textSecondary: "hsl(0, 0%, 70%)",
-    inputBg: "hsl(0, 0%, 18%)",
-    inputText: "hsl(0, 0%, 95%)",
-    danger: "hsl(0, 80%, 60%)",
-    border: "hsl(0, 0%, 35%)",
-  },
-  light: {
-    primary: "hsl(0, 0%, 0%)",
-    primaryFg: "hsl(0, 0%, 100%)",
-    background: "hsl(0, 0%, 100%)",
-    text: "hsl(0, 0%, 0%)",
-    textSecondary: "hsl(0, 0%, 35%)",
-    inputBg: "hsl(0, 0%, 96%)",
-    inputText: "hsl(0, 0%, 0%)",
-    danger: "hsl(0, 75%, 45%)",
-    border: "hsl(0, 0%, 70%)",
-  },
-};
-
+// Logo + backdrop asset mapping per theme.
+// Note: "terminal" and "dark" intentionally share the same neon-green branding
+// assets — both themes have a dark background and the same brand language.
+// "light" gets its own dark-green / cream variants. If dark ever needs its own
+// distinct grayscale brand mark, add new files and split the maps below.
 const logoForTheme: Record<Theme, string> = {
   terminal: "/clerk/logo-terminal.png",
   dark: "/clerk/logo-terminal.png",
@@ -65,9 +22,13 @@ export function backdropUrlFor(theme: Theme): string {
 }
 
 export function buildClerkAppearance(theme: Theme) {
-  const c = themeColors[theme];
   const logoUrl = logoForTheme[theme];
 
+  // Color values reference the same CSS custom properties the rest of the app
+  // uses (set per-theme by ThemeProvider). This way the modal automatically
+  // tracks the design tokens and never drifts from them. The browser
+  // re-evaluates these CSS vars when ThemeProvider rewrites them on :root, so
+  // colors live-swap on theme change without React having to re-mount Clerk.
   return {
     layout: {
       logoImageUrl: logoUrl,
@@ -77,14 +38,14 @@ export function buildClerkAppearance(theme: Theme) {
       showOptionalFields: true,
     },
     variables: {
-      colorPrimary: c.primary,
-      colorBackground: c.background,
-      colorText: c.text,
-      colorTextSecondary: c.textSecondary,
-      colorInputBackground: c.inputBg,
-      colorInputText: c.inputText,
-      colorDanger: c.danger,
-      colorNeutral: c.text,
+      colorPrimary: "hsl(var(--primary))",
+      colorBackground: "hsl(var(--background))",
+      colorText: "hsl(var(--foreground))",
+      colorTextSecondary: "hsl(var(--muted-foreground))",
+      colorInputBackground: "hsl(var(--input))",
+      colorInputText: "hsl(var(--foreground))",
+      colorDanger: "hsl(var(--destructive))",
+      colorNeutral: "hsl(var(--foreground))",
       borderRadius: "0",
       fontFamily: "'IBM Plex Mono', monospace",
       fontFamilyButtons: "'IBM Plex Mono', monospace",
