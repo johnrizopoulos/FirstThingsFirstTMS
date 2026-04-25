@@ -9,6 +9,7 @@ import { OnboardingProvider } from "@/contexts/onboarding";
 import { ClerkProvider, Show, useUser } from "@clerk/react";
 import { ui as clerkUi } from "@clerk/ui";
 import { buildClerkAppearance, backdropUrlFor } from "@/lib/clerkAppearance";
+import OfflineBanner from "@/components/OfflineBanner";
 import NotFound from "@/pages/not-found";
 import LandingPage from "@/pages/LandingPage";
 import OnboardingPage from "@/pages/OnboardingPage";
@@ -96,6 +97,7 @@ function App() {
         <QueryClientProvider client={queryClient}>
           <TooltipProvider>
             <OnboardingProvider>
+              <OfflineBanner />
               <Toaster />
               <AuthRouter />
             </OnboardingProvider>

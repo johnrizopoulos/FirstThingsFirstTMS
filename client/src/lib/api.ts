@@ -1,4 +1,5 @@
 import type { Milestone, Task, InsertMilestone, InsertTask } from "@shared/schema";
+import { trackedFetch } from "./onlineStatus";
 
 async function handleResponse(response: Response) {
   if (!response.ok) {
@@ -11,12 +12,12 @@ async function handleResponse(response: Response) {
 
 // Milestones
 export async function getMilestones(): Promise<Milestone[]> {
-  const response = await fetch("/api/milestones");
+  const response = await trackedFetch("/api/milestones");
   return handleResponse(response);
 }
 
 export async function createMilestone(milestone: Partial<InsertMilestone>): Promise<Milestone> {
-  const response = await fetch("/api/milestones", {
+  const response = await trackedFetch("/api/milestones", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(milestone),
@@ -25,7 +26,7 @@ export async function createMilestone(milestone: Partial<InsertMilestone>): Prom
 }
 
 export async function updateMilestone(id: string, updates: Partial<Milestone>): Promise<Milestone> {
-  const response = await fetch(`/api/milestones/${id}`, {
+  const response = await trackedFetch(`/api/milestones/${id}`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(updates),
@@ -34,31 +35,31 @@ export async function updateMilestone(id: string, updates: Partial<Milestone>): 
 }
 
 export async function completeMilestone(id: string): Promise<Milestone> {
-  const response = await fetch(`/api/milestones/${id}/complete`, {
+  const response = await trackedFetch(`/api/milestones/${id}/complete`, {
     method: "PUT",
   });
   return handleResponse(response);
 }
 
 export async function uncompleteMilestone(id: string): Promise<Milestone> {
-  const response = await fetch(`/api/milestones/${id}/uncomplete`, {
+  const response = await trackedFetch(`/api/milestones/${id}/uncomplete`, {
     method: "PUT",
   });
   return handleResponse(response);
 }
 
 export async function getActiveMilestones(): Promise<Milestone[]> {
-  const response = await fetch("/api/milestones/active");
+  const response = await trackedFetch("/api/milestones/active");
   return handleResponse(response);
 }
 
 export async function getCompletedMilestones(): Promise<Milestone[]> {
-  const response = await fetch("/api/milestones/completed");
+  const response = await trackedFetch("/api/milestones/completed");
   return handleResponse(response);
 }
 
 export async function deleteMilestone(id: string): Promise<void> {
-  const response = await fetch(`/api/milestones/${id}`, {
+  const response = await trackedFetch(`/api/milestones/${id}`, {
     method: "DELETE",
   });
   return handleResponse(response);
@@ -66,22 +67,22 @@ export async function deleteMilestone(id: string): Promise<void> {
 
 // Tasks
 export async function getTasks(): Promise<Task[]> {
-  const response = await fetch("/api/tasks");
+  const response = await trackedFetch("/api/tasks");
   return handleResponse(response);
 }
 
 export async function getActiveTasks(): Promise<Task[]> {
-  const response = await fetch("/api/tasks/active");
+  const response = await trackedFetch("/api/tasks/active");
   return handleResponse(response);
 }
 
 export async function getFocusTask(): Promise<Task | null> {
-  const response = await fetch("/api/tasks/focus");
+  const response = await trackedFetch("/api/tasks/focus");
   return handleResponse(response);
 }
 
 export async function createTask(task: Partial<InsertTask>): Promise<Task> {
-  const response = await fetch("/api/tasks", {
+  const response = await trackedFetch("/api/tasks", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(task),
@@ -90,7 +91,7 @@ export async function createTask(task: Partial<InsertTask>): Promise<Task> {
 }
 
 export async function updateTask(id: string, updates: Partial<Task>): Promise<Task> {
-  const response = await fetch(`/api/tasks/${id}`, {
+  const response = await trackedFetch(`/api/tasks/${id}`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(updates),
@@ -99,33 +100,33 @@ export async function updateTask(id: string, updates: Partial<Task>): Promise<Ta
 }
 
 export async function completeTask(id: string): Promise<Task> {
-  const response = await fetch(`/api/tasks/${id}/complete`, {
+  const response = await trackedFetch(`/api/tasks/${id}/complete`, {
     method: "PUT",
   });
   return handleResponse(response);
 }
 
 export async function uncompleteTask(id: string): Promise<Task> {
-  const response = await fetch(`/api/tasks/${id}/uncomplete`, {
+  const response = await trackedFetch(`/api/tasks/${id}/uncomplete`, {
     method: "PUT",
   });
   return handleResponse(response);
 }
 
 export async function getCompletedTasks(): Promise<Task[]> {
-  const response = await fetch("/api/tasks/completed");
+  const response = await trackedFetch("/api/tasks/completed");
   return handleResponse(response);
 }
 
 export async function deleteTask(id: string): Promise<void> {
-  const response = await fetch(`/api/tasks/${id}`, {
+  const response = await trackedFetch(`/api/tasks/${id}`, {
     method: "DELETE",
   });
   return handleResponse(response);
 }
 
 export async function reorderTasks(taskIds: string[]): Promise<void> {
-  const response = await fetch("/api/tasks/reorder", {
+  const response = await trackedFetch("/api/tasks/reorder", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ taskIds }),
@@ -134,7 +135,7 @@ export async function reorderTasks(taskIds: string[]): Promise<void> {
 }
 
 export async function reorderTasksInMilestone(taskIds: string[], milestoneId: string): Promise<void> {
-  const response = await fetch("/api/tasks/reorder-in-milestone", {
+  const response = await trackedFetch("/api/tasks/reorder-in-milestone", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ taskIds, milestoneId }),
@@ -143,28 +144,28 @@ export async function reorderTasksInMilestone(taskIds: string[], milestoneId: st
 }
 
 export async function cleanupTrash(): Promise<void> {
-  const response = await fetch("/api/cleanup-trash", {
+  const response = await trackedFetch("/api/cleanup-trash", {
     method: "POST",
   });
   return handleResponse(response);
 }
 
 export async function emptyTrash(): Promise<void> {
-  const response = await fetch("/api/empty-trash", {
+  const response = await trackedFetch("/api/empty-trash", {
     method: "POST",
   });
   return handleResponse(response);
 }
 
 export async function restoreTask(id: string): Promise<Task> {
-  const response = await fetch(`/api/tasks/${id}/restore`, {
+  const response = await trackedFetch(`/api/tasks/${id}/restore`, {
     method: "PUT",
   });
   return handleResponse(response);
 }
 
 export async function restoreMilestone(id: string): Promise<Milestone> {
-  const response = await fetch(`/api/milestones/${id}/restore`, {
+  const response = await trackedFetch(`/api/milestones/${id}/restore`, {
     method: "PUT",
   });
   return handleResponse(response);
