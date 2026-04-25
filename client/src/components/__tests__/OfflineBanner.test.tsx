@@ -70,6 +70,7 @@ vi.mock("@/lib/api", () => ({
 }));
 
 import { OfflineBanner } from "../OfflineBanner";
+import { toast } from "@/hooks/use-toast";
 
 function setNavigatorOnline(value: boolean) {
   Object.defineProperty(navigator, "onLine", {
@@ -85,6 +86,7 @@ describe("OfflineBanner", () => {
     setNavigatorOnline(true);
     setMockQueue([]);
     queueState.listeners.clear();
+    vi.mocked(toast).mockClear();
     vi.useRealTimers();
   });
 
@@ -244,6 +246,58 @@ describe("OfflineBanner", () => {
     expect(screen.getByTestId("text-pending-overflow").textContent).toContain(
       "+2 more",
     );
+  });
+
+  it("shows a destructive toast when a queued change conflicts with the server", () => {
+    setNavigatorOnline(false);
+    render(<OfflineBanner />);
+
+    act(() => {
+      emitQueueEvent({
+        type: "conflict",
+        op: "createTask",
+        error: new Error("not found"),
+      });
+    });
+
+    expect(toast).toHaveBeenCalledTimes(1);
+    expect(toast).toHaveBeenCalledWith(
+      expect.objectContaining({
+        variant: "destructive",
+        title: "Couldn't sync a saved change",
+        description: expect.stringContaining("create task"),
+      }),
+    );
+    const call = vi.mocked(toast).mock.calls[0]?.[0] as
+      | { description?: string }
+      | undefined;
+    expect(call?.description).toContain("no longer exists");
+  });
+
+  it("shows a destructive toast when a queued change errors on reconnect", () => {
+    setNavigatorOnline(false);
+    render(<OfflineBanner />);
+
+    act(() => {
+      emitQueueEvent({
+        type: "error",
+        op: "updateTask",
+        error: new Error("boom"),
+      });
+    });
+
+    expect(toast).toHaveBeenCalledTimes(1);
+    expect(toast).toHaveBeenCalledWith(
+      expect.objectContaining({
+        variant: "destructive",
+        title: "Couldn't sync a saved change",
+        description: expect.stringContaining("update task"),
+      }),
+    );
+    const call = vi.mocked(toast).mock.calls[0]?.[0] as
+      | { description?: string }
+      | undefined;
+    expect(call?.description).toContain("after reconnecting");
   });
 
   it("hides the offline banner immediately when clearNetworkError is called", () => {
