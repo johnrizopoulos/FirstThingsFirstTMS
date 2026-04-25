@@ -1,4 +1,4 @@
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { Redirect, useLocation, Link } from "wouter";
 import { useSignIn, useUser } from "@clerk/react";
 import { useTheme } from "@/contexts/theme";
@@ -6,17 +6,109 @@ import { backdropUrlFor } from "@/lib/clerkAppearance";
 
 type Step = "request" | "verify";
 
-function isClerkError(value: unknown): value is { message?: string; longMessage?: string } {
-  return typeof value === "object" && value !== null;
+type ClerkErrorEntry = {
+  code?: string;
+  message?: string;
+  longMessage?: string;
+  meta?: Record<string, unknown>;
+};
+
+type ClerkErrorShape = {
+  status?: number;
+  retryAfter?: number;
+  errors?: ClerkErrorEntry[];
+  message?: string;
+  longMessage?: string;
+  code?: string;
+  meta?: Record<string, unknown>;
+};
+
+const SUPPORT_EMAIL = "support@firstthingsfirst.app";
+
+const RATE_LIMIT_CODES = new Set<string>([
+  "user_locked",
+  "too_many_requests",
+  "rate_limit_exceeded",
+  "signup_rate_limit_exceeded",
+  "verification_rate_limit_exceeded",
+  "lockout",
+]);
+
+function asClerkError(value: unknown): ClerkErrorShape | null {
+  if (!value || typeof value !== "object") return null;
+  return value as ClerkErrorShape;
+}
+
+function getErrorEntries(error: ClerkErrorShape | null): ClerkErrorEntry[] {
+  if (!error) return [];
+  if (Array.isArray(error.errors) && error.errors.length > 0) return error.errors;
+  if (typeof error.code === "string") {
+    return [{ code: error.code, message: error.message, longMessage: error.longMessage, meta: error.meta }];
+  }
+  return [];
 }
 
 function describeError(error: unknown): string {
-  if (!error) return "";
-  if (isClerkError(error)) {
-    return error.longMessage || error.message || "Something went wrong. Please try again.";
+  const shape = asClerkError(error);
+  if (!shape) {
+    if (error instanceof Error) return error.message;
+    return "Something went wrong. Please try again.";
   }
-  if (error instanceof Error) return error.message;
-  return "Something went wrong. Please try again.";
+  const first = getErrorEntries(shape)[0];
+  return (
+    first?.longMessage ||
+    first?.message ||
+    shape.longMessage ||
+    shape.message ||
+    "Something went wrong. Please try again."
+  );
+}
+
+function detectRateLimit(error: unknown): { limited: boolean; retryAfterSeconds: number } {
+  const shape = asClerkError(error);
+  if (!shape) return { limited: false, retryAfterSeconds: 0 };
+
+  const entries = getErrorEntries(shape);
+  const matchedByCode = entries.some((entry) => {
+    const code = (entry.code || "").toLowerCase();
+    if (!code) return false;
+    if (RATE_LIMIT_CODES.has(code)) return true;
+    return code.includes("lockout") || code.includes("rate_limit") || code.includes("too_many");
+  });
+
+  const matchedByStatus = shape.status === 429;
+  if (!matchedByCode && !matchedByStatus) {
+    return { limited: false, retryAfterSeconds: 0 };
+  }
+
+  let retryAfter = typeof shape.retryAfter === "number" ? shape.retryAfter : 0;
+  if (!retryAfter) {
+    for (const entry of entries) {
+      const meta = entry.meta as { retryAfter?: number; retry_after?: number; retryAfterSeconds?: number } | undefined;
+      const candidate = meta?.retryAfter ?? meta?.retry_after ?? meta?.retryAfterSeconds;
+      if (typeof candidate === "number" && candidate > 0) {
+        retryAfter = candidate;
+        break;
+      }
+    }
+  }
+  if (!retryAfter || retryAfter < 0) {
+    retryAfter = 5 * 60;
+  }
+  return { limited: true, retryAfterSeconds: retryAfter };
+}
+
+function formatCountdown(secondsRemaining: number): string {
+  const safe = Math.max(0, Math.ceil(secondsRemaining));
+  const minutes = Math.floor(safe / 60);
+  const seconds = safe % 60;
+  if (minutes <= 0) {
+    return `${seconds} second${seconds === 1 ? "" : "s"}`;
+  }
+  if (seconds === 0) {
+    return `${minutes} minute${minutes === 1 ? "" : "s"}`;
+  }
+  return `${minutes}m ${seconds.toString().padStart(2, "0")}s`;
 }
 
 export default function ResetPasswordPage() {
@@ -31,6 +123,53 @@ export default function ResetPasswordPage() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const [cooldownUntil, setCooldownUntil] = useState<number | null>(null);
+  const [now, setNow] = useState(() => Date.now());
+  const tickRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    if (cooldownUntil === null) {
+      if (tickRef.current) {
+        clearInterval(tickRef.current);
+        tickRef.current = null;
+      }
+      return;
+    }
+    setNow(Date.now());
+    tickRef.current = setInterval(() => {
+      const current = Date.now();
+      setNow(current);
+      if (current >= cooldownUntil) {
+        setCooldownUntil(null);
+      }
+    }, 1000);
+    return () => {
+      if (tickRef.current) {
+        clearInterval(tickRef.current);
+        tickRef.current = null;
+      }
+    };
+  }, [cooldownUntil]);
+
+  const cooldownActive = cooldownUntil !== null && cooldownUntil > now;
+  const cooldownSecondsRemaining = cooldownActive ? Math.ceil((cooldownUntil! - now) / 1000) : 0;
+
+  const cooldownNotice = useMemo(() => {
+    if (!cooldownActive) return "";
+    return `Too many attempts. Try again in ${formatCountdown(cooldownSecondsRemaining)}.`;
+  }, [cooldownActive, cooldownSecondsRemaining]);
+
+  const handleErrorResult = (error: unknown): boolean => {
+    const { limited, retryAfterSeconds } = detectRateLimit(error);
+    if (limited) {
+      const until = Date.now() + retryAfterSeconds * 1000;
+      setCooldownUntil(until);
+      setErrorMessage("");
+      return true;
+    }
+    setErrorMessage(describeError(error));
+    return false;
+  };
 
   if (userLoaded && isSignedIn) {
     return <Redirect to="/" />;
@@ -38,9 +177,11 @@ export default function ResetPasswordPage() {
 
   const backdropUrl = backdropUrlFor(theme);
   const isBusy = fetchStatus === "fetching";
+  const inputsLocked = isBusy || cooldownActive;
 
   const handleRequest = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (cooldownActive) return;
     setErrorMessage("");
 
     const trimmedEmail = email.trim();
@@ -51,13 +192,13 @@ export default function ResetPasswordPage() {
 
     const createResult = await signIn.create({ identifier: trimmedEmail });
     if (createResult.error) {
-      setErrorMessage(describeError(createResult.error));
+      handleErrorResult(createResult.error);
       return;
     }
 
     const sendResult = await signIn.resetPasswordEmailCode.sendCode();
     if (sendResult.error) {
-      setErrorMessage(describeError(sendResult.error));
+      handleErrorResult(sendResult.error);
       return;
     }
 
@@ -66,6 +207,7 @@ export default function ResetPasswordPage() {
 
   const handleVerify = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (cooldownActive) return;
     setErrorMessage("");
 
     const trimmedCode = code.trim();
@@ -84,13 +226,13 @@ export default function ResetPasswordPage() {
 
     const verifyResult = await signIn.resetPasswordEmailCode.verifyCode({ code: trimmedCode });
     if (verifyResult.error) {
-      setErrorMessage(describeError(verifyResult.error));
+      handleErrorResult(verifyResult.error);
       return;
     }
 
     const submitResult = await signIn.resetPasswordEmailCode.submitPassword({ password });
     if (submitResult.error) {
-      setErrorMessage(describeError(submitResult.error));
+      handleErrorResult(submitResult.error);
       return;
     }
 
@@ -101,7 +243,7 @@ export default function ResetPasswordPage() {
       },
     });
     if (finalizeResult.error) {
-      setErrorMessage(describeError(finalizeResult.error));
+      handleErrorResult(finalizeResult.error);
       return;
     }
 
@@ -109,25 +251,62 @@ export default function ResetPasswordPage() {
   };
 
   const handleResendCode = async () => {
+    if (cooldownActive) return;
     setErrorMessage("");
     const sendResult = await signIn.resetPasswordEmailCode.sendCode();
     if (sendResult.error) {
-      setErrorMessage(describeError(sendResult.error));
+      handleErrorResult(sendResult.error);
     }
   };
 
   const handleStartOver = async () => {
+    if (cooldownActive) return;
     setErrorMessage("");
     setCode("");
     setPassword("");
     setConfirmPassword("");
     const resetResult = await signIn.reset();
     if (resetResult.error) {
-      setErrorMessage(describeError(resetResult.error));
+      handleErrorResult(resetResult.error);
       return;
     }
     setStep("request");
   };
+
+  const renderCooldownBanner = () =>
+    cooldownActive ? (
+      <div
+        className="border-2 border-destructive bg-destructive/10 p-3 space-y-2"
+        role="alert"
+        data-testid="banner-reset-cooldown"
+      >
+        <p
+          className="text-sm font-bold uppercase tracking-wider text-destructive"
+          data-testid="text-reset-cooldown-message"
+        >
+          {cooldownNotice}
+        </p>
+        <p className="text-xs text-foreground/80">
+          We've paused new attempts to keep your account safe. You can wait it out, head{" "}
+          <Link
+            href="/sign-in"
+            className="underline text-primary hover:text-primary/80"
+            data-testid="link-cooldown-sign-in"
+          >
+            back to sign in
+          </Link>
+          , or{" "}
+          <a
+            href={`mailto:${SUPPORT_EMAIL}?subject=Password%20reset%20locked%20out`}
+            className="underline text-primary hover:text-primary/80"
+            data-testid="link-cooldown-support"
+          >
+            contact support
+          </a>{" "}
+          for help.
+        </p>
+      </div>
+    ) : null;
 
   return (
     <div
@@ -182,7 +361,9 @@ export default function ResetPasswordPage() {
                 />
               </div>
 
-              {errorMessage && (
+              {renderCooldownBanner()}
+
+              {errorMessage && !cooldownActive && (
                 <p
                   className="text-sm text-destructive font-mono"
                   data-testid="text-reset-error"
@@ -193,11 +374,15 @@ export default function ResetPasswordPage() {
 
               <button
                 type="submit"
-                disabled={isBusy}
+                disabled={inputsLocked}
                 className="w-full border-2 border-primary bg-primary text-primary-foreground px-4 py-2 font-bold uppercase tracking-widest hover:bg-primary/80 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                 data-testid="button-send-reset-code"
               >
-                {isBusy ? "[SENDING…]" : "[SEND RECOVERY CODE]"}
+                {cooldownActive
+                  ? `[WAIT ${formatCountdown(cooldownSecondsRemaining)}]`
+                  : isBusy
+                  ? "[SENDING…]"
+                  : "[SEND RECOVERY CODE]"}
               </button>
             </form>
           )}
@@ -264,7 +449,9 @@ export default function ResetPasswordPage() {
                 />
               </div>
 
-              {errorMessage && (
+              {renderCooldownBanner()}
+
+              {errorMessage && !cooldownActive && (
                 <p
                   className="text-sm text-destructive font-mono"
                   data-testid="text-reset-error"
@@ -275,28 +462,34 @@ export default function ResetPasswordPage() {
 
               <button
                 type="submit"
-                disabled={isBusy}
+                disabled={inputsLocked}
                 className="w-full border-2 border-primary bg-primary text-primary-foreground px-4 py-2 font-bold uppercase tracking-widest hover:bg-primary/80 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                 data-testid="button-submit-new-password"
               >
-                {isBusy ? "[UPDATING…]" : "[UPDATE PASSWORD]"}
+                {cooldownActive
+                  ? `[WAIT ${formatCountdown(cooldownSecondsRemaining)}]`
+                  : isBusy
+                  ? "[UPDATING…]"
+                  : "[UPDATE PASSWORD]"}
               </button>
 
               <div className="flex items-center justify-between text-xs uppercase tracking-wider">
                 <button
                   type="button"
                   onClick={handleResendCode}
-                  disabled={isBusy}
-                  className="text-primary underline hover:text-primary/80 disabled:opacity-60"
+                  disabled={inputsLocked}
+                  className="text-primary underline hover:text-primary/80 disabled:opacity-60 disabled:cursor-not-allowed disabled:no-underline"
                   data-testid="button-resend-reset-code"
                 >
-                  Resend code
+                  {cooldownActive
+                    ? `Resend paused (${formatCountdown(cooldownSecondsRemaining)})`
+                    : "Resend code"}
                 </button>
                 <button
                   type="button"
                   onClick={handleStartOver}
-                  disabled={isBusy}
-                  className="text-primary underline hover:text-primary/80 disabled:opacity-60"
+                  disabled={inputsLocked}
+                  className="text-primary underline hover:text-primary/80 disabled:opacity-60 disabled:cursor-not-allowed"
                   data-testid="button-reset-start-over"
                 >
                   Use a different email
