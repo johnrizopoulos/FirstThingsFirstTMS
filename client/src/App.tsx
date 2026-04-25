@@ -7,6 +7,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider, useTheme } from "@/contexts/theme";
 import { OnboardingProvider } from "@/contexts/onboarding";
 import { ClerkProvider, Show, useUser } from "@clerk/react";
+import { ui as clerkUi } from "@clerk/ui";
 import { buildClerkAppearance, backdropUrlFor } from "@/lib/clerkAppearance";
 import NotFound from "@/pages/not-found";
 import LandingPage from "@/pages/LandingPage";
@@ -38,6 +39,7 @@ function ClerkWithTheme({ children }: { children: React.ReactNode }) {
     <ClerkProvider
       publishableKey={publishableKey}
       afterSignOutUrl="/"
+      ui={clerkUi}
       appearance={appearance}
     >
       {children}
