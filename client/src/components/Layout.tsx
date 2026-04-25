@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -9,16 +9,40 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { Menu, Moon, Sun } from "lucide-react";
+import { Menu, Moon, Sun, X } from "lucide-react";
 import { supportMailtoHref } from "@/lib/support";
+
+type BeforeInstallPromptEvent = Event & {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
+};
+
+const IOS_HINT_DISMISSED_KEY = "ftf:ios-install-hint-dismissed";
+
+function isIosSafari(): boolean {
+  if (typeof navigator === "undefined") return false;
+  const ua = navigator.userAgent;
+  const isIos = /iPad|iPhone|iPod/.test(ua) ||
+    (ua.includes("Mac") && "ontouchend" in document);
+  const isStandalone =
+    (window.navigator as unknown as { standalone?: boolean }).standalone === true;
+  return isIos && !isStandalone;
+}
+
+function isStandaloneDisplay(): boolean {
+  if (typeof window === "undefined" || !window.matchMedia) return false;
+  return window.matchMedia("(display-mode: standalone)").matches ||
+    (window.navigator as unknown as { standalone?: boolean }).standalone === true;
+}
 
 export function Layout({ children, mobileHeaderContent }: { children: React.ReactNode; mobileHeaderContent?: React.ReactNode }) {
   const [location, setLocation] = useLocation();
   const isMobile = useIsMobile();
   const { theme, toggleTheme } = useTheme();
+  const [installEvent, setInstallEvent] = useState<BeforeInstallPromptEvent | null>(null);
+  const [showIosHint, setShowIosHint] = useState(false);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -46,6 +70,52 @@ export function Layout({ children, mobileHeaderContent }: { children: React.Reac
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [setLocation]);
+
+  useEffect(() => {
+    if (isStandaloneDisplay()) return;
+
+    const handleBeforeInstall = (e: Event) => {
+      e.preventDefault();
+      setInstallEvent(e as BeforeInstallPromptEvent);
+    };
+    const handleInstalled = () => setInstallEvent(null);
+
+    window.addEventListener("beforeinstallprompt", handleBeforeInstall);
+    window.addEventListener("appinstalled", handleInstalled);
+
+    if (isIosSafari()) {
+      try {
+        const dismissed = localStorage.getItem(IOS_HINT_DISMISSED_KEY) === "1";
+        if (!dismissed) setShowIosHint(true);
+      } catch {
+        setShowIosHint(true);
+      }
+    }
+
+    return () => {
+      window.removeEventListener("beforeinstallprompt", handleBeforeInstall);
+      window.removeEventListener("appinstalled", handleInstalled);
+    };
+  }, []);
+
+  const handleInstallClick = async () => {
+    if (!installEvent) return;
+    try {
+      await installEvent.prompt();
+      await installEvent.userChoice;
+    } finally {
+      setInstallEvent(null);
+    }
+  };
+
+  const dismissIosHint = () => {
+    setShowIosHint(false);
+    try {
+      localStorage.setItem(IOS_HINT_DISMISSED_KEY, "1");
+    } catch {
+      /* ignore */
+    }
+  };
 
   const NavItem = ({ href, label, hotkey }: { href: string; label: string; hotkey: string }) => {
     const isActive = location === href;
@@ -81,12 +151,12 @@ export function Layout({ children, mobileHeaderContent }: { children: React.Reac
   };
 
   return (
-    <div className="min-h-screen bg-background text-primary font-mono relative overflow-hidden flex flex-col">
+    <div className="min-h-screen bg-background text-primary font-mono relative overflow-hidden flex flex-col safe-pad-x">
       {/* CRT Overlay */}
       <div className="fixed inset-0 crt-overlay pointer-events-none z-50" />
 
       {/* Header */}
-      <header className="border-b border-primary p-4 flex items-center justify-between z-10 bg-background">
+      <header className="border-b border-primary p-4 flex items-center justify-between z-10 bg-background safe-pad-top">
         <div className="flex items-center gap-2 overflow-hidden">
           <div className="w-3 h-3 bg-primary animate-blink shrink-0" />
           <h1 className="text-sm md:text-xl font-bold tracking-widest truncate">FIRST_THINGS_FIRST_TMS</h1>
@@ -165,10 +235,40 @@ export function Layout({ children, mobileHeaderContent }: { children: React.Reac
         {children}
       </main>
 
+      {showIosHint && (
+        <div
+          className="border-t border-primary bg-background text-primary text-xs px-3 py-2 flex items-center justify-between gap-2 z-10"
+          data-testid="banner-ios-install-hint"
+        >
+          <span className="font-bold tracking-wider">
+            TAP SHARE → ADD TO HOME SCREEN
+          </span>
+          <button
+            type="button"
+            onClick={dismissIosHint}
+            className="opacity-70 hover:opacity-100"
+            aria-label="Dismiss install hint"
+            data-testid="button-dismiss-ios-hint"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
       {/* Footer */}
-      <footer className="border-t border-primary p-2 text-xs flex justify-between items-center gap-2 z-10 bg-background">
-        <div>
-          CMD: <span className="animate-blink">_</span>
+      <footer className="border-t border-primary p-2 text-xs flex justify-between items-center gap-2 z-10 bg-background safe-pad-bottom">
+        <div className="flex items-center gap-2">
+          <span>CMD: <span className="animate-blink">_</span></span>
+          {installEvent && (
+            <button
+              type="button"
+              onClick={handleInstallClick}
+              className="border border-primary px-2 py-0.5 font-bold tracking-wider hover:bg-primary hover:text-primary-foreground transition-colors"
+              data-testid="button-install-app"
+            >
+              [INSTALL_APP]
+            </button>
+          )}
         </div>
         <div className="flex items-center gap-3">
           <a

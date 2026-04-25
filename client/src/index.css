@@ -87,6 +87,33 @@
   }
 }
 
+/* Safe-area support for notched / home-indicator devices in standalone PWA mode */
+.safe-pad-top {
+  padding-top: max(env(safe-area-inset-top), 0px);
+}
+.safe-pad-bottom {
+  padding-bottom: max(env(safe-area-inset-bottom), 0px);
+}
+.safe-pad-x {
+  padding-left: max(env(safe-area-inset-left), 0px);
+  padding-right: max(env(safe-area-inset-right), 0px);
+}
+.safe-offset-top {
+  top: max(env(safe-area-inset-top), 0px);
+}
+.safe-offset-left {
+  left: max(env(safe-area-inset-left), 0px);
+}
+.safe-offset-right {
+  right: max(env(safe-area-inset-right), 0px);
+}
+
+@media (display-mode: standalone) {
+  .hide-when-standalone {
+    display: none !important;
+  }
+}
+
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 12px;
