@@ -19,6 +19,7 @@ import CompletedPage from "@/pages/CompletedPage";
 import TrashPage from "@/pages/TrashPage";
 import SignInPage from "@/pages/SignInPage";
 import SignUpPage from "@/pages/SignUpPage";
+import ResetPasswordPage from "@/pages/ResetPasswordPage";
 
 const publishableKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY as string;
 
@@ -65,6 +66,7 @@ function AuthRouter() {
     <Switch>
       <Route path="/sign-in" nest component={SignInPage} />
       <Route path="/sign-up" nest component={SignUpPage} />
+      <Route path="/reset-password" component={ResetPasswordPage} />
       <Route>
         <>
           <Show when="signed-out">
