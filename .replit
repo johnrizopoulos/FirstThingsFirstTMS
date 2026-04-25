@@ -47,3 +47,7 @@ externalPort = 80
 deploymentTarget = "autoscale"
 run = ["npx", "tsx", "server/index-prod.ts"]
 build = ["npx", "vite", "build"]
+
+[postMerge]
+path = "scripts/post-merge.sh"
+timeoutMs = 180000
