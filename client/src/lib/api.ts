@@ -15,7 +15,7 @@ function tempId(prefix: string): string {
   return `${prefix}-offline-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
 }
 
-function taskStub(input: Partial<InsertTask>, overrides: Partial<Task> = {}): Task {
+export function taskStub(input: Partial<InsertTask>, overrides: Partial<Task> = {}): Task {
   const now = new Date();
   return {
     id: input.id ?? tempId("task"),
@@ -36,7 +36,7 @@ function taskStub(input: Partial<InsertTask>, overrides: Partial<Task> = {}): Ta
   } as Task;
 }
 
-function milestoneStub(
+export function milestoneStub(
   input: Partial<InsertMilestone>,
   overrides: Partial<Milestone> = {},
 ): Milestone {
