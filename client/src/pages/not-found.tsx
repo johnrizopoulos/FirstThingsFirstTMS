@@ -1,4 +1,5 @@
 import { AlertCircle } from "lucide-react";
+import { supportMailtoHref } from "@/lib/support";
 
 export default function NotFound() {
   return (
@@ -11,6 +12,17 @@ export default function NotFound() {
 
         <p className="mt-4 text-sm text-primary font-mono uppercase">
           SYSTEM_ERROR: ROUTE_NOT_FOUND
+        </p>
+
+        <p className="mt-4 text-xs text-primary font-mono uppercase opacity-70">
+          NEED_HELP?{" "}
+          <a
+            href={supportMailtoHref()}
+            className="underline underline-offset-2 hover:opacity-100"
+            data-testid="link-contact-support-public"
+          >
+            CONTACT_SUPPORT
+          </a>
         </p>
       </div>
     </div>

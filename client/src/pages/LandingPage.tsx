@@ -1,6 +1,7 @@
 import { SignInButton, SignUpButton } from "@clerk/react";
 import { useTheme } from "@/contexts/theme";
 import AppHeader from "@/components/AppHeader";
+import { supportMailtoHref } from "@/lib/support";
 
 export default function LandingPage() {
   const { theme, setTheme } = useTheme();
@@ -334,6 +335,15 @@ export default function LandingPage() {
       {/* Footer */}
       <footer className="relative z-10 border-t-4 border-primary p-6 text-center">
         <div className="max-w-4xl mx-auto">
+          <p className="text-xs opacity-70 mb-2">
+            <a
+              href={supportMailtoHref()}
+              className="underline underline-offset-2 hover:opacity-100"
+              data-testid="link-contact-support-public"
+            >
+              CONTACT_SUPPORT
+            </a>
+          </p>
           <p className="text-xs opacity-50 mb-2">© 2025 FIRST THINGS FIRST TMS.</p>
           <p className="text-xs opacity-50">
             DESIGNED FOR MAXIMUM PRODUCTIVITY // INSPIRED BY BLOOMBERG TERMINAL & IBM 3270
