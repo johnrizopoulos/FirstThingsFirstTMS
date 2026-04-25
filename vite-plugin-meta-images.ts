@@ -68,6 +68,17 @@ function getDeploymentUrl(): string | null {
     return url;
   }
 
+  // REPLIT_DOMAINS is set on published deployments (comma-separated list).
+  // Use the first entry as the canonical absolute URL host.
+  if (process.env.REPLIT_DOMAINS) {
+    const firstDomain = process.env.REPLIT_DOMAINS.split(',')[0].trim();
+    if (firstDomain) {
+      const url = `https://${firstDomain}`;
+      log('[meta-images] using replit domains:', url);
+      return url;
+    }
+  }
+
   return null;
 }
 
