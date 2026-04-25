@@ -6,8 +6,14 @@ channel = "stable-25_05"
 [userenv]
 
 [userenv.shared]
+
+[userenv.production]
 VITE_CLERK_PUBLISHABLE_KEY = "pk_live_Y2xlcmsuZmlyc3R0aGluZ3NmaXJzdHRtcy5jb20k"
 CLERK_PUBLISHABLE_KEY = "pk_live_Y2xlcmsuZmlyc3R0aGluZ3NmaXJzdHRtcy5jb20k"
+
+[userenv.development]
+VITE_CLERK_PUBLISHABLE_KEY = "pk_test_ZmluZXItc3F1aWQtMzcuY2xlcmsuYWNjb3VudHMuZGV2JA"
+CLERK_PUBLISHABLE_KEY = "pk_test_ZmluZXItc3F1aWQtMzcuY2xlcmsuYWNjb3VudHMuZGV2JA"
 
 [workflows]
 runButton = "Project"
