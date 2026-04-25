@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Menu, Moon, Sun } from "lucide-react";
+import { supportMailtoHref } from "@/lib/support";
 
 export function Layout({ children, mobileHeaderContent }: { children: React.ReactNode; mobileHeaderContent?: React.ReactNode }) {
   const [location, setLocation] = useLocation();
@@ -165,12 +166,21 @@ export function Layout({ children, mobileHeaderContent }: { children: React.Reac
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-primary p-2 text-xs flex justify-between z-10 bg-background">
+      <footer className="border-t border-primary p-2 text-xs flex justify-between items-center gap-2 z-10 bg-background">
         <div>
           CMD: <span className="animate-blink">_</span>
         </div>
-        <div className="opacity-50">
-          © 2025 FIRST THINGS FIRST CORP.
+        <div className="flex items-center gap-3">
+          <a
+            href={supportMailtoHref()}
+            className="opacity-70 hover:opacity-100 underline underline-offset-2 transition-opacity"
+            data-testid="link-contact-support"
+          >
+            CONTACT_SUPPORT
+          </a>
+          <span className="opacity-50">
+            © 2025 FIRST THINGS FIRST CORP.
+          </span>
         </div>
       </footer>
     </div>
