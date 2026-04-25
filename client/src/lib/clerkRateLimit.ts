@@ -106,6 +106,135 @@ export function detectRateLimit(
   return { limited: true, retryAfterSeconds: retryAfter };
 }
 
+export type CooldownFlow = "sign-in" | "reset-password";
+
+export type StoredCooldown = {
+  identifier: string;
+  until: number;
+};
+
+const COOLDOWN_STORAGE_PREFIX = "clerk-cooldown:";
+
+function normalizeIdentifier(identifier: string): string {
+  return identifier.trim().toLowerCase();
+}
+
+function flowPrefix(flow: CooldownFlow): string {
+  return `${COOLDOWN_STORAGE_PREFIX}${flow}:`;
+}
+
+function cooldownStorageKey(flow: CooldownFlow, identifier: string): string {
+  return `${flowPrefix(flow)}${identifier}`;
+}
+
+function safeStorage(): Storage | null {
+  if (typeof window === "undefined") return null;
+  try {
+    return window.localStorage;
+  } catch {
+    return null;
+  }
+}
+
+function removeKey(storage: Storage, key: string): void {
+  try {
+    storage.removeItem(key);
+  } catch {
+    /* ignore */
+  }
+}
+
+function readEntry(storage: Storage, key: string): number | null {
+  let raw: string | null;
+  try {
+    raw = storage.getItem(key);
+  } catch {
+    return null;
+  }
+  if (!raw) return null;
+  const until = Number.parseInt(raw, 10);
+  if (!Number.isFinite(until) || until <= Date.now()) {
+    removeKey(storage, key);
+    return null;
+  }
+  return until;
+}
+
+function collectFlowKeys(storage: Storage, flow: CooldownFlow): string[] {
+  const prefix = flowPrefix(flow);
+  const keys: string[] = [];
+  let length = 0;
+  try {
+    length = storage.length;
+  } catch {
+    return keys;
+  }
+  for (let i = 0; i < length; i++) {
+    let key: string | null = null;
+    try {
+      key = storage.key(i);
+    } catch {
+      continue;
+    }
+    if (key && key.startsWith(prefix)) keys.push(key);
+  }
+  return keys;
+}
+
+export function persistCooldown(
+  flow: CooldownFlow,
+  identifier: string,
+  until: number,
+): void {
+  const storage = safeStorage();
+  if (!storage) return;
+  const normalized = normalizeIdentifier(identifier);
+  if (!normalized) return;
+  if (!Number.isFinite(until) || until <= Date.now()) return;
+  try {
+    storage.setItem(cooldownStorageKey(flow, normalized), String(until));
+  } catch {
+    /* ignore quota / privacy errors */
+  }
+}
+
+export function loadCooldown(
+  flow: CooldownFlow,
+  identifier: string,
+): number | null {
+  const storage = safeStorage();
+  if (!storage) return null;
+  const normalized = normalizeIdentifier(identifier);
+  if (!normalized) return null;
+  return readEntry(storage, cooldownStorageKey(flow, normalized));
+}
+
+export function loadActiveCooldown(flow: CooldownFlow): StoredCooldown | null {
+  const storage = safeStorage();
+  if (!storage) return null;
+  const prefix = flowPrefix(flow);
+  let best: StoredCooldown | null = null;
+  for (const key of collectFlowKeys(storage, flow)) {
+    const until = readEntry(storage, key);
+    if (until === null) continue;
+    if (!best || until > best.until) {
+      best = { identifier: key.slice(prefix.length), until };
+    }
+  }
+  return best;
+}
+
+export function clearCooldown(
+  flow: CooldownFlow,
+  identifier: string,
+): void {
+  const storage = safeStorage();
+  if (!storage) return;
+  const normalized = normalizeIdentifier(identifier);
+  if (!normalized) return;
+  removeKey(storage, cooldownStorageKey(flow, normalized));
+}
+
 export function formatCountdown(secondsRemaining: number): string {
   const safe = Math.max(0, Math.ceil(secondsRemaining));
   const minutes = Math.floor(safe / 60);

@@ -5,9 +5,13 @@ import { useTheme } from "@/contexts/theme";
 import { backdropUrlFor } from "@/lib/clerkAppearance";
 import AppHeader from "@/components/AppHeader";
 import {
+  clearCooldown,
   describeError,
   detectRateLimit,
   formatCountdown,
+  loadActiveCooldown,
+  loadCooldown,
+  persistCooldown,
 } from "@/lib/clerkRateLimit";
 import { supportMailtoHref } from "@/lib/support";
 
@@ -17,10 +21,13 @@ export default function SignInPage() {
   const { theme } = useTheme();
   const [, setLocation] = useLocation();
 
-  const [email, setEmail] = useState("");
+  const initialActive = useMemo(() => loadActiveCooldown("sign-in"), []);
+  const [email, setEmail] = useState(() => initialActive?.identifier ?? "");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
-  const [cooldownUntil, setCooldownUntil] = useState<number | null>(null);
+  const [cooldownUntil, setCooldownUntil] = useState<number | null>(
+    () => initialActive?.until ?? null,
+  );
   const [now, setNow] = useState(() => Date.now());
   const tickRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -38,6 +45,7 @@ export default function SignInPage() {
       setNow(current);
       if (current >= cooldownUntil) {
         setCooldownUntil(null);
+        clearCooldown("sign-in", email);
       }
     }, 1000);
     return () => {
@@ -46,7 +54,12 @@ export default function SignInPage() {
         tickRef.current = null;
       }
     };
-  }, [cooldownUntil]);
+  }, [cooldownUntil, email]);
+
+  useEffect(() => {
+    const restored = loadCooldown("sign-in", email);
+    setCooldownUntil(restored);
+  }, [email]);
 
   const cooldownActive = cooldownUntil !== null && cooldownUntil > now;
   const cooldownSecondsRemaining = cooldownActive
@@ -63,6 +76,7 @@ export default function SignInPage() {
     if (limited) {
       const until = Date.now() + retryAfterSeconds * 1000;
       setCooldownUntil(until);
+      persistCooldown("sign-in", email, until);
       setErrorMessage("");
       return true;
     }

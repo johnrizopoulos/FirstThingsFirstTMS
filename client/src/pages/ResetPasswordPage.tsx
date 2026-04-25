@@ -5,9 +5,13 @@ import { useTheme } from "@/contexts/theme";
 import AppHeader from "@/components/AppHeader";
 import { backdropUrlFor } from "@/lib/clerkAppearance";
 import {
+  clearCooldown,
   describeError,
   detectRateLimit,
   formatCountdown,
+  loadActiveCooldown,
+  loadCooldown,
+  persistCooldown,
 } from "@/lib/clerkRateLimit";
 import { supportMailtoHref } from "@/lib/support";
 
@@ -19,13 +23,16 @@ export default function ResetPasswordPage() {
   const { theme } = useTheme();
   const [, setLocation] = useLocation();
 
+  const initialActive = useMemo(() => loadActiveCooldown("reset-password"), []);
   const [step, setStep] = useState<Step>("request");
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(() => initialActive?.identifier ?? "");
   const [code, setCode] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
-  const [cooldownUntil, setCooldownUntil] = useState<number | null>(null);
+  const [cooldownUntil, setCooldownUntil] = useState<number | null>(
+    () => initialActive?.until ?? null,
+  );
   const [now, setNow] = useState(() => Date.now());
   const tickRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -43,6 +50,7 @@ export default function ResetPasswordPage() {
       setNow(current);
       if (current >= cooldownUntil) {
         setCooldownUntil(null);
+        clearCooldown("reset-password", email);
       }
     }, 1000);
     return () => {
@@ -51,7 +59,12 @@ export default function ResetPasswordPage() {
         tickRef.current = null;
       }
     };
-  }, [cooldownUntil]);
+  }, [cooldownUntil, email]);
+
+  useEffect(() => {
+    const restored = loadCooldown("reset-password", email);
+    setCooldownUntil(restored);
+  }, [email]);
 
   const cooldownActive = cooldownUntil !== null && cooldownUntil > now;
   const cooldownSecondsRemaining = cooldownActive ? Math.ceil((cooldownUntil! - now) / 1000) : 0;
@@ -66,6 +79,7 @@ export default function ResetPasswordPage() {
     if (limited) {
       const until = Date.now() + retryAfterSeconds * 1000;
       setCooldownUntil(until);
+      persistCooldown("reset-password", email, until);
       setErrorMessage("");
       return true;
     }
