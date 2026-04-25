@@ -130,3 +130,47 @@
   background-size: 100% 2px, 3px 100%;
   pointer-events: none;
 }
+
+/* ============================================================
+   Clerk modal theming overrides
+   ============================================================ */
+
+/* Themed backdrop image behind the Clerk modal overlay.
+   --clerk-backdrop-url is set on :root by ClerkWithTheme based on the
+   active app theme so it swaps live with the theme toggle. */
+:root {
+  --clerk-backdrop-url: url("/clerk/backdrop-terminal.jpg");
+}
+
+.ftf-clerk-backdrop {
+  background-image:
+    linear-gradient(hsl(var(--background) / 0.65), hsl(var(--background) / 0.65)),
+    var(--clerk-backdrop-url) !important;
+  background-size: cover !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+  backdrop-filter: blur(2px);
+}
+
+/* Make sure the Clerk modal sits above our fixed CRT overlay (z-50). */
+.ftf-clerk-backdrop,
+.ftf-clerk-modal-content {
+  z-index: 100 !important;
+}
+
+/* Subtle scanline overlay on the modal card to match the app aesthetic. */
+.ftf-clerk-card {
+  position: relative;
+  background-image: linear-gradient(
+    hsl(var(--background) / 0) 50%,
+    hsl(var(--foreground) / 0.04) 50%
+  );
+  background-size: 100% 3px;
+}
+
+/* Keep the modal logo image small and crisp regardless of source dimensions. */
+.ftf-clerk-card img[alt*="logo" i] {
+  max-height: 56px !important;
+  width: auto !important;
+  image-rendering: pixelated;
+}

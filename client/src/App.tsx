@@ -1,11 +1,13 @@
+import { useEffect, useMemo } from "react";
 import { Switch, Route } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { ThemeProvider } from "@/contexts/theme";
+import { ThemeProvider, useTheme } from "@/contexts/theme";
 import { OnboardingProvider } from "@/contexts/onboarding";
-import { Show, useUser } from "@clerk/react";
+import { ClerkProvider, Show, useUser } from "@clerk/react";
+import { buildClerkAppearance, backdropUrlFor } from "@/lib/clerkAppearance";
 import NotFound from "@/pages/not-found";
 import LandingPage from "@/pages/LandingPage";
 import OnboardingPage from "@/pages/OnboardingPage";
@@ -14,6 +16,32 @@ import ListPage from "@/pages/ListPage";
 import BoardPage from "@/pages/BoardPage";
 import CompletedPage from "@/pages/CompletedPage";
 import TrashPage from "@/pages/TrashPage";
+
+const publishableKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY as string;
+
+function ClerkWithTheme({ children }: { children: React.ReactNode }) {
+  const { theme } = useTheme();
+  const appearance = useMemo(() => buildClerkAppearance(theme), [theme]);
+
+  // Expose backdrop URL to CSS so the Clerk modal overlay can use it
+  // without needing a dynamic Tailwind class (which Tailwind can't compile).
+  useEffect(() => {
+    document.documentElement.style.setProperty(
+      "--clerk-backdrop-url",
+      `url("${backdropUrlFor(theme)}")`,
+    );
+  }, [theme]);
+
+  return (
+    <ClerkProvider
+      publishableKey={publishableKey}
+      afterSignOutUrl="/"
+      appearance={appearance}
+    >
+      {children}
+    </ClerkProvider>
+  );
+}
 
 function AuthRouter() {
   const { isLoaded } = useUser();
@@ -52,14 +80,16 @@ function AuthRouter() {
 function App() {
   return (
     <ThemeProvider>
-      <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <OnboardingProvider>
-            <Toaster />
-            <AuthRouter />
-          </OnboardingProvider>
-        </TooltipProvider>
-      </QueryClientProvider>
+      <ClerkWithTheme>
+        <QueryClientProvider client={queryClient}>
+          <TooltipProvider>
+            <OnboardingProvider>
+              <Toaster />
+              <AuthRouter />
+            </OnboardingProvider>
+          </TooltipProvider>
+        </QueryClientProvider>
+      </ClerkWithTheme>
     </ThemeProvider>
   );
 }
