@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Auth modal backdrop preview</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root[data-theme="terminal"] {
+      --background: 120 10% 5%;
+      --foreground: 120 100% 50%;
+      --primary: 120 100% 50%;
+      --primary-foreground: 0 0% 0%;
+      --input: 120 50% 12%;
+      --border: 120 60% 35%;
+      --backdrop-image: url('/clerk/backdrop-terminal.jpg');
+    }
+    :root[data-theme="dark"] {
+      --background: 0 0% 10%;
+      --foreground: 0 0% 90%;
+      --primary: 0 0% 90%;
+      --primary-foreground: 0 0% 10%;
+      --input: 0 0% 18%;
+      --border: 0 0% 35%;
+      --backdrop-image: url('/clerk/backdrop-terminal.jpg');
+    }
+    :root[data-theme="light"] {
+      --background: 0 0% 100%;
+      --foreground: 0 0% 0%;
+      --primary: 0 0% 0%;
+      --primary-foreground: 0 0% 100%;
+      --input: 0 0% 96%;
+      --border: 0 0% 70%;
+      --backdrop-image: url('/clerk/backdrop-light.jpg');
+    }
+
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0; padding: 0; height: 100%;
+      font-family: 'IBM Plex Mono', monospace;
+      background: hsl(var(--background));
+      color: hsl(var(--foreground));
+      overflow: hidden;
+    }
+
+    /* ===== fake landing page (sits behind everything) ===== */
+    .landing {
+      position: fixed; inset: 0; z-index: 0;
+      background: hsl(var(--background));
+      background-image:
+        linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%),
+        linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+      background-size: 100% 2px, 6px 100%;
+    }
+    .landing-content {
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      text-align: center; width: 100%;
+      color: hsl(var(--primary));
+    }
+    .landing-content h1 {
+      font-size: clamp(28px, 5vw, 56px);
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      margin: 0 0 12px;
+    }
+    .landing-content p { margin: 4px 0; opacity: 0.75; font-size: 14px; }
+
+    /* ===== modal backdrop overlay ===== */
+    .backdrop {
+      position: fixed; inset: 0; z-index: 100;
+      transition: background 0.25s, background-image 0.25s;
+    }
+    .backdrop.before {
+      background-image:
+        linear-gradient(hsl(var(--background) / 0.65), hsl(var(--background) / 0.65)),
+        var(--backdrop-image);
+      background-size: cover;
+      background-position: center;
+      backdrop-filter: blur(2px);
+    }
+    .backdrop.after {
+      background-color: hsl(var(--background));
+      background-image:
+        linear-gradient(hsl(var(--background) / 0.55), hsl(var(--background) / 0.55)),
+        linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%),
+        linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+      background-size: 100% 100%, 100% 2px, 6px 100%;
+      backdrop-filter: blur(2px);
+    }
+
+    /* ===== fake modal (rough Clerk modal shape) ===== */
+    .modal {
+      position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      width: 360px;
+      background: hsl(var(--background));
+      border: 2px solid hsl(var(--primary));
+      color: hsl(var(--foreground));
+      z-index: 101;
+      padding: 28px 28px 24px;
+      background-image: linear-gradient(
+        hsl(var(--background) / 0) 50%,
+        hsl(var(--foreground) / 0.04) 50%
+      );
+      background-size: 100% 3px;
+    }
+    .modal-logo {
+      width: 120px; height: 28px; margin: 0 auto 18px;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 18px;
+      letter-spacing: 0.15em;
+      color: hsl(var(--primary));
+    }
+    .modal h2 {
+      margin: 0 0 4px; font-size: 15px;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      text-align: center;
+      color: hsl(var(--primary));
+    }
+    .modal .sub {
+      margin: 0 0 20px; font-size: 11px;
+      opacity: 0.7; text-align: center;
+    }
+    .modal .field { margin-bottom: 12px; }
+    .modal label {
+      display: block; font-size: 10px;
+      letter-spacing: 0.15em; text-transform: uppercase;
+      margin-bottom: 6px; color: hsl(var(--primary));
+    }
+    .modal input {
+      width: 100%;
+      background: hsl(var(--input));
+      border: 2px solid hsl(var(--primary));
+      color: hsl(var(--foreground));
+      padding: 8px 10px; font-family: inherit; font-size: 13px;
+      outline: none; border-radius: 0;
+    }
+    .modal .primary-btn {
+      width: 100%; margin-top: 8px;
+      background: hsl(var(--primary));
+      color: hsl(var(--primary-foreground));
+      border: 2px solid hsl(var(--primary));
+      padding: 10px; font-family: inherit;
+      font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.2em; cursor: pointer;
+      border-radius: 0;
+    }
+
+    /* ===== controls ===== */
+    .controls {
+      position: fixed; top: 12px; left: 50%; transform: translateX(-50%);
+      z-index: 200;
+      display: flex; gap: 0;
+      background: hsl(var(--background));
+      border: 2px solid hsl(var(--primary));
+      font-size: 11px;
+    }
+    .controls .group {
+      display: flex; gap: 0;
+      border-right: 2px solid hsl(var(--primary));
+    }
+    .controls .group:last-child { border-right: none; }
+    .controls .group-label {
+      padding: 6px 10px;
+      background: hsl(var(--primary) / 0.15);
+      color: hsl(var(--primary));
+      font-weight: 700; letter-spacing: 0.1em;
+      border-right: 2px solid hsl(var(--primary));
+    }
+    .controls button {
+      background: transparent;
+      color: hsl(var(--primary));
+      border: none;
+      padding: 6px 12px;
+      font-family: inherit; font-size: 11px;
+      cursor: pointer; text-transform: uppercase;
+      letter-spacing: 0.1em;
+      border-right: 1px solid hsl(var(--primary) / 0.3);
+    }
+    .controls button:last-child { border-right: none; }
+    .controls button.active {
+      background: hsl(var(--primary));
+      color: hsl(var(--primary-foreground));
+    }
+  </style>
+</head>
+<body data-theme="terminal">
+  <div class="landing">
+    <div class="landing-content">
+      <h1>FIRST_THINGS_FIRST</h1>
+      <p>_DO THE MOST IMPORTANT THINGS FIRST_</p>
+      <p>A terminal-inspired task management system.</p>
+    </div>
+  </div>
+
+  <div id="backdrop" class="backdrop before"></div>
+
+  <div class="modal">
+    <div class="modal-logo">FTF<span style="display:inline-block;width:14px;height:18px;background:currentColor;margin-left:4px;vertical-align:-3px;"></span></div>
+    <h2>Sign in</h2>
+    <p class="sub">Continue to FIRST_THINGS_FIRST</p>
+    <div class="field">
+      <label>Email address</label>
+      <input type="text" placeholder="user@example.com" />
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <input type="password" placeholder="••••••••" />
+    </div>
+    <button class="primary-btn">[ENTER] Continue</button>
+  </div>
+
+  <div class="controls">
+    <div class="group">
+      <div class="group-label">Backdrop</div>
+      <button id="b-before" class="active" onclick="setMode('before')">BEFORE (image)</button>
+      <button id="b-after" onclick="setMode('after')">AFTER (landing-style)</button>
+    </div>
+    <div class="group">
+      <div class="group-label">Theme</div>
+      <button id="t-terminal" class="active" onclick="setTheme('terminal')">terminal</button>
+      <button id="t-dark" onclick="setTheme('dark')">dark</button>
+      <button id="t-light" onclick="setTheme('light')">light</button>
+    </div>
+  </div>
+
+  <script>
+    function setMode(m) {
+      document.getElementById('backdrop').className = 'backdrop ' + m;
+      document.getElementById('b-before').classList.toggle('active', m === 'before');
+      document.getElementById('b-after').classList.toggle('active', m === 'after');
+    }
+    function setTheme(t) {
+      document.documentElement.setAttribute('data-theme', t);
+      ['terminal','dark','light'].forEach(x => {
+        document.getElementById('t-' + x).classList.toggle('active', x === t);
+      });
+    }
+  </script>
+</body>
+</html>
