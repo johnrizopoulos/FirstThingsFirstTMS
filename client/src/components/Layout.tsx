@@ -11,8 +11,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { Menu, Moon, Sun, X } from "lucide-react";
+import { ArrowDown, ArrowUp, Menu, Moon, Share, Sun, X } from "lucide-react";
 import { supportMailtoHref } from "@/lib/support";
+import {
+  detectIosShareLocation,
+  isIosSafariBrowser,
+  type IosShareLocation,
+} from "@/lib/iosInstallHint";
 
 type BeforeInstallPromptEvent = Event & {
   prompt: () => Promise<void>;
@@ -20,16 +25,6 @@ type BeforeInstallPromptEvent = Event & {
 };
 
 const IOS_HINT_DISMISSED_KEY = "ftf:ios-install-hint-dismissed";
-
-function isIosSafari(): boolean {
-  if (typeof navigator === "undefined") return false;
-  const ua = navigator.userAgent;
-  const isIos = /iPad|iPhone|iPod/.test(ua) ||
-    (ua.includes("Mac") && "ontouchend" in document);
-  const isStandalone =
-    (window.navigator as unknown as { standalone?: boolean }).standalone === true;
-  return isIos && !isStandalone;
-}
 
 function isStandaloneDisplay(): boolean {
   if (typeof window === "undefined" || !window.matchMedia) return false;
@@ -43,6 +38,7 @@ export function Layout({ children, mobileHeaderContent }: { children: React.Reac
   const { theme, toggleTheme } = useTheme();
   const [installEvent, setInstallEvent] = useState<BeforeInstallPromptEvent | null>(null);
   const [showIosHint, setShowIosHint] = useState(false);
+  const [iosShareLocation, setIosShareLocation] = useState<IosShareLocation>("bottom");
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -83,7 +79,8 @@ export function Layout({ children, mobileHeaderContent }: { children: React.Reac
     window.addEventListener("beforeinstallprompt", handleBeforeInstall);
     window.addEventListener("appinstalled", handleInstalled);
 
-    if (isIosSafari()) {
+    if (isIosSafariBrowser()) {
+      setIosShareLocation(detectIosShareLocation());
       try {
         const dismissed = localStorage.getItem(IOS_HINT_DISMISSED_KEY) === "1";
         if (!dismissed) setShowIosHint(true);
@@ -240,13 +237,35 @@ export function Layout({ children, mobileHeaderContent }: { children: React.Reac
           className="border-t border-primary bg-background text-primary text-xs px-3 py-2 flex items-center justify-between gap-2 z-10"
           data-testid="banner-ios-install-hint"
         >
-          <span className="font-bold tracking-wider">
-            TAP SHARE → ADD TO HOME SCREEN
-          </span>
+          <div className="flex items-center gap-2 min-w-0">
+            {iosShareLocation === "top" && (
+              <ArrowUp
+                className="w-4 h-4 shrink-0 animate-bounce"
+                aria-hidden="true"
+                data-testid="icon-ios-share-arrow-up"
+              />
+            )}
+            <span className="font-bold tracking-wider flex items-center gap-1.5 flex-wrap">
+              <span>TAP</span>
+              <Share
+                className="w-4 h-4 inline-block shrink-0"
+                aria-label="Share"
+                data-testid="icon-ios-share-glyph"
+              />
+              <span>SHARE → ADD TO HOME SCREEN</span>
+            </span>
+            {iosShareLocation === "bottom" && (
+              <ArrowDown
+                className="w-4 h-4 shrink-0 animate-bounce"
+                aria-hidden="true"
+                data-testid="icon-ios-share-arrow-down"
+              />
+            )}
+          </div>
           <button
             type="button"
             onClick={dismissIosHint}
-            className="opacity-70 hover:opacity-100"
+            className="opacity-70 hover:opacity-100 shrink-0"
             aria-label="Dismiss install hint"
             data-testid="button-dismiss-ios-hint"
           >
