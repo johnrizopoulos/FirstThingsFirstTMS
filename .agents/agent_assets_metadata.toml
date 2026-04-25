@@ -1,0 +1,26 @@
+uploads = []
+outputs = []
+
+[[generated]]
+id = "4Ahi2HJs3sQRV8_1294Ua"
+uri = "file://attached_assets/generated_images/ftf-logo-terminal.png"
+type = "image"
+title = "FTF terminal logo"
+
+[[generated]]
+id = "cBcsuP-gJGaJVZ4xuJV49"
+uri = "file://attached_assets/generated_images/ftf-logo-light.png"
+type = "image"
+title = "FTF light logo"
+
+[[generated]]
+id = "1g5RE8lAkkJXp48AsNv2T"
+uri = "file://attached_assets/generated_images/ftf-backdrop-terminal.png"
+type = "image"
+title = "FTF terminal backdrop"
+
+[[generated]]
+id = "8mCbyziFOFqZpWD6o2B5M"
+uri = "file://attached_assets/generated_images/ftf-backdrop-light.png"
+type = "image"
+title = "FTF light backdrop"
