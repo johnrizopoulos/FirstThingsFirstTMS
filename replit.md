@@ -83,7 +83,7 @@ Preferred communication style: Simple, everyday language.
 - Defaults to a 5-minute cool-down when Clerk omits `retryAfter`.
 
 ### Configurable Support Email
-- New `client/src/lib/support.ts` exporting `SUPPORT_EMAIL` (read from `VITE_SUPPORT_EMAIL`, default `support@firstthingsfirsttms.com`) and `supportMailtoHref(subject?)`.
+- New `client/src/lib/support.ts` exporting `SUPPORT_EMAIL` (read from `VITE_SUPPORT_EMAIL`, default `firstthingsfirsttms@gmail.com`) and `supportMailtoHref(subject?)`.
 - "Contact support" links surfaced on:
   - Logged-in app footer (`Layout.tsx`) — every authenticated route.
   - Landing page footer and `not-found.tsx`.
@@ -250,7 +250,7 @@ Preferred communication style: Simple, everyday language.
 ### Environment variables
 - `VITE_CLERK_PUBLISHABLE_KEY` — Clerk frontend key (required)
 - `CLERK_SECRET_KEY` — Clerk backend key (required)
-- `VITE_SUPPORT_EMAIL` — support email shown in footers and lockout banners (optional, defaults to `support@firstthingsfirsttms.com`)
+- `VITE_SUPPORT_EMAIL` — support email shown in footers and lockout banners (optional, defaults to `firstthingsfirsttms@gmail.com`)
 - `DATABASE_URL` — PostgreSQL connection string (Replit DB)
 
 ### Key Design Conventions

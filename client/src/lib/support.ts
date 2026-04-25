@@ -1,4 +1,4 @@
-const DEFAULT_SUPPORT_EMAIL = "support@firstthingsfirsttms.com";
+const DEFAULT_SUPPORT_EMAIL = "firstthingsfirsttms@gmail.com";
 
 const fromEnv = (import.meta.env.VITE_SUPPORT_EMAIL as string | undefined)?.trim();
 
