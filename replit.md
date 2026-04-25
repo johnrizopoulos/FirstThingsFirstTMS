@@ -48,6 +48,53 @@ Preferred communication style: Simple, everyday language.
 
 ---
 
+## Version 2.4 (April 25, 2026)
+
+### Clerk Auth Branding & Theming
+- **Themed modal**: `client/src/lib/clerkAppearance.ts` factory builds a Clerk `appearance` object driven by `hsl(var(--*))` CSS variables so the sign-in/sign-up modal tracks the active theme (terminal/dark/light) live. `ClerkWithTheme` wrapper inside `ThemeProvider` re-binds the appearance and the backdrop URL on theme change.
+- **Hand-built SVG logo**: replaced AI-generated PNG logos at the top of the auth modal with `client/public/clerk/logo-terminal.svg` and `logo-light.svg` — pixel-perfect 5×7 grid wordmark with a SMIL-animated blinking cursor block. PNG fallbacks removed.
+- **Explicit Clerk UI dependency**: added `@clerk/ui` (currently `^1.6.6`, caret-ranged) as an explicit project dependency and passed it via `<ClerkProvider ui={clerkUi}>` so the DOM structure our `.ftf-clerk-*` overrides target is no longer a transitive surprise from `@clerk/react`. Exact-version pinning is tracked separately as a follow-up task.
+- **Upgrade checklist**: see [docs/clerk-upgrade.md](docs/clerk-upgrade.md) before bumping either Clerk package.
+
+### Shareable Auth Pages
+- New full-page routes registered in `App.tsx` `AuthRouter`:
+  - `/sign-in` — `client/src/pages/SignInPage.tsx`
+  - `/sign-up` — `client/src/pages/SignUpPage.tsx`
+  - `/reset-password` — `client/src/pages/ResetPasswordPage.tsx` (drives Clerk's `resetPasswordEmailCode` flow: email → 6-digit code → new password → finalize)
+- All three render with the FTF-branded backdrop, CRT overlay, and Plex Mono styling that matches the modal.
+- Sign-in page links to `/reset-password` ("Forgot password?") and `/sign-up`.
+- The standalone `/sign-in` page is a custom email + password form (not Clerk's prebuilt `<SignIn>`). The Landing-page modal still uses Clerk's prebuilt component, which can render configured social providers.
+
+### Shared Header Component
+- New `client/src/components/AppHeader.tsx` — fixed-position FTF wordmark on the left (links home) and theme cycle button on the right.
+- Used by `LandingPage`, `SignInPage`, `SignUpPage`, and `ResetPasswordPage`. `LandingPage` overrides the left slot with its `[SIGN IN]` / `[SIGN UP]` buttons.
+
+### Lockout Cool-down (rate-limit handling)
+- New shared helper `client/src/lib/clerkRateLimit.ts`: detects Clerk rate-limit / lockout responses (`user_locked`, `too_many_requests`, HTTP 429, plus `lockout` / `rate_limit` / `too_many` substrings), formats countdowns, and persists active cool-downs to `localStorage` keyed by `clerk-cooldown:<flow>:<normalized-identifier>`.
+- Applied on both `/sign-in` and `/reset-password`: the submit button disables itself and shows a friendly "Too many attempts. Try again in Xm Ys." banner with CTAs to reset password and contact support. Cool-down survives page reloads and is cleared at expiry.
+- Defaults to a 5-minute cool-down when Clerk omits `retryAfter`.
+
+### Configurable Support Email
+- New `client/src/lib/support.ts` exporting `SUPPORT_EMAIL` (read from `VITE_SUPPORT_EMAIL`, default `support@firstthingsfirsttms.com`) and `supportMailtoHref(subject?)`.
+- "Contact support" links surfaced on:
+  - Logged-in app footer (`Layout.tsx`) — every authenticated route.
+  - Landing page footer and `not-found.tsx`.
+  - Sign-in / sign-up / reset-password pages (always visible, not just inside the lockout banner).
+- Set `VITE_SUPPORT_EMAIL` to override.
+
+### Brand Assets
+- **Favicon / app icon set** (under `client/public/`): `favicon.svg` (dark + `favicon-light.svg` for light OS theme via `prefers-color-scheme`), 32×32 PNG fallback, 180×180 `apple-touch-icon.png`, 192×192 + 512×512 maskable Android icons, `icon-maskable.svg` source, and `site.webmanifest`. All built from the same hand-built FTF wordmark geometry as the Clerk modal logo.
+- **Open Graph / Twitter Card**: regenerated `client/public/opengraph.jpg` (1200×630) with the FTF wordmark + tagline + scanlines on a near-black terminal background. `client/index.html` now sets absolute `og:image` / `twitter:image` URLs with width/height/type/alt. `vite-plugin-meta-images.ts` rewrites these to the live deployment domain (with `REPLIT_DOMAINS` fallback for production).
+
+### Testing
+- Added **vitest** as a dev dependency and wired `npm test` → `vitest run`.
+- New `client/src/lib/__tests__/clerkRateLimit.test.ts` — 34 tests covering `detectRateLimit`, `formatCountdown`, and `describeError` (Clerk error shape parsing, retry-after fallbacks, edge cases).
+
+### Reconciliation
+- `scripts/post-merge.sh` runs `npm install` + `drizzle-kit push` after every task merge, registered with the platform via `setPostMergeConfig` (180s timeout). Verified end-to-end at ~12s.
+
+---
+
 ## Version 2.3 — Stable / Published (April 24, 2026)
 
 ### Trash Page — Remove All Feature
@@ -133,21 +180,32 @@ Preferred communication style: Simple, everyday language.
 ```
 /
 ├── client/
+│   ├── public/
+│   │   ├── clerk/           — logo-terminal.svg, logo-light.svg (auth modal logos)
+│   │   ├── favicon.svg, favicon-light.svg, favicon.png
+│   │   ├── apple-touch-icon.png, icon-192.png, icon-512.png, icon-maskable.svg
+│   │   ├── opengraph.jpg    — OG/Twitter social card
+│   │   └── site.webmanifest
+│   ├── index.html           — favicon links, OG/Twitter meta tags
 │   └── src/
-│       ├── components/      — Layout, UI primitives
+│       ├── components/      — Layout, AppHeader, UI primitives
 │       ├── contexts/        — ThemeContext, OnboardingContext
-│       ├── hooks/           — useData.ts (all API mutations/queries), useAuth.ts
-│       ├── lib/             — api.ts (fetch wrappers)
-│       ├── pages/           — FocusPage, ListPage, BoardPage, CompletedPage, TrashPage, TutorialPage, LandingPage
-│       ├── App.tsx          — Clerk Show when="signed-in/out" routing
-│       └── main.tsx         — App entry point (ClerkProvider wraps app)
+│       ├── hooks/           — useData.ts, useAuth.ts
+│       ├── lib/             — api.ts, clerkAppearance.ts, clerkRateLimit.ts (+ __tests__), support.ts
+│       ├── pages/           — FocusPage, ListPage, BoardPage, CompletedPage, TrashPage, TutorialPage, LandingPage, SignInPage, SignUpPage, ResetPasswordPage, not-found
+│       ├── App.tsx          — AuthRouter + ClerkWithTheme wrapper
+│       └── main.tsx         — App entry point
 ├── server/
 │   ├── auth.ts              — clerkMiddleware, isAuthenticated (syncs Clerk user to DB)
 │   ├── routes.ts            — All API endpoints
 │   ├── storage.ts           — Drizzle ORM database operations
 │   └── index.ts             — Express server entry point
 ├── shared/
-│   └── schema.ts            — Drizzle schema + Zod types (tasks, milestones, users, sessions)
+│   └── schema.ts            — Drizzle schema + Zod types (users, milestones, tasks)
+├── docs/
+│   └── clerk-upgrade.md     — pre-merge checklist for bumping @clerk/* packages
+├── scripts/
+│   └── post-merge.sh        — runs npm install + drizzle-kit push after task merges
 └── package.json
 ```
 
@@ -168,18 +226,24 @@ Preferred communication style: Simple, everyday language.
 ### Database
 - PostgreSQL via Replit's built-in database service
 - Drizzle ORM for queries and schema management
-- Tables: `tasks`, `milestones`, `users`, `sessions`
+- Tables: `users`, `milestones`, `tasks` (sessions are managed by Clerk; no local sessions table)
 - Migrations: `npm run db:push`
 
-### Authentication (Clerk — Google/Apple social login)
-- `ClerkProvider` wraps app in `main.tsx` with `VITE_CLERK_PUBLISHABLE_KEY`
-- `Show when="signed-in/out"` in `App.tsx` controls route access
-- `useAuth` hook uses Clerk's `useUser()` — returns `{ user, isLoaded }`
-- `LandingPage` uses `<SignInButton mode="modal">` for sign-in/sign-up
-- `Layout` uses Clerk's `signOut({ redirectUrl: "/" })` for logout
-- Backend: `clerkMiddleware` from `@clerk/express` validates tokens on each request
-- `isAuthenticated` middleware syncs Clerk user to local DB (by email, then by clerkId)
-- `users.clerk_id` column links Clerk identity to local user row
+### Authentication (Clerk)
+- `main.tsx` validates `VITE_CLERK_PUBLISHABLE_KEY` and renders `<App />`. The actual `ClerkProvider` lives inside `client/src/App.tsx`, wrapped by `ClerkWithTheme` so the `appearance` object and the `--clerk-backdrop-url` CSS variable re-bind whenever the theme changes. The `@clerk/ui` bundle is passed in via the `ui` prop.
+- `Show when="signed-in/out"` in `App.tsx` controls route access. Signed-out routes go through `AuthRouter`, which exposes `/`, `/sign-in`, `/sign-up`, and `/reset-password`.
+- `useAuth` hook uses Clerk's `useUser()` — returns `{ user, isLoaded }`.
+- **Landing page modal** uses `<SignInButton mode="modal">` (Clerk's prebuilt component, can render configured social providers).
+- **Standalone `/sign-in` page** is a custom email + password form using `useSignIn()`. **`/sign-up`** uses Clerk's prebuilt component. **`/reset-password`** drives `resetPasswordEmailCode` end-to-end.
+- All auth pages use the shared `AppHeader`, the FTF backdrop, and the rate-limit cool-down helpers.
+- `Layout` uses Clerk's `signOut({ redirectUrl: "/" })` for logout.
+- **Backend (`server/auth.ts`)**: `setupClerkMiddleware` is a no-op; auth runs per-request inside `isAuthenticated`. That middleware extracts a token from `Authorization: Bearer …` or the `__session` cookie, verifies it via custom JWT validation against Clerk's JWKS (`verifyClerkJwt`, with a 1-hour key cache), then looks the user up by `clerk_id`. On first hit it fetches the user from Clerk's Admin API and calls `storage.upsertUserByClerkId(clerkUserId, email, name)`. The `users.clerk_id` column links Clerk identity to the local user row.
+
+### Environment variables
+- `VITE_CLERK_PUBLISHABLE_KEY` — Clerk frontend key (required)
+- `CLERK_SECRET_KEY` — Clerk backend key (required)
+- `VITE_SUPPORT_EMAIL` — support email shown in footers and lockout banners (optional, defaults to `support@firstthingsfirsttms.com`)
+- `DATABASE_URL` — PostgreSQL connection string (Replit DB)
 
 ### Key Design Conventions
 - `data-testid` attributes on all interactive and display elements
@@ -190,10 +254,4 @@ Preferred communication style: Simple, everyday language.
 
 ## Planned Work
 
-### Task #1 — Replace auth with Clerk (Draft)
-Replace custom auth with Clerk for Google/Apple social login. See `.local/tasks/clerk-auth.md` for full implementation plan.
-- Sign-up and sign-in remain web-browser only
-- `VITE_CLERK_PUBLISHABLE_KEY` (frontend) and `CLERK_SECRET_KEY` (backend) required
-- Uses `@clerk/react@latest` only
-- `<ClerkProvider>` wraps app in `main.tsx`
-- Uses `<Show when="signed-in/out">` — not the outdated `<SignedIn>/<SignedOut>` components
+Active project tasks live in `.local/tasks/`. Task #1 (replace custom auth with Clerk) is complete. Open work currently includes follow-ups around Clerk visual-regression checks (#19), pinning Clerk to exact versions (#20), and storage-helper test coverage for the lockout cool-down (#29).
