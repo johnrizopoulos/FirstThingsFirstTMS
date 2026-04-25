@@ -1,5 +1,3 @@
-export const SUPPORT_EMAIL = "support@firstthingsfirst.app";
-
 export type ClerkErrorEntry = {
   code?: string;
   message?: string;

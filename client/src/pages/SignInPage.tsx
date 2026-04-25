@@ -5,11 +5,11 @@ import { useTheme } from "@/contexts/theme";
 import { backdropUrlFor } from "@/lib/clerkAppearance";
 import AppHeader from "@/components/AppHeader";
 import {
-  SUPPORT_EMAIL,
   describeError,
   detectRateLimit,
   formatCountdown,
 } from "@/lib/clerkRateLimit";
+import { supportMailtoHref } from "@/lib/support";
 
 export default function SignInPage() {
   const { isLoaded: userLoaded, isSignedIn } = useUser();
@@ -141,7 +141,7 @@ export default function SignInPage() {
           </Link>
           , or{" "}
           <a
-            href={`mailto:${SUPPORT_EMAIL}?subject=Sign-in%20locked%20out`}
+            href={supportMailtoHref("Sign-in locked out")}
             className="underline text-primary hover:text-primary/80"
             data-testid="link-cooldown-support"
           >

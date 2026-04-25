@@ -4,11 +4,11 @@ import { useSignIn, useUser } from "@clerk/react";
 import { useTheme } from "@/contexts/theme";
 import { backdropUrlFor } from "@/lib/clerkAppearance";
 import {
-  SUPPORT_EMAIL,
   describeError,
   detectRateLimit,
   formatCountdown,
 } from "@/lib/clerkRateLimit";
+import { supportMailtoHref } from "@/lib/support";
 
 type Step = "request" | "verify";
 
@@ -198,7 +198,7 @@ export default function ResetPasswordPage() {
           </Link>
           , or{" "}
           <a
-            href={`mailto:${SUPPORT_EMAIL}?subject=Password%20reset%20locked%20out`}
+            href={supportMailtoHref("Password reset locked out")}
             className="underline text-primary hover:text-primary/80"
             data-testid="link-cooldown-support"
           >
