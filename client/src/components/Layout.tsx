@@ -106,7 +106,7 @@ export function Layout({ children, mobileHeaderContent }: { children: React.Reac
               [{theme === "terminal" ? "TERMINAL" : theme === "dark" ? "DARK" : "LIGHT"}]
             </span>
           </Button>
-          <UserButton afterSignOutUrl="/" />
+          <UserButton />
         </div>
       </header>
 
