@@ -284,6 +284,16 @@ export default function SignInPage() {
         >
           ← Back to home
         </Link>
+        <p className="text-xs uppercase tracking-widest text-primary/80 font-mono">
+          Need help?{" "}
+          <a
+            href={supportMailtoHref()}
+            className="underline underline-offset-2 hover:text-primary"
+            data-testid="link-contact-support-public"
+          >
+            Contact support
+          </a>
+        </p>
       </main>
     </div>
   );

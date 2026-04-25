@@ -3,6 +3,7 @@ import { Redirect, Link } from "wouter";
 import { useTheme } from "@/contexts/theme";
 import { backdropUrlFor } from "@/lib/clerkAppearance";
 import AppHeader from "@/components/AppHeader";
+import { supportMailtoHref } from "@/lib/support";
 
 export default function SignUpPage() {
   const { isSignedIn } = useUser();
@@ -44,6 +45,16 @@ export default function SignUpPage() {
         >
           ← Back to home
         </Link>
+        <p className="text-xs uppercase tracking-widest text-primary/80 font-mono">
+          Need help?{" "}
+          <a
+            href={supportMailtoHref()}
+            className="underline underline-offset-2 hover:text-primary"
+            data-testid="link-contact-support-public"
+          >
+            Contact support
+          </a>
+        </p>
       </main>
     </div>
   );
