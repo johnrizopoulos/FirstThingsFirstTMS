@@ -1,6 +1,56 @@
 import type { Milestone, Task, InsertMilestone, InsertTask } from "@shared/schema";
 import { trackedFetch } from "./onlineStatus";
 import { executeOrQueue, type OfflineOpName } from "./offlineQueue";
+import { queryClient } from "./queryClient";
+
+// =============================================================================
+// Cache-backed label lookup
+//
+// When a queued mutation only carries an entity id (complete/uncomplete/delete/
+// restore), we resolve a friendly title from the React Query cache so the
+// pending-changes panel can show "complete task: Buy milk" instead of the bare
+// op name. The resolved label is stashed on the QueuedOp so it survives a
+// cold reload that would otherwise leave the cache empty.
+// =============================================================================
+
+const TASK_CACHE_KEYS = [
+  "/api/tasks",
+  "/api/tasks/active",
+  "/api/tasks/focus",
+  "/api/tasks/completed",
+] as const;
+
+const MILESTONE_CACHE_KEYS = [
+  "/api/milestones",
+  "/api/milestones/active",
+  "/api/milestones/completed",
+] as const;
+
+function nonEmptyTitle(value: unknown): string | undefined {
+  return typeof value === "string" && value.length > 0 ? value : undefined;
+}
+
+function lookupTitleById(kind: "task" | "milestone", id: string): string | undefined {
+  const keys = kind === "task" ? TASK_CACHE_KEYS : MILESTONE_CACHE_KEYS;
+  for (const key of keys) {
+    const data = queryClient.getQueryData<unknown>([key]);
+    if (Array.isArray(data)) {
+      const match = (data as Array<{ id?: unknown; title?: unknown }>).find(
+        (item) => item && typeof item === "object" && item.id === id,
+      );
+      const title = nonEmptyTitle(match?.title);
+      if (title) return title;
+    } else if (data && typeof data === "object") {
+      // Single-object caches like /api/tasks/focus return one task or null.
+      const item = data as { id?: unknown; title?: unknown };
+      if (item.id === id) {
+        const title = nonEmptyTitle(item.title);
+        if (title) return title;
+      }
+    }
+  }
+  return undefined;
+}
 
 async function handleResponse(response: Response) {
   if (!response.ok) {
@@ -246,6 +296,7 @@ export async function createMilestone(milestone: Partial<InsertMilestone>): Prom
     [milestone],
     milestoneStub(milestone),
     () => rawCreateMilestone(milestone),
+    nonEmptyTitle(milestone.title),
   );
 }
 
@@ -255,6 +306,7 @@ export async function updateMilestone(id: string, updates: Partial<Milestone>): 
     [id, updates],
     milestoneStub({ id, ...(updates as Partial<InsertMilestone>) }, updates),
     () => rawUpdateMilestone(id, updates),
+    nonEmptyTitle(updates.title) ?? lookupTitleById("milestone", id),
   );
 }
 
@@ -264,6 +316,7 @@ export async function completeMilestone(id: string): Promise<Milestone> {
     [id],
     milestoneStub({ id }, { isCompleted: true, completedAt: new Date() }),
     () => rawCompleteMilestone(id),
+    lookupTitleById("milestone", id),
   );
 }
 
@@ -273,6 +326,7 @@ export async function uncompleteMilestone(id: string): Promise<Milestone> {
     [id],
     milestoneStub({ id }, { isCompleted: false, completedAt: null }),
     () => rawUncompleteMilestone(id),
+    lookupTitleById("milestone", id),
   );
 }
 
@@ -282,6 +336,7 @@ export async function deleteMilestone(id: string): Promise<null> {
     [id],
     null,
     () => rawDeleteMilestone(id),
+    lookupTitleById("milestone", id),
   );
 }
 
@@ -291,6 +346,7 @@ export async function createTask(task: Partial<InsertTask>): Promise<Task> {
     [task],
     taskStub(task),
     () => rawCreateTask(task),
+    nonEmptyTitle(task.title),
   );
 }
 
@@ -300,6 +356,7 @@ export async function updateTask(id: string, updates: Partial<Task>): Promise<Ta
     [id, updates],
     taskStub({ id, ...(updates as Partial<InsertTask>) }, updates),
     () => rawUpdateTask(id, updates),
+    nonEmptyTitle(updates.title) ?? lookupTitleById("task", id),
   );
 }
 
@@ -309,6 +366,7 @@ export async function completeTask(id: string): Promise<Task> {
     [id],
     taskStub({ id }, { isCompleted: true, completedAt: new Date() }),
     () => rawCompleteTask(id),
+    lookupTitleById("task", id),
   );
 }
 
@@ -318,6 +376,7 @@ export async function uncompleteTask(id: string): Promise<Task> {
     [id],
     taskStub({ id }, { isCompleted: false, completedAt: null }),
     () => rawUncompleteTask(id),
+    lookupTitleById("task", id),
   );
 }
 
@@ -327,6 +386,7 @@ export async function deleteTask(id: string): Promise<null> {
     [id],
     null,
     () => rawDeleteTask(id),
+    lookupTitleById("task", id),
   );
 }
 
@@ -362,6 +422,7 @@ export async function restoreTask(id: string): Promise<Task> {
     [id],
     taskStub({ id }, { isDeleted: false, deletedAt: null }),
     () => rawRestoreTask(id),
+    lookupTitleById("task", id),
   );
 }
 
@@ -371,5 +432,6 @@ export async function restoreMilestone(id: string): Promise<Milestone> {
     [id],
     milestoneStub({ id }, { isDeleted: false, deletedAt: null }),
     () => rawRestoreMilestone(id),
+    lookupTitleById("milestone", id),
   );
 }

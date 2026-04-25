@@ -119,6 +119,111 @@ describe("offlineQueue", () => {
       expect(snap[0].args).toEqual([{ title: "from-disk" }]);
     });
 
+    it("captures an optional label on the entry so the panel stays readable after a cold reload", () => {
+      const entry = enqueue("completeTask", ["task-123"], "Buy milk");
+      expect(entry.label).toBe("Buy milk");
+
+      const snap = getQueueSnapshot();
+      expect(snap).toHaveLength(1);
+      expect(snap[0].label).toBe("Buy milk");
+
+      const raw = storage.getItem("fft.offlineMutationQueue.v1");
+      expect(raw).not.toBeNull();
+      const parsed = JSON.parse(raw!);
+      expect(parsed[0].label).toBe("Buy milk");
+    });
+
+    it("does not store a label when the caller omits one (or passes empty)", () => {
+      const a = enqueue("completeTask", ["task-1"]);
+      const b = enqueue("completeTask", ["task-2"], "");
+      expect(a.label).toBeUndefined();
+      expect(b.label).toBeUndefined();
+
+      const persisted = JSON.parse(
+        storage.getItem("fft.offlineMutationQueue.v1")!,
+      );
+      expect(persisted[0]).not.toHaveProperty("label");
+      expect(persisted[1]).not.toHaveProperty("label");
+    });
+
+    it("loads legacy persisted entries that have no label field (backward compat)", () => {
+      // Simulate a queue persisted by an older version of the app — entries
+      // have no `label` field. They must still load cleanly.
+      storage.setItem(
+        "fft.offlineMutationQueue.v1",
+        JSON.stringify([
+          { id: "legacy", op: "completeTask", args: ["task-1"], enqueuedAt: 1 },
+        ]),
+      );
+      __resetOfflineQueueForTests();
+      storage.setItem(
+        "fft.offlineMutationQueue.v1",
+        JSON.stringify([
+          { id: "legacy", op: "completeTask", args: ["task-1"], enqueuedAt: 1 },
+        ]),
+      );
+
+      const snap = getQueueSnapshot();
+      expect(snap).toHaveLength(1);
+      expect(snap[0].id).toBe("legacy");
+      expect(snap[0].op).toBe("completeTask");
+      expect(snap[0].label).toBeUndefined();
+    });
+
+    it("preserves a previously persisted label across a reload", () => {
+      storage.setItem(
+        "fft.offlineMutationQueue.v1",
+        JSON.stringify([
+          {
+            id: "x",
+            op: "completeTask",
+            args: ["task-1"],
+            enqueuedAt: 1,
+            label: "Buy milk",
+          },
+        ]),
+      );
+      __resetOfflineQueueForTests();
+      storage.setItem(
+        "fft.offlineMutationQueue.v1",
+        JSON.stringify([
+          {
+            id: "x",
+            op: "completeTask",
+            args: ["task-1"],
+            enqueuedAt: 1,
+            label: "Buy milk",
+          },
+        ]),
+      );
+
+      const snap = getQueueSnapshot();
+      expect(snap[0].label).toBe("Buy milk");
+    });
+
+    it("drops a corrupted (non-string / empty) label on load instead of poisoning the panel", () => {
+      storage.setItem(
+        "fft.offlineMutationQueue.v1",
+        JSON.stringify([
+          { id: "a", op: "completeTask", args: ["t1"], enqueuedAt: 1, label: 42 },
+          { id: "b", op: "completeTask", args: ["t2"], enqueuedAt: 1, label: "" },
+        ]),
+      );
+      __resetOfflineQueueForTests();
+      storage.setItem(
+        "fft.offlineMutationQueue.v1",
+        JSON.stringify([
+          { id: "a", op: "completeTask", args: ["t1"], enqueuedAt: 1, label: 42 },
+          { id: "b", op: "completeTask", args: ["t2"], enqueuedAt: 1, label: "" },
+        ]),
+      );
+
+      const snap = getQueueSnapshot();
+      expect(snap).toHaveLength(2);
+      expect(snap[0].label).toBeUndefined();
+      expect(snap[1].label).toBeUndefined();
+    });
+
     it("removes the storage key once the queue is fully drained", async () => {
       registerHandlers({
         createTask: vi.fn().mockResolvedValue({ id: "t1" }),
@@ -346,6 +451,35 @@ describe("offlineQueue", () => {
         executeOrQueue("createTask", [{ title: "x" }], "stub", fn),
       ).rejects.toThrow("500: nope");
       expect(getQueueSize()).toBe(0);
+    });
+
+    it("passes the optional label through to the queued entry when offline", async () => {
+      reportNetworkError();
+      const fn = vi.fn().mockResolvedValue("real");
+      await executeOrQueue(
+        "completeTask",
+        ["task-1"],
+        "stub",
+        fn,
+        "Buy milk",
+      );
+      const snap = getQueueSnapshot();
+      expect(snap).toHaveLength(1);
+      expect(snap[0].label).toBe("Buy milk");
+    });
+
+    it("passes the label through when fetch throws a network-like error", async () => {
+      const fn = vi.fn().mockRejectedValue(new TypeError("Failed to fetch"));
+      await executeOrQueue(
+        "deleteTask",
+        ["task-9"],
+        null,
+        fn,
+        "Old chore",
+      );
+      const snap = getQueueSnapshot();
+      expect(snap).toHaveLength(1);
+      expect(snap[0].label).toBe("Old chore");
     });
   });
 

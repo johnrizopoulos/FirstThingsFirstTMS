@@ -97,6 +97,16 @@ function lookupTitleById(kind: "task" | "milestone", id: string): string | null 
 
 function describeQueuedOp(entry: QueuedOp): string {
   const label = friendlyOpName(entry.op);
+
+  // Prefer the title captured at enqueue time so the panel stays meaningful
+  // even after a cold reload empties the React Query cache (or when the queue
+  // is restored on a new device that never populated the cache in the first
+  // place). Older persisted entries without `label` fall through to the
+  // original cache-lookup logic below for backward compatibility.
+  if (typeof entry.label === "string" && entry.label.length > 0) {
+    return `${label}: ${entry.label}`;
+  }
+
   const args = entry.args as unknown[];
   const first = args[0];
 

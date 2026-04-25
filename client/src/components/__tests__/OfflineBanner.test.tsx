@@ -215,6 +215,48 @@ describe("OfflineBanner", () => {
     expect(screen.queryByTestId("panel-pending-changes")).toBeNull();
   });
 
+  it("prefers the stored label over the cache lookup so the panel reads correctly after a cold reload", () => {
+    // Simulate a cold reload: the React Query cache is empty (queryClient
+    // mock returns undefined) but the queued entry carries a label captured
+    // at enqueue time. The panel must surface the label, not a bare op name.
+    setNavigatorOnline(false);
+    setMockQueue([
+      {
+        id: "a",
+        op: "completeTask",
+        args: ["task-real-id"],
+        label: "Buy milk",
+      },
+    ]);
+    render(<OfflineBanner />);
+
+    act(() => {
+      screen.getByTestId("button-pending-changes").click();
+    });
+
+    const panel = screen.getByTestId("panel-pending-changes");
+    expect(panel.textContent).toContain("complete task: Buy milk");
+  });
+
+  it("falls back to the bare op name for legacy entries without a label when the cache is cold", () => {
+    // Older queued entries persisted before the label feature won't have a
+    // `label` field. With an empty cache they should still render without
+    // crashing — just without a friendly title.
+    setNavigatorOnline(false);
+    setMockQueue([
+      { id: "a", op: "completeTask", args: ["task-1"] },
+    ]);
+    render(<OfflineBanner />);
+
+    act(() => {
+      screen.getByTestId("button-pending-changes").click();
+    });
+
+    const panel = screen.getByTestId("panel-pending-changes");
+    expect(panel.textContent).toContain("complete task");
+    expect(panel.textContent).not.toContain(":");
+  });
+
   it("updates the pending count as queue events fire", () => {
     setNavigatorOnline(false);
     setMockQueue([{ id: "a", op: "createTask", args: [{ title: "Foo" }] }]);

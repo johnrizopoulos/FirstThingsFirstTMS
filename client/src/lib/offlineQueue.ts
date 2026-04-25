@@ -30,6 +30,14 @@ export interface QueuedOp {
   op: OfflineOpName;
   args: unknown[];
   enqueuedAt: number;
+  /**
+   * Optional human-readable title captured at enqueue time (e.g. the task's
+   * name). The pending-changes panel prefers this over a cache lookup so the
+   * label stays meaningful even after a cold reload empties the React Query
+   * cache. Older persisted entries without this field fall back to the
+   * cache-based lookup, so the field is optional and backward-compatible.
+   */
+  label?: string;
 }
 
 export type QueueEvent =
@@ -88,14 +96,31 @@ function loadFromStorage(): void {
     if (!raw) return;
     const parsed = JSON.parse(raw);
     if (Array.isArray(parsed)) {
-      queue = parsed.filter(
-        (e): e is QueuedOp =>
-          !!e &&
-          typeof e === "object" &&
-          typeof (e as QueuedOp).id === "string" &&
-          typeof (e as QueuedOp).op === "string" &&
-          Array.isArray((e as QueuedOp).args),
-      );
+      queue = parsed
+        .filter(
+          (e): e is QueuedOp =>
+            !!e &&
+            typeof e === "object" &&
+            typeof (e as QueuedOp).id === "string" &&
+            typeof (e as QueuedOp).op === "string" &&
+            Array.isArray((e as QueuedOp).args),
+        )
+        .map((e) => {
+          // Preserve the optional label only if it's a non-empty string so
+          // legacy entries (no label field) stay valid and a corrupted label
+          // can't poison the panel display.
+          const next: QueuedOp = {
+            id: e.id,
+            op: e.op,
+            args: e.args,
+            enqueuedAt: typeof e.enqueuedAt === "number" ? e.enqueuedAt : 0,
+          };
+          const rawLabel = (e as { label?: unknown }).label;
+          if (typeof rawLabel === "string" && rawLabel.length > 0) {
+            next.label = rawLabel;
+          }
+          return next;
+        });
     }
   } catch {
     // ignore corrupt queue — start fresh
@@ -207,7 +232,11 @@ function makeId(): string {
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
-export function enqueue(op: OfflineOpName, args: unknown[]): QueuedOp {
+export function enqueue(
+  op: OfflineOpName,
+  args: unknown[],
+  label?: string,
+): QueuedOp {
   loadFromStorage();
   const entry: QueuedOp = {
     id: makeId(),
@@ -215,6 +244,11 @@ export function enqueue(op: OfflineOpName, args: unknown[]): QueuedOp {
     args,
     enqueuedAt: Date.now(),
   };
+  // Only attach a label if the caller supplied a non-empty string so we don't
+  // persist a useless `label: undefined` / `label: ""` field.
+  if (typeof label === "string" && label.length > 0) {
+    entry.label = label;
+  }
   queue.push(entry);
   persist();
   emit({ type: "queued", op, size: queue.length });
@@ -577,16 +611,17 @@ export async function executeOrQueue<T>(
   args: unknown[],
   stub: T,
   fn: () => Promise<T>,
+  label?: string,
 ): Promise<T> {
   if (!isOnline()) {
-    enqueue(op, args);
+    enqueue(op, args, label);
     return stub;
   }
   try {
     return await fn();
   } catch (err) {
     if (isNetworkLikeError(err)) {
-      enqueue(op, args);
+      enqueue(op, args, label);
       return stub;
     }
     throw err;
