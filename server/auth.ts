@@ -11,6 +11,43 @@ declare global {
 
 const CLERK_SECRET_KEY = process.env.CLERK_SECRET_KEY || "";
 
+// Exact Clerk FAPI issuer for this deployment, e.g. https://your-app.clerk.accounts.dev
+// When set the JWT `iss` claim must match exactly. Strongly recommended in production.
+const CLERK_ISSUER = (process.env.CLERK_ISSUER || "").trim();
+
+// Comma-separated allowlist of frontend origins whose tokens/requests we trust,
+// e.g. https://myapp.replit.app,https://myapp.com
+// When empty, ALL cookie-backed requests are rejected (fail-closed CSRF protection).
+const CLERK_AUTHORIZED_PARTIES: string[] = (process.env.CLERK_AUTHORIZED_PARTIES || "")
+  .split(",")
+  .map(s => s.trim())
+  .filter(Boolean);
+
+const IS_PRODUCTION = process.env.NODE_ENV === "production";
+
+// Emit configuration warnings at module load time so operators notice immediately.
+// In production, missing CLERK_ISSUER is a fatal misconfiguration.
+if (!CLERK_ISSUER) {
+  if (IS_PRODUCTION) {
+    throw new Error(
+      "[auth] FATAL: CLERK_ISSUER must be set in production. " +
+      "Set it to your Clerk FAPI URL (e.g. https://your-app.clerk.accounts.dev)."
+    );
+  }
+  console.warn(
+    "[auth] WARNING: CLERK_ISSUER is not set. " +
+    "Set it to your Clerk FAPI URL (e.g. https://your-app.clerk.accounts.dev) " +
+    "to enable exact issuer pinning. This will be a fatal error in production."
+  );
+}
+if (CLERK_AUTHORIZED_PARTIES.length === 0) {
+  console.warn(
+    "[auth] WARNING: CLERK_AUTHORIZED_PARTIES is not set. " +
+    "All cookie-backed API requests will be rejected. " +
+    "Set it to the comma-separated list of allowed frontend origins."
+  );
+}
+
 // JWKS cache — refresh once per hour
 interface JwkKey {
   kid: string;
@@ -40,6 +77,7 @@ interface ClerkPayload {
   exp: number;
   nbf?: number;
   iss?: string;
+  azp?: string;
   [key: string]: unknown;
 }
 
@@ -63,9 +101,26 @@ async function verifyClerkJwt(token: string): Promise<ClerkPayload> {
   if (!payload.exp || now > payload.exp) throw new Error("Token expired");
   if (payload.nbf && now < payload.nbf) throw new Error("Token not yet valid");
 
-  // Validate issuer — must be a Clerk FAPI URL (https://...)
-  if (!payload.iss || !payload.iss.startsWith("https://")) {
+  // Validate issuer.
+  // When CLERK_ISSUER is configured: require an exact match (pin to this deployment's FAPI URL).
+  // Otherwise: require at minimum an https:// scheme (Clerk always uses HTTPS for FAPI).
+  if (!payload.iss) throw new Error("Missing iss claim");
+  if (CLERK_ISSUER) {
+    if (payload.iss !== CLERK_ISSUER) {
+      throw new Error(`Untrusted issuer: ${payload.iss}`);
+    }
+  } else if (!payload.iss.startsWith("https://")) {
     throw new Error("Invalid issuer");
+  }
+
+  // Validate authorized party (azp) against the allowlist when one is configured.
+  // Clerk sets azp to the frontend origin the token was issued for.
+  // This is the control Clerk's own documentation calls out for subdomain cookie leakage.
+  if (CLERK_AUTHORIZED_PARTIES.length > 0) {
+    if (!payload.azp) throw new Error("Missing azp claim — token has no authorized party");
+    if (!CLERK_AUTHORIZED_PARTIES.includes(payload.azp)) {
+      throw new Error(`Unauthorized party: ${payload.azp}`);
+    }
   }
 
   const keys = await fetchJwks();
@@ -94,16 +149,36 @@ async function verifyClerkJwt(token: string): Promise<ClerkPayload> {
   return payload;
 }
 
-function extractToken(req: Request): string | undefined {
+/**
+ * Returns the request origin extracted from the Origin header, or derived from
+ * the Referer header when Origin is absent (older browsers / some fetch polyfills).
+ */
+function requestOrigin(req: Request): string | undefined {
+  const origin = req.headers["origin"];
+  if (origin) return origin;
+
+  const referer = req.headers["referer"];
+  if (referer) {
+    try {
+      return new URL(referer).origin;
+    } catch {
+      return undefined;
+    }
+  }
+
+  return undefined;
+}
+
+function extractToken(req: Request): { token: string; fromCookie: boolean } | undefined {
   // Try Authorization: Bearer <token>
   const auth = req.headers.authorization;
-  if (auth?.startsWith("Bearer ")) return auth.slice(7);
+  if (auth?.startsWith("Bearer ")) return { token: auth.slice(7), fromCookie: false };
 
   // Fall back to __session cookie (set by @clerk/react in same-origin prod environments)
   const cookies = req.headers.cookie ?? "";
   for (const part of cookies.split(";")) {
     const [name, ...rest] = part.trim().split("=");
-    if (name === "__session") return rest.join("=");
+    if (name === "__session") return { token: rest.join("="), fromCookie: true };
   }
 
   return undefined;
@@ -114,8 +189,25 @@ export function setupClerkMiddleware(_app: Express) {
 }
 
 export async function isAuthenticated(req: Request, res: Response, next: NextFunction) {
-  const token = extractToken(req);
-  if (!token) return res.status(401).json({ message: "Unauthorized" });
+  const extracted = extractToken(req);
+  if (!extracted) return res.status(401).json({ message: "Unauthorized" });
+
+  const { token, fromCookie } = extracted;
+
+  // Cookie-backed requests carry no custom header that a cross-origin form/fetch cannot
+  // trivially replicate, so we enforce an Origin check before touching the JWT.
+  // Fail-closed: if CLERK_AUTHORIZED_PARTIES is not configured, cookie auth is disabled.
+  if (fromCookie) {
+    if (CLERK_AUTHORIZED_PARTIES.length === 0) {
+      return res.status(403).json({
+        message: "Forbidden: cookie-based auth is disabled until CLERK_AUTHORIZED_PARTIES is configured",
+      });
+    }
+    const origin = requestOrigin(req);
+    if (!origin || !CLERK_AUTHORIZED_PARTIES.includes(origin)) {
+      return res.status(403).json({ message: "Forbidden: origin not allowed" });
+    }
+  }
 
   try {
     const payload = await verifyClerkJwt(token);
