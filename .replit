@@ -11,10 +11,14 @@ VITE_SUPPORT_EMAIL = "support@firstthingsfirsttms.com"
 [userenv.production]
 VITE_CLERK_PUBLISHABLE_KEY = "pk_live_Y2xlcmsuZmlyc3R0aGluZ3NmaXJzdHRtcy5jb20k"
 CLERK_PUBLISHABLE_KEY = "pk_live_Y2xlcmsuZmlyc3R0aGluZ3NmaXJzdHRtcy5jb20k"
+CLERK_ISSUER = "https://clerk.firstthingsfirsttms.com"
+CLERK_AUTHORIZED_PARTIES = "https://firstthingsfirsttms.com,https://www.firstthingsfirsttms.com"
 
 [userenv.development]
 VITE_CLERK_PUBLISHABLE_KEY = "pk_test_ZmluZXItc3F1aWQtMzcuY2xlcmsuYWNjb3VudHMuZGV2JA"
 CLERK_PUBLISHABLE_KEY = "pk_test_ZmluZXItc3F1aWQtMzcuY2xlcmsuYWNjb3VudHMuZGV2JA"
+CLERK_ISSUER = "https://finer-squid-37.clerk.accounts.dev"
+CLERK_AUTHORIZED_PARTIES = "https://2279ef02-b439-4d4b-80a6-f6ae09744ec2-00-8sz4v1kqf1ys.kirk.replit.dev"
 
 [workflows]
 runButton = "Project"
