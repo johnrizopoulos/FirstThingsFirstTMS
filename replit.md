@@ -50,6 +50,13 @@ Preferred communication style: Simple, everyday language.
 
 ## Version 2.4 (April 25, 2026)
 
+### Production environment variables (auth + canonical host)
+Three production-only env vars guard the Clerk auth surface and pin traffic to the verified custom domain. Set them per-environment via the Secrets tab; values cannot live in `shared` because dev and prod differ.
+
+- `CLERK_ISSUER` — exact Clerk FAPI URL the JWT `iss` claim must match. Dev: `https://finer-squid-37.clerk.accounts.dev`. Prod: `https://clerk.firstthingsfirsttms.com`. **Fatal at boot in production if unset.**
+- `CLERK_AUTHORIZED_PARTIES` — comma-separated allowlist of frontend origins (no trailing slash) checked against both the request `Origin` header (CSRF gate for cookie auth) and the JWT `azp` claim. When unset, all cookie-backed API requests return 403. Dev: `https://<replit-dev-url>`. Prod: `https://firstthingsfirsttms.com,https://www.firstthingsfirsttms.com`.
+- `CANONICAL_HOST` — when set, the middleware in `server/app.ts` 308-redirects any non-matching host to `https://<CANONICAL_HOST><url>`, preserving path, query, and method. Skips `localhost`/`127.0.0.1`/`0.0.0.0` so internal health probes pass through. Production-only: `www.firstthingsfirsttms.com`. This is what forces traffic from `firstthingsfirsttms.replit.app` (the deployment URL surfaced in `getDeploymentInfo().additionalUrls`) and the apex `firstthingsfirsttms.com` onto the canonical `www.` host so cookie scope, `CLERK_AUTHORIZED_PARTIES` matching, and analytics stay consistent.
+
 ### Offline mutation queue
 - New `client/src/lib/offlineQueue.ts` — queues write operations attempted while `isOnline()` is false and replays them once connectivity returns. Backed by `localStorage` (key `fft.offlineMutationQueue.v1`) so queued changes survive a page reload, with safe fallbacks when storage is unavailable.
 - `client/src/lib/api.ts` mutation helpers (create/update/complete/uncomplete/delete/reorder/restore for tasks and milestones, plus cleanup/empty trash) now go through `executeOrQueue`. Offline → enqueue and return a typed stub so the UI doesn't see an error toast. Online → call the real endpoint; if `fetch` itself throws a network-like error, the call is queued and the stub is returned.

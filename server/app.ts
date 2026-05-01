@@ -19,6 +19,27 @@ export const app = express();
 // Trust proxy - required for secure cookies behind reverse proxy (production)
 app.set("trust proxy", 1);
 
+// Canonical host redirect.
+// When CANONICAL_HOST is set, any request whose host header doesn't match is
+// 308-redirected to https://<CANONICAL_HOST><url>. Used in production to force
+// traffic from the .replit.app deployment URL (and any other secondary domain)
+// onto the verified custom domain — this keeps cookie scope, Origin checks
+// (CLERK_AUTHORIZED_PARTIES) and analytics consistent. Unset in development.
+const CANONICAL_HOST = (process.env.CANONICAL_HOST || "").trim().toLowerCase();
+if (CANONICAL_HOST) {
+  app.use((req, res, next) => {
+    const host = req.hostname.toLowerCase();
+    // Skip loopback / health-check probes that target the container directly.
+    if (host === "localhost" || host === "127.0.0.1" || host === "0.0.0.0") {
+      return next();
+    }
+    if (host !== CANONICAL_HOST) {
+      return res.redirect(308, `https://${CANONICAL_HOST}${req.originalUrl}`);
+    }
+    next();
+  });
+}
+
 declare module 'http' {
   interface IncomingMessage {
     rawBody: unknown
