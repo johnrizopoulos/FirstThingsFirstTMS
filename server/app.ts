@@ -27,6 +27,16 @@ app.set("trust proxy", 1);
 // (CLERK_AUTHORIZED_PARTIES) and analytics consistent. Unset in development.
 const CANONICAL_HOST = (process.env.CANONICAL_HOST || "").trim().toLowerCase();
 if (CANONICAL_HOST) {
+  // Validate format: must be a bare host (optionally with port). No scheme,
+  // no path, no userinfo, no trailing dot. Bad values can cause redirect
+  // loops or build malformed Location headers.
+  const validHost = /^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)*(?::\d{1,5})?$/;
+  if (!validHost.test(CANONICAL_HOST)) {
+    throw new Error(
+      `[app] FATAL: CANONICAL_HOST must be a bare host (e.g. "www.example.com" or "example.com:8080"), ` +
+      `got "${process.env.CANONICAL_HOST}". Do not include scheme, path, or trailing slash.`
+    );
+  }
   app.use((req, res, next) => {
     const host = req.hostname.toLowerCase();
     // Skip loopback / health-check probes that target the container directly.
