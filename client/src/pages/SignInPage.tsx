@@ -6,12 +6,12 @@ import { backdropUrlFor } from "@/lib/clerkAppearance";
 import AppHeader from "@/components/AppHeader";
 import {
   clearCooldown,
-  describeError,
   detectRateLimit,
   formatCountdown,
   loadActiveCooldown,
   loadCooldown,
   persistCooldown,
+  sanitizeSignInError,
 } from "@/lib/clerkRateLimit";
 import { supportMailtoHref } from "@/lib/support";
 
@@ -22,7 +22,7 @@ export default function SignInPage() {
   const [, setLocation] = useLocation();
 
   const initialActive = useMemo(() => loadActiveCooldown("sign-in"), []);
-  const [email, setEmail] = useState(() => initialActive?.identifier ?? "");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [cooldownUntil, setCooldownUntil] = useState<number | null>(
@@ -80,7 +80,7 @@ export default function SignInPage() {
       setErrorMessage("");
       return true;
     }
-    setErrorMessage(describeError(error));
+    setErrorMessage(sanitizeSignInError(error));
     return false;
   };
 

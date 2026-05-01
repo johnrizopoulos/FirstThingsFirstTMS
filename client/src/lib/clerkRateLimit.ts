@@ -63,6 +63,43 @@ export function describeError(error: unknown): string {
   );
 }
 
+const ACCOUNT_ENUMERATION_CODES = new Set<string>([
+  "form_identifier_not_found",
+  "form_password_incorrect",
+  "form_password_not_enabled_for_user",
+  "form_identifier_exists",
+  "not_allowed_access",
+  "strategy_for_user_invalid",
+  "identification_deletion_failed",
+]);
+
+export function sanitizeSignInError(error: unknown): string {
+  const shape = asClerkError(error);
+  if (!shape) return "Something went wrong. Please try again.";
+  const entries = getErrorEntries(shape);
+  const code = (entries[0]?.code ?? shape.code ?? "").toLowerCase();
+  if (!code || ACCOUNT_ENUMERATION_CODES.has(code)) {
+    return "Invalid email or password.";
+  }
+  return "Something went wrong. Please try again.";
+}
+
+export function sanitizeResetPasswordError(_error: unknown): string {
+  return "Something went wrong. Please try again.";
+}
+
+const IDENTIFIER_NOT_FOUND_CODES = new Set<string>([
+  "form_identifier_not_found",
+]);
+
+export function isIdentifierNotFoundError(error: unknown): boolean {
+  const shape = asClerkError(error);
+  if (!shape) return false;
+  const entries = getErrorEntries(shape);
+  const code = (entries[0]?.code ?? shape.code ?? "").toLowerCase();
+  return IDENTIFIER_NOT_FOUND_CODES.has(code);
+}
+
 export function detectRateLimit(
   error: unknown,
 ): { limited: boolean; retryAfterSeconds: number } {
@@ -109,7 +146,6 @@ export function detectRateLimit(
 export type CooldownFlow = "sign-in" | "reset-password";
 
 export type StoredCooldown = {
-  identifier: string;
   until: number;
 };
 
@@ -119,12 +155,21 @@ function normalizeIdentifier(identifier: string): string {
   return identifier.trim().toLowerCase();
 }
 
+function hashIdentifier(identifier: string): string {
+  let h = 5381;
+  for (let i = 0; i < identifier.length; i++) {
+    h = ((h << 5) + h) ^ identifier.charCodeAt(i);
+    h = h >>> 0;
+  }
+  return h.toString(36);
+}
+
 function flowPrefix(flow: CooldownFlow): string {
   return `${COOLDOWN_STORAGE_PREFIX}${flow}:`;
 }
 
 function cooldownStorageKey(flow: CooldownFlow, identifier: string): string {
-  return `${flowPrefix(flow)}${identifier}`;
+  return `${flowPrefix(flow)}${hashIdentifier(identifier)}`;
 }
 
 function safeStorage(): Storage | null {
@@ -212,13 +257,12 @@ export function loadCooldown(
 export function loadActiveCooldown(flow: CooldownFlow): StoredCooldown | null {
   const storage = safeStorage();
   if (!storage) return null;
-  const prefix = flowPrefix(flow);
   let best: StoredCooldown | null = null;
   for (const key of collectFlowKeys(storage, flow)) {
     const until = readEntry(storage, key);
     if (until === null) continue;
     if (!best || until > best.until) {
-      best = { identifier: key.slice(prefix.length), until };
+      best = { until };
     }
   }
   return best;

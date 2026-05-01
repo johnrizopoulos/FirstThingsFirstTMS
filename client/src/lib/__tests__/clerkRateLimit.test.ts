@@ -1,5 +1,12 @@
 import { describe, it, expect } from "vitest";
-import { detectRateLimit, formatCountdown, describeError } from "../clerkRateLimit";
+import {
+  detectRateLimit,
+  formatCountdown,
+  describeError,
+  sanitizeSignInError,
+  sanitizeResetPasswordError,
+  isIdentifierNotFoundError,
+} from "../clerkRateLimit";
 
 const DEFAULT_COOLDOWN_SECONDS = 5 * 60;
 
@@ -274,5 +281,96 @@ describe("describeError", () => {
 
   it("returns generic fallback when no message can be found", () => {
     expect(describeError({})).toBe("Something went wrong. Please try again.");
+  });
+});
+
+describe("sanitizeSignInError", () => {
+  it("returns generic credential message for form_identifier_not_found", () => {
+    expect(
+      sanitizeSignInError({ errors: [{ code: "form_identifier_not_found", message: "Email not found" }] }),
+    ).toBe("Invalid email or password.");
+  });
+
+  it("returns generic credential message for form_password_incorrect", () => {
+    expect(
+      sanitizeSignInError({ errors: [{ code: "form_password_incorrect", message: "Bad password" }] }),
+    ).toBe("Invalid email or password.");
+  });
+
+  it("returns generic credential message for unknown enumeration codes", () => {
+    expect(
+      sanitizeSignInError({ errors: [{ code: "strategy_for_user_invalid", message: "x" }] }),
+    ).toBe("Invalid email or password.");
+  });
+
+  it("returns generic credential message when no code is present", () => {
+    expect(sanitizeSignInError({ errors: [{ message: "Some error" }] })).toBe(
+      "Invalid email or password.",
+    );
+  });
+
+  it("returns generic fallback for non-Clerk errors", () => {
+    expect(sanitizeSignInError(null)).toBe("Something went wrong. Please try again.");
+    expect(sanitizeSignInError(new Error("boom"))).toBe("Something went wrong. Please try again.");
+  });
+
+  it("does not expose raw Clerk message text", () => {
+    const clerkError = {
+      errors: [{ code: "form_identifier_not_found", longMessage: "The email address is not found." }],
+    };
+    expect(sanitizeSignInError(clerkError)).not.toContain("not found");
+    expect(sanitizeSignInError(clerkError)).not.toContain("email address");
+  });
+});
+
+describe("sanitizeResetPasswordError", () => {
+  it("always returns the generic error message regardless of error content", () => {
+    expect(sanitizeResetPasswordError(null)).toBe("Something went wrong. Please try again.");
+    expect(sanitizeResetPasswordError({ errors: [{ code: "form_identifier_not_found" }] })).toBe(
+      "Something went wrong. Please try again.",
+    );
+    expect(sanitizeResetPasswordError({ errors: [{ code: "form_password_incorrect" }] })).toBe(
+      "Something went wrong. Please try again.",
+    );
+    expect(sanitizeResetPasswordError(new Error("Network error"))).toBe(
+      "Something went wrong. Please try again.",
+    );
+  });
+});
+
+describe("isIdentifierNotFoundError", () => {
+  it("returns true for form_identifier_not_found in errors[]", () => {
+    expect(
+      isIdentifierNotFoundError({ errors: [{ code: "form_identifier_not_found" }] }),
+    ).toBe(true);
+  });
+
+  it("returns true for form_identifier_not_found at top level", () => {
+    expect(isIdentifierNotFoundError({ code: "form_identifier_not_found" })).toBe(true);
+  });
+
+  it("returns false for form_password_incorrect (wrong password, known account)", () => {
+    expect(
+      isIdentifierNotFoundError({ errors: [{ code: "form_password_incorrect" }] }),
+    ).toBe(false);
+  });
+
+  it("returns false for other Clerk error codes", () => {
+    expect(
+      isIdentifierNotFoundError({ errors: [{ code: "user_locked" }] }),
+    ).toBe(false);
+    expect(
+      isIdentifierNotFoundError({ errors: [{ code: "too_many_requests" }] }),
+    ).toBe(false);
+  });
+
+  it("returns false for null/undefined/non-object inputs", () => {
+    expect(isIdentifierNotFoundError(null)).toBe(false);
+    expect(isIdentifierNotFoundError(undefined)).toBe(false);
+    expect(isIdentifierNotFoundError("string")).toBe(false);
+  });
+
+  it("returns false for errors with no code", () => {
+    expect(isIdentifierNotFoundError({ errors: [{ message: "some error" }] })).toBe(false);
   });
 });

@@ -6,12 +6,13 @@ import AppHeader from "@/components/AppHeader";
 import { backdropUrlFor } from "@/lib/clerkAppearance";
 import {
   clearCooldown,
-  describeError,
   detectRateLimit,
   formatCountdown,
+  isIdentifierNotFoundError,
   loadActiveCooldown,
   loadCooldown,
   persistCooldown,
+  sanitizeResetPasswordError,
 } from "@/lib/clerkRateLimit";
 import { supportMailtoHref } from "@/lib/support";
 
@@ -25,7 +26,7 @@ export default function ResetPasswordPage() {
 
   const initialActive = useMemo(() => loadActiveCooldown("reset-password"), []);
   const [step, setStep] = useState<Step>("request");
-  const [email, setEmail] = useState(() => initialActive?.identifier ?? "");
+  const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -83,7 +84,7 @@ export default function ResetPasswordPage() {
       setErrorMessage("");
       return true;
     }
-    setErrorMessage(describeError(error));
+    setErrorMessage(sanitizeResetPasswordError(error));
     return false;
   };
 
@@ -108,6 +109,10 @@ export default function ResetPasswordPage() {
 
     const createResult = await signIn.create({ identifier: trimmedEmail });
     if (createResult.error) {
+      if (isIdentifierNotFoundError(createResult.error)) {
+        setStep("verify");
+        return;
+      }
       handleErrorResult(createResult.error);
       return;
     }
