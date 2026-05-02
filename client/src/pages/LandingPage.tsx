@@ -35,9 +35,9 @@ export default function LandingPage() {
       {/* Hero Section */}
       <section className="relative z-10 min-h-screen flex flex-col items-center justify-center px-4 py-16">
         <div className="max-w-4xl mx-auto text-center">
-          <div className="flex items-center justify-center gap-2 mb-6">
-            <div className="w-4 h-4 bg-primary animate-blink" />
-            <h1 className="text-2xl sm:text-4xl md:text-6xl lg:text-7xl font-bold tracking-wide md:tracking-widest">
+          <div className="flex items-center justify-center gap-1 sm:gap-2 mb-6">
+            <div className="w-3 h-3 sm:w-4 sm:h-4 bg-primary animate-blink shrink-0" />
+            <h1 className="text-xl sm:text-4xl md:text-6xl lg:text-7xl font-bold tracking-normal sm:tracking-wide md:tracking-widest break-all sm:break-normal">
               FIRST_THINGS_FIRST
             </h1>
           </div>
@@ -51,11 +51,11 @@ export default function LandingPage() {
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <SignInButton mode="modal">
-              <button className="inline-block border-2 border-primary bg-primary text-primary-foreground px-8 py-4 font-bold text-lg hover:bg-primary/80 transition-colors" data-testid="button-get-started">
+              <button className="inline-block border-2 border-primary bg-primary text-primary-foreground px-6 py-3 sm:px-8 sm:py-4 font-bold text-base sm:text-lg max-w-full hover:bg-primary/80 transition-colors" data-testid="button-get-started">
                 [ENTER] GET_STARTED
               </button>
             </SignInButton>
-            <a href="#features" className="inline-block border-2 border-primary bg-background text-primary px-8 py-4 font-bold text-lg hover:bg-primary/10 transition-colors">
+            <a href="#features" className="inline-block border-2 border-primary bg-background text-primary px-6 py-3 sm:px-8 sm:py-4 font-bold text-base sm:text-lg max-w-full hover:bg-primary/10 transition-colors">
               LEARN_MORE
             </a>
           </div>
@@ -90,7 +90,7 @@ export default function LandingPage() {
           
           <div className="text-center mt-12">
             <SignInButton mode="modal">
-              <button className="inline-block border-4 border-primary bg-primary text-primary-foreground px-12 py-5 font-bold text-xl hover:bg-primary/80 transition-colors" data-testid="button-start-now-1">
+              <button className="inline-block border-2 sm:border-4 border-primary bg-primary text-primary-foreground px-6 py-3 sm:px-12 sm:py-5 font-bold text-base sm:text-xl max-w-full hover:bg-primary/80 transition-colors" data-testid="button-start-now-1">
                 [ENTER] START_NOW
               </button>
             </SignInButton>
@@ -184,7 +184,7 @@ export default function LandingPage() {
           
           <div className="text-center mt-12">
             <SignInButton mode="modal">
-              <button className="inline-block border-4 border-primary bg-primary text-primary-foreground px-12 py-5 font-bold text-xl hover:bg-primary/80 transition-colors" data-testid="button-start-now-2">
+              <button className="inline-block border-2 sm:border-4 border-primary bg-primary text-primary-foreground px-6 py-3 sm:px-12 sm:py-5 font-bold text-base sm:text-xl max-w-full hover:bg-primary/80 transition-colors" data-testid="button-start-now-2">
                 [ENTER] START_NOW
               </button>
             </SignInButton>
@@ -264,7 +264,7 @@ export default function LandingPage() {
           
           <div className="text-center mt-12">
             <SignInButton mode="modal">
-              <button className="inline-block border-4 border-primary bg-primary text-primary-foreground px-12 py-5 font-bold text-xl hover:bg-primary/80 transition-colors" data-testid="button-start-now-3">
+              <button className="inline-block border-2 sm:border-4 border-primary bg-primary text-primary-foreground px-6 py-3 sm:px-12 sm:py-5 font-bold text-base sm:text-xl max-w-full hover:bg-primary/80 transition-colors" data-testid="button-start-now-3">
                 [ENTER] START_NOW
               </button>
             </SignInButton>
@@ -298,7 +298,7 @@ export default function LandingPage() {
           
           <div className="text-center mt-12">
             <SignInButton mode="modal">
-              <button className="inline-block border-4 border-primary bg-primary text-primary-foreground px-12 py-5 font-bold text-xl hover:bg-primary/80 transition-colors" data-testid="button-start-now-4">
+              <button className="inline-block border-2 sm:border-4 border-primary bg-primary text-primary-foreground px-6 py-3 sm:px-12 sm:py-5 font-bold text-base sm:text-xl max-w-full hover:bg-primary/80 transition-colors" data-testid="button-start-now-4">
                 [ENTER] START_NOW
               </button>
             </SignInButton>
@@ -321,7 +321,7 @@ export default function LandingPage() {
           </p>
           
           <SignInButton mode="modal">
-            <button className="inline-block border-4 border-primary bg-primary text-primary-foreground px-12 py-5 font-bold text-xl hover:bg-primary/80 transition-colors" data-testid="button-start-now-final">
+            <button className="inline-block border-2 sm:border-4 border-primary bg-primary text-primary-foreground px-6 py-3 sm:px-12 sm:py-5 font-bold text-base sm:text-xl max-w-full hover:bg-primary/80 transition-colors" data-testid="button-start-now-final">
               [ENTER] START_NOW
             </button>
           </SignInButton>
