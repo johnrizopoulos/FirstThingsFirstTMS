@@ -37,7 +37,7 @@ export default function LandingPage() {
         <div className="max-w-4xl mx-auto text-center">
           <div className="flex items-center justify-center gap-2 mb-6">
             <div className="w-4 h-4 bg-primary animate-blink" />
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-widest">
+            <h1 className="text-2xl sm:text-4xl md:text-6xl lg:text-7xl font-bold tracking-wide md:tracking-widest">
               FIRST_THINGS_FIRST
             </h1>
           </div>
@@ -60,7 +60,7 @@ export default function LandingPage() {
             </a>
           </div>
           
-          <div className="mt-12 text-2xl md:text-4xl opacity-70 italic max-w-3xl mx-auto text-justify">
+          <div className="mt-12 text-base sm:text-xl md:text-4xl opacity-70 italic max-w-3xl mx-auto text-left md:text-justify">
             <p>"It is not enough to do your best; you must know what to do, and then do your best"</p>
             <p className="mt-2">- <span className="font-bold">W. Edward Deming</span></p>
           </div>
@@ -94,7 +94,7 @@ export default function LandingPage() {
                 [ENTER] START_NOW
               </button>
             </SignInButton>
-            <div className="mt-6 text-2xl md:text-4xl opacity-70 italic max-w-3xl mx-auto text-justify">
+            <div className="mt-6 text-base sm:text-xl md:text-4xl opacity-70 italic max-w-3xl mx-auto text-left md:text-justify">
               <p>"There is nothing so useless as doing efficiently that which should not be done at all."</p>
               <p className="mt-2">- <span className="font-bold">Peter Drucker</span></p>
             </div>
@@ -188,7 +188,7 @@ export default function LandingPage() {
                 [ENTER] START_NOW
               </button>
             </SignInButton>
-            <div className="mt-6 text-2xl md:text-4xl opacity-70 italic max-w-3xl mx-auto text-justify">
+            <div className="mt-6 text-base sm:text-xl md:text-4xl opacity-70 italic max-w-3xl mx-auto text-left md:text-justify">
               <p>"Simplicity has a way of improving performance by enabling us to understand better what we are doing."</p>
               <p className="mt-2">— <span className="font-bold">Charlie Munger</span></p>
             </div>
@@ -205,7 +205,7 @@ export default function LandingPage() {
             Inspired by Bloomberg Terminal and IBM 3270 mainframes. Try our three themes:
           </p>
           
-          <div className="flex gap-4 justify-center mb-12">
+          <div className="flex flex-wrap gap-4 justify-center mb-12">
             <button
               onClick={() => setTheme("terminal")}
               className={`border-2 px-6 py-3 font-bold transition-all ${
@@ -268,7 +268,7 @@ export default function LandingPage() {
                 [ENTER] START_NOW
               </button>
             </SignInButton>
-            <div className="mt-6 text-2xl md:text-4xl opacity-70 italic max-w-3xl mx-auto text-justify">
+            <div className="mt-6 text-base sm:text-xl md:text-4xl opacity-70 italic max-w-3xl mx-auto text-left md:text-justify">
               <p>"Focusing on everything is synonymous with not focusing on anything."</p>
               <p className="mt-2">— <span className="font-bold">Eliyahu M. Goldratt</span></p>
             </div>
@@ -302,7 +302,7 @@ export default function LandingPage() {
                 [ENTER] START_NOW
               </button>
             </SignInButton>
-            <div className="mt-6 text-2xl md:text-4xl opacity-70 italic max-w-3xl mx-auto text-justify">
+            <div className="mt-6 text-base sm:text-xl md:text-4xl opacity-70 italic max-w-3xl mx-auto text-left md:text-justify">
               <p>"Multitasking doesn't work. It limits our potential."</p>
               <p className="mt-2">— <span className="font-bold">Charlie Munger</span></p>
             </div>
