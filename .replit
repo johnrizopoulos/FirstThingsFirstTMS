@@ -6,7 +6,6 @@ channel = "stable-25_05"
 [userenv]
 
 [userenv.shared]
-VITE_SUPPORT_EMAIL = "support@firstthingsfirsttms.com"
 
 [userenv.production]
 VITE_CLERK_PUBLISHABLE_KEY = "pk_live_Y2xlcmsuZmlyc3R0aGluZ3NmaXJzdHRtcy5jb20k"
