@@ -349,7 +349,7 @@ export default function LandingPage() {
             DESIGNED FOR MAXIMUM PRODUCTIVITY // INSPIRED BY BLOOMBERG TERMINAL & IBM 3270
           </p>
           <p className="text-xs opacity-50 mt-2">
-            BUILT WITH <a href="https://www.replit.com" target="_blank" rel="noopener noreferrer" className="underline hover:opacity-100">REPLIT</a> BY <a href="https://www.johnrizopoulos.com" target="_blank" rel="noopener noreferrer" className="underline hover:opacity-100">JOHN RIZOPOULOS</a>
+            BUILT WITH <a href="https://www.replit.com" target="_blank" rel="noopener noreferrer" className="underline hover:opacity-100">REPLIT</a> BY <a href="https://www.johnrizopoulos.com.au" target="_blank" rel="noopener noreferrer" className="underline hover:opacity-100">JOHN RIZOPOULOS</a>
           </p>
         </div>
       </footer>
