@@ -162,27 +162,75 @@
    Clerk modal theming overrides
    ============================================================ */
 
-/* Themed backdrop image behind the Clerk modal overlay.
-   --clerk-backdrop-url is set on :root by ClerkWithTheme based on the
-   active app theme so it swaps live with the theme toggle. */
-:root {
-  --clerk-backdrop-url: url("/clerk/backdrop-terminal.jpg");
-}
-
-.ftf-clerk-backdrop {
+/* Themed backdrop shared by the Clerk modal overlay AND the standalone
+   /sign-in, /sign-up, /reset-password pages. Pure CSS, derived entirely from
+   the active theme tokens (--background, --primary) so it swaps live with the
+   theme toggle without needing a separate asset per theme. Two layers stacked
+   on top of each other:
+     1. A 65% --background wash (top) — keeps the modal card readable.
+     2. An 8×8 grid of 1px --primary lines (bottom) — subtle terminal texture.
+   Two ASCII motifs are added as ::before / ::after so we never need a raster.
+   Note: positioning + z-index live on a separate rule below. The Clerk modal
+   variant needs z-100 (to clear the CRT overlay); the standalone-page variant
+   stays at the page-default z-index so the modal/form stays interactive. */
+.ftf-clerk-backdrop,
+.ftf-auth-page-backdrop {
+  background-color: hsl(var(--background)) !important;
   background-image:
     linear-gradient(hsl(var(--background) / 0.65), hsl(var(--background) / 0.65)),
-    var(--clerk-backdrop-url) !important;
-  background-size: cover !important;
-  background-position: center !important;
+    repeating-linear-gradient(
+      0deg,
+      hsl(var(--primary) / 0.22) 0 1px,
+      transparent 1px 12.5%
+    ),
+    repeating-linear-gradient(
+      90deg,
+      hsl(var(--primary) / 0.22) 0 1px,
+      transparent 1px 12.5%
+    ) !important;
+  background-size: 100% 100%, 100% 100%, 100% 100% !important;
   background-repeat: no-repeat !important;
+  background-position: center, center, center !important;
   backdrop-filter: blur(2px);
 }
 
-/* Make sure the Clerk modal sits above our fixed CRT overlay (z-50). */
-.ftf-clerk-backdrop,
-.ftf-clerk-modal-content {
+.ftf-clerk-backdrop::before,
+.ftf-clerk-backdrop::after,
+.ftf-auth-page-backdrop::before,
+.ftf-auth-page-backdrop::after {
+  position: absolute;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.75rem;
+  letter-spacing: 0.15em;
+  color: hsl(var(--primary) / 0.45);
+  text-transform: uppercase;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.ftf-clerk-backdrop::before,
+.ftf-auth-page-backdrop::before {
+  content: "> AUTH_READY";
+  top: clamp(1rem, 4vh, 2.25rem);
+  left: clamp(1rem, 4vw, 2.5rem);
+}
+
+.ftf-clerk-backdrop::after,
+.ftf-auth-page-backdrop::after {
+  content: "[FTF / 1.0.4]";
+  bottom: clamp(1rem, 4vh, 2.25rem);
+  right: clamp(1rem, 4vw, 2.5rem);
+}
+
+/* Make sure the Clerk modal sits above our fixed CRT overlay (z-50). The
+   backdrop and modal content are split (100 vs 101) so the modal card is
+   guaranteed to render above its backdrop regardless of Clerk's DOM order. */
+.ftf-clerk-backdrop {
   z-index: 100 !important;
+}
+
+.ftf-clerk-modal-content {
+  z-index: 101 !important;
 }
 
 /* Subtle scanline overlay on the modal card to match the app aesthetic. */

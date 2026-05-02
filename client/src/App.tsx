@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import { Switch, Route } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -8,7 +8,7 @@ import { ThemeProvider, useTheme } from "@/contexts/theme";
 import { OnboardingProvider } from "@/contexts/onboarding";
 import { ClerkProvider, Show, useUser } from "@clerk/react";
 import { ui as clerkUi } from "@clerk/ui";
-import { buildClerkAppearance, backdropUrlFor } from "@/lib/clerkAppearance";
+import { buildClerkAppearance } from "@/lib/clerkAppearance";
 import OfflineBanner from "@/components/OfflineBanner";
 import NotFound from "@/pages/not-found";
 import LandingPage from "@/pages/LandingPage";
@@ -28,14 +28,9 @@ function ClerkWithTheme({ children }: { children: React.ReactNode }) {
   const { theme } = useTheme();
   const appearance = useMemo(() => buildClerkAppearance(theme), [theme]);
 
-  // Expose backdrop URL to CSS so the Clerk modal overlay can use it
-  // without needing a dynamic Tailwind class (which Tailwind can't compile).
-  useEffect(() => {
-    document.documentElement.style.setProperty(
-      "--clerk-backdrop-url",
-      `url("${backdropUrlFor(theme)}")`,
-    );
-  }, [theme]);
+  // The auth-modal backdrop is now a pure-CSS layer keyed off --background /
+  // --primary (see `.ftf-clerk-backdrop` in client/src/index.css), so it tracks
+  // the active theme automatically without any per-theme JS plumbing.
 
   return (
     <ClerkProvider

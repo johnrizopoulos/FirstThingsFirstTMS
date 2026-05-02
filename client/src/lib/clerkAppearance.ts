@@ -1,25 +1,15 @@
 type Theme = "terminal" | "dark" | "light";
 
-// Logo + backdrop asset mapping per theme.
-// Note: "terminal" and "dark" intentionally share the same neon-green branding
-// assets — both themes have a dark background and the same brand language.
-// "light" gets its own dark-green / cream variants. If dark ever needs its own
-// distinct grayscale brand mark, add new files and split the maps below.
+// Logo asset mapping per theme. Terminal + dark share the same neon-green
+// wordmark — both have dark backgrounds. Light gets its own dark-green variant.
+// The auth-modal backdrop is no longer asset-driven: see `.ftf-clerk-backdrop`
+// in client/src/index.css for a pure-CSS backdrop derived from theme tokens
+// (so it tracks --background / --primary live without per-theme images).
 const logoForTheme: Record<Theme, string> = {
   terminal: "/clerk/logo-terminal.svg",
   dark: "/clerk/logo-terminal.svg",
   light: "/clerk/logo-light.svg",
 };
-
-const backdropForTheme: Record<Theme, string> = {
-  terminal: "/clerk/backdrop-terminal.jpg",
-  dark: "/clerk/backdrop-terminal.jpg",
-  light: "/clerk/backdrop-light.jpg",
-};
-
-export function backdropUrlFor(theme: Theme): string {
-  return backdropForTheme[theme];
-}
 
 export function buildClerkAppearance(theme: Theme) {
   const logoUrl = logoForTheme[theme];

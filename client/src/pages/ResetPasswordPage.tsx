@@ -1,9 +1,7 @@
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { Redirect, useLocation, Link } from "wouter";
 import { useSignIn, useUser } from "@clerk/react";
-import { useTheme } from "@/contexts/theme";
 import AppHeader from "@/components/AppHeader";
-import { backdropUrlFor } from "@/lib/clerkAppearance";
 import {
   clearCooldown,
   detectRateLimit,
@@ -21,7 +19,6 @@ type Step = "request" | "verify";
 export default function ResetPasswordPage() {
   const { isLoaded: userLoaded, isSignedIn } = useUser();
   const { signIn, fetchStatus } = useSignIn();
-  const { theme } = useTheme();
   const [, setLocation] = useLocation();
 
   const initialActive = useMemo(() => loadActiveCooldown("reset-password"), []);
@@ -92,7 +89,6 @@ export default function ResetPasswordPage() {
     return <Redirect to="/" />;
   }
 
-  const backdropUrl = backdropUrlFor(theme);
   const isBusy = fetchStatus === "fetching";
   const inputsLocked = isBusy || cooldownActive;
 
@@ -234,15 +230,7 @@ export default function ResetPasswordPage() {
       className="min-h-screen bg-background text-primary font-mono relative overflow-hidden"
       data-testid="page-reset-password"
     >
-      <div
-        className="absolute inset-0 z-0"
-        style={{
-          backgroundImage: `linear-gradient(hsl(var(--background) / 0.65), hsl(var(--background) / 0.65)), url("${backdropUrl}")`,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          backgroundRepeat: "no-repeat",
-        }}
-      />
+      <div className="ftf-auth-page-backdrop fixed inset-0 z-0 pointer-events-none" />
       <AppHeader />
       <div className="fixed inset-0 crt-overlay pointer-events-none z-50" />
       <main className="relative z-10 min-h-screen flex flex-col items-center justify-center px-4 py-24 gap-4">
