@@ -75,7 +75,7 @@ export default function LandingPage() {
             <div className="absolute bottom-0 left-0 w-4 h-4 border-b-4 border-l-4 border-primary" />
             <div className="absolute bottom-0 right-0 w-4 h-4 border-b-4 border-r-4 border-primary" />
             
-            <h2 className="text-2xl md:text-3xl font-bold mb-6 text-center">
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-6 text-center break-all sm:break-normal">
               &gt;&gt; THE_PROBLEM &lt;&lt;
             </h2>
             <p className="text-base md:text-lg mb-4 opacity-80">
@@ -104,7 +104,7 @@ export default function LandingPage() {
       {/* Features Section */}
       <section id="features" className="relative z-10 py-24 px-4 border-t-4 border-primary">
         <div className="max-w-6xl mx-auto">
-          <h2 className="text-3xl md:text-4xl font-bold mb-16 text-center">
+          <h2 className="text-xl sm:text-3xl md:text-4xl font-bold mb-16 text-center break-all sm:break-normal">
             &gt;&gt; CORE_FEATURES &lt;&lt;
           </h2>
           
@@ -198,7 +198,7 @@ export default function LandingPage() {
       {/* Terminal Aesthetic Section */}
       <section className="relative z-10 py-24 px-4 border-t-4 border-primary">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-8">
+          <h2 className="text-lg sm:text-3xl md:text-4xl font-bold mb-8 break-all sm:break-normal">
             &gt;&gt; TERMINAL_INSPIRED_DESIGN &lt;&lt;
           </h2>
           <p className="text-lg mb-8 opacity-80">
@@ -278,7 +278,7 @@ export default function LandingPage() {
       {/* Social Proof / Philosophy */}
       <section className="relative z-10 py-24 px-4 border-t-4 border-primary">
         <div className="max-w-3xl mx-auto text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-8">
+          <h2 className="text-xl sm:text-3xl md:text-4xl font-bold mb-8 break-all sm:break-normal">
             &gt;&gt; THE_PHILOSOPHY &lt;&lt;
           </h2>
           <div className="space-y-6 text-left text-base md:text-lg opacity-80">
@@ -312,7 +312,7 @@ export default function LandingPage() {
       {/* CTA Section */}
       <section className="relative z-10 py-24 px-4 border-t-4 border-primary">
         <div className="max-w-2xl mx-auto text-center">
-          <h2 className="text-3xl md:text-5xl font-bold mb-6">
+          <h2 className="text-2xl sm:text-3xl md:text-5xl font-bold mb-6 break-all sm:break-normal">
             READY_TO_FOCUS?
           </h2>
           <p className="text-lg mb-12 opacity-80">
